@@ -1,0 +1,123 @@
+@import './variables/colors';
+@import './variables/grid';
+@import './variables/container';
+@import './variables/fonts';
+
+*,
+:after,
+:before {
+  box-sizing: border-box;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-white);
+}
+
+html,
+body,
+#__nuxt {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+  font-size: calc(var(--global-font-size) * 1px);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-regular);
+  scroll-behavior: smooth;
+  -webkit-scroll-behavior: smooth;
+
+  ::selection {
+    background: var(--color-black);
+    color: var(--color-white);
+  }
+}
+
+main {
+  position: relative;
+  min-height: 100%;
+  height: 100%;
+}
+
+a {
+  color: inherit;
+  line-height: inherit;
+}
+
+button,
+button:hover,
+a,
+a:hover {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+}
+
+// DMMono font
+@font-face {
+  font-family: 'DM Mono';
+  font-weight: 400;
+  font-style: normal;
+  src: url('/fonts/DMMono/DMMono-Light.ttf');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-weight: 500;
+  font-style: normal;
+  src: url('/fonts/DMMono/DMMono-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-weight: 600;
+  font-style: normal;
+  src: url('/fonts/DMMono/DMMono-Medium.ttf');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-weight: 400;
+  font-style: italic;
+  src: url('/fonts/DMMono/DMMono-LightItalic.ttf');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-weight: 500;
+  font-style: italic;
+  src: url('/fonts/DMMono/DMMono-Italic.ttf');
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  font-weight: 600;
+  font-style: italic;
+  src: url('/fonts/DMMono/DMMono-MediumItalic.ttf');
+}
+
+// DM Serif Text font
+@font-face {
+  font-family: 'DM Serif Text';
+  font-weight: 700;
+  font-style: serif;
+  src: url('/fonts/DMSerifText/DMSerifText-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'DM Serif Text';
+  font-weight: 700;
+  font-style: italic;
+  src: url('/fonts/DMSerifText/DMSerifText-Italic.ttf');
+}

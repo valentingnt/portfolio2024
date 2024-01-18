@@ -1,0 +1,22 @@
+@import './_screens.scss';
+
+%container {
+  box-sizing: border-box;
+  max-width: calc(min(100% - var(--container-margin) * 2px, var(--container-max-width) * 1px));
+  margin-left: calc(var(--container-margin) * 1px);
+  margin-right: calc(var(--container-margin) * 1px);
+  width: 100%;
+  align-self: center;
+
+  @media screen and (min-width: $screen-tablet) {
+    margin-left: calc(var(--container-desktop-margin) * 1px);
+    margin-right: calc(var(--container-desktop-margin) * 1px);
+
+    max-width: calc(min(100% - var(--container-desktop-margin) * 2px, var(--container-max-width) * 1px));
+  }
+
+  @media screen and (min-width: (calc(var(--container-max-width) * 1px + var(--container-desktop-margin) * 2px))) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

@@ -1,0 +1,56 @@
+@use 'sass:math';
+@use 'sass:map';
+@use 'sass:string';
+
+$breakpoints: (
+  mobile: 640px,
+  tablet: 768px,
+  desktop: 1280px,
+  large: 1440px,
+);
+
+$screen-mobile: 640px;
+$screen-tablet: 768px;
+$screen-desktop: 1280px;
+$screen-large: 1440px;
+
+// Return the number without it's unit
+@function stripUnit($value) {
+  @return math.div($value, ($value * 0 + 1));
+}
+
+@mixin assignValueToMultipleProps($props, $value) {
+  @each $prop in $props {
+    #{$prop}: $value;
+  }
+}
+
+@mixin fluidProps($props, $minBp, $maxBp, $minValue, $maxValue) {
+  // Allow passing breakpoint key or a custom value
+  $minVw: if(map.has-key($breakpoints, $minBp), map.get($breakpoints, $minBp), $minBp);
+  $maxVw: if(map.has-key($breakpoints, $maxBp), map.get($breakpoints, $maxBp), $maxBp);
+
+  $u1: unit($minVw);
+  $u2: unit($maxVw);
+  $u3: unit($minValue);
+  $u4: unit($maxValue);
+
+  @if $u1 ==$u2 and $u1 ==$u3 and $u1 ==$u4 {
+    & {
+      @include assignValueToMultipleProps($props, $minValue);
+
+      @media screen and (min-width: $minVw) {
+        @include assignValueToMultipleProps($props,
+          calc(#{$minValue} + #{stripUnit($maxValue - $minValue)} * ((100vw - #{$minVw}) / #{stripUnit($maxVw - $minVw)})));
+      }
+
+      @media screen and (min-width: $maxVw) {
+        @include assignValueToMultipleProps($props, $maxValue);
+      }
+    }
+  }
+}
+
+@mixin fluidFontSize($minVw, $maxVw, $minValue, $maxValue) {
+  @include fluidProps(font-size, $minVw, $maxVw, $minValue, $maxValue);
+}

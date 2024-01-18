@@ -1,0 +1,9 @@
+:root {
+  --grid-columns: 8;
+  --grid-gap: 12px;
+
+  @media screen and (min-width: $screen-tablet) {
+    --grid-columns: 15;
+    --grid-gap: 16px;
+  }
+}
