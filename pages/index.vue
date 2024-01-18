@@ -119,7 +119,6 @@ const MOCK_DATA: HomePageData = {
 
       @media screen and (min-width: $screen-tablet) {
         display: block;
-        /* margin-top: 32px; */
         grid-column: 6 / -1;
       }
 
