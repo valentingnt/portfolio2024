@@ -15,7 +15,8 @@ defineProps<BigTitleProps>()
       <h2 class="subtitle">
         {{ subtitle }}
       </h2>
-      <svg class="separator" width="100%" height="1" viewBox="0 0 100% 1" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="separator" style="display: block;" width="100%" height="1" viewBox="0 0 100% 1" fill="none"
+        xmlns="http://www.w3.org/2000/svg">
         <line x1="0.5" y1="0.5" x2="100%" y2="0.5" stroke="var(--color-black)" />
       </svg>
     </div>
@@ -29,6 +30,14 @@ defineProps<BigTitleProps>()
 .BigTitle {
   display: flex;
   flex-direction: column;
+
+  .main-title {
+    @extend %text-h1;
+
+    @media screen and (min-width: $screen-tablet) {
+      font-size: 4.5vw;
+    }
+  }
 
   .subtitle-container {
     display: flex;
@@ -45,10 +54,5 @@ defineProps<BigTitleProps>()
       flex: 1 0 0;
     }
   }
-
-  .main-title {
-    @extend %text-h1;
-  }
-
 }
 </style>

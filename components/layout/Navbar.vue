@@ -14,29 +14,35 @@ defineProps<NavbarProps>()
   <nav class="Navbar">
     <div v-for="(link, index) in links" :key="link.text">
       <span v-if="index > 0" class="separator">~</span>
-      <NuxtLink :to="link.href" class="link">
-        <span class="title">[{{ link.text }}]</span>
-      </NuxtLink>
+      [<NuxtLink :to="link.href" class="link">
+        <span class="title">{{ link.text }}</span>
+      </NuxtLink>]
     </div>
   </nav>
 </template>
 
 <style scoped lang="scss">
 .Navbar {
-  /* TODO: put a %text-body for the navbar styles */
-  font-family: var(--font-family-dm-mono);
+  @extend %text-body;
+
+  pointer-events: none;
   font-weight: 600;
   font-style: italic;
   font-size: 12px;
-  color: var(--color-black);
-  /* end todo */
-
   display: inline-flex;
   justify-content: center;
   align-items: center;
   padding: 10px;
   gap: 12px;
   white-space: pre;
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 253, 249, 0.8);
+  border: 1.5px solid rgba(255, 253, 249, 0.8);
+  border-radius: 5px;
+  backdrop-filter: blur(6px);
 
   @media screen and (min-width: $screen-mobile) {
     gap: 18px;
@@ -44,16 +50,21 @@ defineProps<NavbarProps>()
 
   .separator {
     margin-right: 12px;
-    pointer-events: none;
 
     @media screen and (min-width: $screen-mobile) {
       margin-right: 18px;
     }
   }
 
-  .router-link-active .title {
+  .router-link-active,
+  .title {
+    pointer-events: auto;
+  }
+
+  .router-link-active {
     text-decoration: underline;
     text-underline-offset: 4px;
   }
+
 }
 </style>
