@@ -147,7 +147,7 @@ $backgroundSize: 250px;
     height: $backgroundSize;
     pointer-events: none;
     z-index: -1;
-    transform: translate3d(calc(var(--mouse-x) - #{$backgroundSize / 2}), calc(var(--mouse-y) - #{$backgroundSize / 2}), 0) scale(var(--scale));
+    transform: translate3d(calc(var(--mouse-x) - $backgroundSize / 2), calc(var(--mouse-y) - $backgroundSize / 2), 0) scale(var(--scale));
     transition: transform 0.7s cubic-bezier(0.33, 1, 0.68, 1);
 
     background-color: var(--color-black);

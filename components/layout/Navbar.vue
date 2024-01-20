@@ -43,6 +43,7 @@ defineProps<NavbarProps>()
   border: 1.5px solid rgba(255, 253, 249, 0.8);
   border-radius: 5px;
   backdrop-filter: blur(6px);
+  z-index: 10;
 
   @media screen and (min-width: $screen-mobile) {
     gap: 18px;
