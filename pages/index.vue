@@ -138,7 +138,7 @@ const starsURL = computed(() => !isMobile.value ? '/img/stars.svg' : '/img/stars
       margin-top: 24px;
 
       @media screen and (min-width: $screen-tablet) {
-        grid-column: 6 / -1;
+        grid-column: 6 / -2;
         grid-row: 2;
       }
     }
@@ -148,7 +148,7 @@ const starsURL = computed(() => !isMobile.value ? '/img/stars.svg' : '/img/stars
       grid-row: 4;
 
       @media screen and (min-width: $screen-tablet) {
-        grid-column: 6 / -1;
+        grid-column: 6 / -2;
         grid-row: 3;
       }
     }
@@ -164,7 +164,7 @@ const starsURL = computed(() => !isMobile.value ? '/img/stars.svg' : '/img/stars
 
       @media screen and (min-width: $screen-tablet) {
         grid-column: 2 / span 3;
-        grid-row: 3;
+        grid-row: 3 / span 2;
       }
     }
   }
