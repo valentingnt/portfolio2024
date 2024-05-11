@@ -51,13 +51,7 @@ const MOCK_DATA: LayoutData = {
 </script>
 
 <template>
-  <template>
-    <div>
-      <LayoutNavbar v-bind="MOCK_DATA.navbar" />
-
-      <NuxtPage />
-
-      <LayoutFooter v-bind="MOCK_DATA.footer" />
-    </div>
-  </template>
+  <main>
+    <NuxtPage />
+  </main>
 </template>

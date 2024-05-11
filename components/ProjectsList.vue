@@ -27,9 +27,10 @@ export interface ProjectsListProps extends ProjectsListData { }
 
 const { projects } = defineProps<ProjectsListProps>()
 
-const mousePosition = ref({ x: 0, y: 0 })
 const listHeaders = ref<HTMLElement | null>(null)
-const backgroundDiv = ref<HTMLElement | null>(null)
+const componentRef = ref<HTMLElement | null>(null)
+const cursorX = ref(0)
+const cursorY = ref(0)
 
 const slugifiedProjects = computed(() => {
   return projects.map(project => ({
@@ -39,28 +40,26 @@ const slugifiedProjects = computed(() => {
 })
 
 function updateBackground() {
-  if (!listHeaders.value || !backgroundDiv.value) return
-
-  backgroundDiv.value.style.setProperty('--mouse-x', `${mousePosition.value.x}px`)
-  backgroundDiv.value.style.setProperty('--mouse-y', `${mousePosition.value.y}px`)
-  backgroundDiv.value.style.setProperty('--scale', '1')
+  if (!componentRef.value) return
+  componentRef.value.style.setProperty('--mouse-x', `${cursorX.value}px`)
+  componentRef.value.style.setProperty('--mouse-y', `${cursorY.value}px`)
 }
 
-function updateMousePosition(event: MouseEvent) {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-  mousePosition.value = {
-    x: event.clientX - rect.left,
-    y: event.clientY - rect.top
-  }
+function updateCursorPosition(event: MouseEvent) {
+  if (!componentRef.value) return
+  const rect = componentRef.value.getBoundingClientRect();
+  cursorX.value = event.clientX - rect.left - 125;
+  cursorY.value = event.clientY - rect.top - 125;
 
   window.requestAnimationFrame(updateBackground)
 }
+
 </script>
 
 <template>
-  <div class="ProjectsList">
-    <div class="mouse-event-container" @mousemove.passive="updateMousePosition">
-      <div class="background" ref="backgroundDiv" />
+  <div class="ProjectsList" ref="componentRef" @mousemove.passive="updateCursorPosition">
+    <div class="background" ref="backgroundDiv" />
+    <div class="mouse-event-container">
       <svg style="display: block;" width="100%" height="1" viewBox="0 0 100% 1" fill="none"
         xmlns="http://www.w3.org/2000/svg">
         <line x1="0.5" y1="0.5" x2="100%" y2="0.5" stroke="var(--color-black)" />
@@ -147,11 +146,18 @@ $backgroundSize: 250px;
     height: $backgroundSize;
     pointer-events: none;
     z-index: -1;
-    transform: translate3d(calc(var(--mouse-x) - $backgroundSize / 2), calc(var(--mouse-y) - $backgroundSize / 2), 0) scale(var(--scale));
-    transition: transform 0.7s cubic-bezier(0.33, 1, 0.68, 1);
-
     background-color: var(--color-black);
     border-radius: 50%;
+
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+      transform: translate3d(var(--mouse-x), var(--mouse-y), 0);
+      transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    @media (hover: none) or (prefers-reduced-motion: reduce) {
+      display: none;
+      aria-hidden: none;
+    }
   }
 
   .list-headers {
@@ -167,20 +173,20 @@ $backgroundSize: 250px;
     @include gridStyles(4, 3, 1, 10px, 10px);
 
     white-space: pre;
-    transition-property: background-color color;
-    transition-duration: 0.15s;
-    transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
     background-color: var(--color-white);
     color: var(--color-black);
     backdrop-filter: blur(50px);
     --webkit-backdrop-filter: blur(50px);
+    transition-property: transform;
+    transition-duration: 0.2s;
+    transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
 
     @media screen and (max-width: $screen-mobile) {
       font-size: 2.5vw;
     }
 
     .list-item {
-      transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+      transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
     }
 
     @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -199,8 +205,11 @@ $backgroundSize: 250px;
     }
 
     &:active {
-      background-color: rgba(43, 43, 43, 0.5);
-      color: rgba(255, 253, 249, 0.5);
+      background-color: rgba(43, 43, 43, 0.65);
+      transform: scaleX(0.99);
+      transition-property: background-color transform;
+      transition-duration: 0.2s;
+      transition-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
 
       .list-item-name {
         transform: translateX(10px);

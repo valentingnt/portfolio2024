@@ -81,7 +81,10 @@ const starsURL = computed(() => !isMobile.value ? '/img/stars.svg' : '/img/stars
       <UiLink v-bind="MOCK_DATA.link" />
 
       <div class="stars-container">
-        <NuxtImg class="stars" :src="starsURL" />
+        <NuxtImg
+          class="stars"
+          :src="starsURL"
+        />
       </div>
 
       <ProjectsList v-bind="MOCK_DATA.projectsList" />
@@ -89,7 +92,6 @@ const starsURL = computed(() => !isMobile.value ? '/img/stars.svg' : '/img/stars
       <p class="text">
         {{ MOCK_DATA.text }}
       </p>
-
     </div>
   </div>
 </template>

@@ -51,6 +51,8 @@ const currentYear = new Date().getFullYear()
 
 <style scoped lang="scss">
 .Footer {
+  position: relative;
+  z-index: 1;
   background-color: var(--color-black);
   color: var(--color-white);
   display: flex;

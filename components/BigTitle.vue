@@ -28,15 +28,8 @@ defineProps<BigTitleProps>()
 
 <style scoped lang="scss">
 .BigTitle {
-  display: flex;
-  flex-direction: column;
-
   .main-title {
     @extend %text-h1;
-
-    @media screen and (min-width: $screen-tablet) {
-      font-size: 4.5vw;
-    }
   }
 
   .subtitle-container {

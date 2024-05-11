@@ -20,6 +20,7 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
+    "@splinetool/runtime": "^1.0.38",
     "sass": "^1.69.7"
   }
 }
