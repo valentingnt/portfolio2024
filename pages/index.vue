@@ -30,7 +30,7 @@ const MOCK_DATA: AboutPageContent = {
   sections: [
     {
       title: 'Who am I:',
-      content: 'Web developer for 5 years. Now at the top working with cutting-edge front-end related technology. I worked for 2 years for [@derniercri](https://derniercri.io) and now in freelance accompanied by [@studiowawww](https://wawww.studio) for biggest dreams. I love what I do and do it the right way. The stack I use differs depending on the project and needs, but I keep learning new things to build an internet as it should be.'
+      content: 'Web developer for 5 years. Working with cutting-edge front-end related technology, I worked for 2 years for [@derniercri](https://derniercri.io) and now in freelance accompanied by [@studiowawww](https://wawww.studio) for biggest dreams. I love what I do and do it the right way. The stack I use differs depending on the project and needs, but I keep learning new things to build an internet as it should be. With a deep understanding of modern web technologies and frameworks, I strive to create responsive, accessible, and performant web applications. My expertise includes proficiency in JavaScript frameworks, as well as a strong command of HTML, CSS, and related tools and libraries. I prioritize writing clean, maintainable code and adhere to industry best practices. I stay up-to-date with the latest trends and best practices in web development, ensuring that my work is not only visually appealing but also optimized for performance and accessibility'
     },
     {
       title: 'I worked for:',
@@ -52,16 +52,21 @@ const MOCK_DATA: AboutPageContent = {
       content: [
         'A computer',
         'Everything JS related (and more!)',
-        'A lot of coffee'
+        'A lot of coffee',
+        'Cutting-edge development tools and technologies',
+        'Agile methodologies and collaborative workflows'
       ]
     },
     {
       title: 'More about me:',
       content: [
-        'Live in Bordeaux',
-        'Practice volley-Ball',
-        'Watch netflix',
-        'Love coffee'
+        'Living in Bordeaux',
+        'Practicing volley-Ball',
+        'Continuously learning and exploring new technologies',
+        'Passionate about creating intuitive and delightful user experiences',
+        'Committed to writing clean, maintainable, and scalable code',
+        'Watching Netflix',
+        'Loving coffee',
       ]
     },
     {
@@ -307,6 +312,7 @@ watchScroll(onScroll)
 
 
         .list {
+          text-align: left;
           .list-item {
             list-style: '• ' inside;
             padding-left: 5px;
