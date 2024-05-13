@@ -23,3 +23,12 @@
   font-size: 12px;
   color: var(--color-black);
 }
+
+%link {
+  font-family: var(--font-family-dm-mono);
+  font-weight: 500;
+  font-style: normal;
+  font-size: 12px;
+  color: var(--color-black);
+  text-decoration: underline;
+}

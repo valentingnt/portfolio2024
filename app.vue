@@ -2,6 +2,8 @@
 import type { FooterData } from '~/components/layout/Footer.vue';
 import type { NavbarData } from '~/components/layout/Navbar.vue';
 
+import Lenis from 'lenis'
+
 interface LayoutData {
   navbar: NavbarData
   footer: FooterData
@@ -48,6 +50,24 @@ const MOCK_DATA: LayoutData = {
     },
   },
 }
+
+
+const lenis = ref<Lenis>()
+
+function raf(time: number) {
+  lenis.value?.raf(time)
+  window.requestAnimationFrame(raf)
+}
+
+onMounted(async () => {
+  lenis.value = new Lenis({ duration: 0.7 })
+
+  window.requestAnimationFrame(raf)
+})
+
+onUnmounted(() => {
+  lenis.value?.destroy()
+})
 </script>
 
 <template>
