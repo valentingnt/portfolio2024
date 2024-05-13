@@ -52,7 +52,8 @@ const MOCK_DATA: AboutPageContent = {
       title: 'I work with:',
       content: [
         'A computer',
-        'Everything JS related (and more!)'
+        'Everything JS related (and more!)',
+        'A lot of coffee'
       ]
     },
     {
@@ -71,7 +72,7 @@ const MOCK_DATA: AboutPageContent = {
   footer: {
     content: [
       'Paris / Bordeaux',
-      '© 2021 Valentin Genest - All rights reserved.'
+      '© 2024 Valentin Genest - All rights reserved.'
     ],
     links: [
       {
@@ -115,7 +116,7 @@ function parseMarkdown(content: string) {
 }
 
 function onScroll(scrollY: number) {
-  const value = scrollY * 0.1
+  const value = Math.max(scrollY * 0.1, 0)
 
   window.requestAnimationFrame(() => {
     mediaRef.value?.style.setProperty('--scrollY', `${value}px`)
