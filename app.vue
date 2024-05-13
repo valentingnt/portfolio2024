@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { FooterData } from '~/components/layout/Footer.vue';
-import type { NavbarData } from '~/components/layout/Navbar.vue';
+// import type { FooterData } from '~/components/layout/Footer.vue';
+// import type { NavbarData } from '~/components/layout/Navbar.vue';
 
 import Lenis from 'lenis'
 
