@@ -36,15 +36,14 @@ const MOCK_DATA: AboutPageContent = {
       title: 'I worked for:',
       content: [
         {
-          title: 'Maison Sablayrolles',
-          href: 'https://maisonsablayrolles.com'
+          title: 'Maison Sablayrolles (WIP)',
         },
         {
           title: 'Givenchy (NDA)',
         },
         {
           title: 'iad mobile',
-          href: 'https://www.iadfrance.fr/'
+          href: 'https://derniercri.io/clients/iad'
         },
       ]
     },
