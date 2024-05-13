@@ -112,7 +112,7 @@ function downloadResume() {
 
 function parseMarkdown(content: string) {
   return content.
-    replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="link">$1</a>')
+    replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="link" target="_blank" rel="noopener noreferrer"> $1 < /a>')
 }
 
 function onScroll(scrollY: number) {
