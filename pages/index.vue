@@ -30,7 +30,7 @@ const MOCK_DATA: AboutPageContent = {
   sections: [
     {
       title: 'Who am I:',
-      content: 'Web developer for 5 years. Started from the bottom with wordpress, now at the top working with cutting-edge front-end related technology. I worked for 2 years for [@derniercri](https://derniercri.io) and now in freelance accompanied by [@studiowawww](https://wawww.studio) for biggest dreams. I love what I do and do it the right way. The stack I use differs depending on the project and needs, but I keep learning new things to build an internet as it should be.'
+      content: 'Web developer for 5 years. Now at the top working with cutting-edge front-end related technology. I worked for 2 years for [@derniercri](https://derniercri.io) and now in freelance accompanied by [@studiowawww](https://wawww.studio) for biggest dreams. I love what I do and do it the right way. The stack I use differs depending on the project and needs, but I keep learning new things to build an internet as it should be.'
     },
     {
       title: 'I worked for:',
