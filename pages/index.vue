@@ -1,175 +1,439 @@
 <script setup lang="ts">
-import type { ProjectsListData } from '~/components/ProjectsList.vue';
-import type { BigTitleData } from '~/components/BigTitle.vue';
-import type { LinkData } from '~/components/ui/Link.vue';
+interface AboutPageData { }
 
-interface HomePageData {
-  bigTitle: BigTitleData
-  link: LinkData
-  text: string
-  projectsList: ProjectsListData
-}
+interface AboutPageProps extends AboutPageData { }
 
-interface HomePageProps extends HomePageData { }
+defineProps<AboutPageProps>()
 
-defineProps<HomePageProps>()
-
-const MOCK_DATA: HomePageData = {
-  bigTitle: {
-    title: 'Développeur créatif.',
-    subtitle: 'Valentin Genest'
-  },
-  link: {
-    text: 'Contactez-moi',
-  },
-  text: "Je suis un individu qui a été décrit par certaines personnes comme étant quelqu'un qui n'attire pas spécialement l'attention. On dit de moi que ma simplicité est remarquable, ce qui ne me distingue guère des autres. Mon caractère est essentiellement basique, sans traits inhabituels ou distinctifs particuliers. Je mène une existence modeste, dépourvue d'extravagance ou de singularité apparente. Ma personnalité s'accorde harmonieusement avec les attentes générales, sans susciter d'opinions fortes. Ma banalité est telle que je me fonds aisément dans le paysage quotidien, sans laisser une empreinte mémorable ou provoquer des réactions intenses de la part des autres. Je suis perçu comme un individu tout à fait ordinaire, me fondant discrètement dans la norme sociale sans chercher à attirer l'attention. Mon existence s'écoule dans une routine discrète, rythmée par des activités ordinaires et des interactions sans éclat. Je ne suis ni une source d'inspiration ni une figure marquante. Ma modestie est si prononcée que je me confonds aisément avec la masse, sans jamais revendiquer une place particulière. Mon chemin se dessine sur les sentiers battus, sans dévier vers des horizons audacieux ou extravagants. Je suis simplement là, anonyme parmi tant d'autres, observant le monde qui m'entoure sans y laisser une empreinte indélébile. Mon quotidien se déploie dans une routine paisible, privilégiant la familiarité plutôt que les aventures audacieuses. Mes goûts et mes intérêts reflètent cette neutralité, favorisant les plaisirs simples et les activités conventionnelles. Je trouve satisfaction dans les petites joies de la vie ordinaire, les conversations ordinaires et les moments sans prétention. Mon existence se nourrit de la routine rassurante, où le confort de la prévisibilité l'emporte sur l'excitation de l'inconnu. Les événements qui ponctuent ma vie sont modestes, se déroulant dans les limites de l'ordinaire et ne s'aventurant que rarement vers des expériences exceptionnelles. Ainsi, je suis moi, un être qui évolue dans la sobriété, où la simplicité règne en maître. Je suis le témoin discret des jours qui s'écoulent, sans chercher à troubler l'ordre établi. Ma banalité est ma force tranquille, me préservant des tumultes de l'extraordinaire. Je suis le calme au milieu de la tempête, l'équilibre au sein de la frénésie. Ma vie peut sembler dépourvue de couleurs vives, mais c'est dans cette palette de nuances neutres que je trouve mon épanouissement. Je suis moi, l'antithèse de l'exubérance, un être qui embrasse avec sérénité la normalité. Les feux des projecteurs ne m'enivrent pas, car je préfère savourer la quiétude des instants modestes. Je suis l'artisan humble qui façonne sa destinée dans les silences ordinaires. Je trouve la beauté dans l'ordinaire, dans les détails discrets qui échappent aux regards superficiels. Ainsi, je poursuis ma route, humble parmi les humbles, sans chercher à briller mais à être en phase avec le monde qui m'entoure. Je suis moi, un individu qui trouve la plénitude dans l'authenticité de ma simplicité.",
-  projectsList: {
-    projects: [
-      {
-        name: 'E-commerce Website',
-        type: ['Development', 'Design'],
-        year: '2022',
-      },
-      {
-        name: 'Mobile App',
-        type: ['Development', 'UX/UI'],
-        year: '2023',
-      },
-      {
-        name: 'Marketing Campaign',
-        type: ['Development', 'Marketing'],
-        year: '2024',
-      },
-      {
-        name: 'Logo Redesign',
-        type: ['Design', 'UX/UI'],
-        year: '2022',
-      },
-      {
-        name: 'Social Media Strategy',
-        type: ['Development', 'Marketing'],
-        year: '2023',
-      },
-      {
-        name: 'UI Design',
-        type: ['Design', 'UX/UI'],
-        year: '2024',
-      },
-      {
-        name: 'Website Redesign',
-        type: ['Development', 'Marketing'],
-        year: '2022',
-      },
-      {
-        name: 'Brand Identity',
-        type: ['Design', 'UX/UI'],
-        year: '2023',
-      },
-    ]
+type AboutPageContent = {
+  header: {
+    title: string
+    subtitle: string
+  }
+  sections: {
+    title?: string
+    content: string | string[] | { title: string, href?: string }[]
+  }[],
+  footer: {
+    content: string[]
+    links: {
+      title: string, url?: string, onClick?: () => void
+    }[]
   }
 }
 
-const { isMobile } = useBreakpoints()
+const MOCK_DATA: AboutPageContent = {
+  header: {
+    title: 'Valentin Genest',
+    subtitle: 'Welcome to the official website of'
+  },
+  sections: [
+    {
+      title: 'Who am I:',
+      content: 'Web developer for 5 years. Started from the bottom with wordpress, now at the top working with cutting-edge front-end related technology. I worked for 2 years for [@derniercri](https://derniercri.io) and now in freelance accompanied by [@studiowawww](https://wawww.studio) for biggest dreams. I love what I do and do it the right way. The stack I use differs depending on the project and needs, but I keep learning new things to build an internet as it should be.'
+    },
+    {
+      title: 'I worked for:',
+      content: [
+        {
+          title: 'Maison Sablayrolles',
+          href: 'https://maisonsablayrolles.com'
+        },
+        {
+          title: 'Givenchy (NDA)',
+        },
+        {
+          title: 'iad mobile',
+          href: 'https://www.iadfrance.fr/'
+        },
+      ]
+    },
+    {
+      title: 'I work with:',
+      content: [
+        'A computer',
+        'Everything JS related (and more!)'
+      ]
+    },
+    {
+      title: 'More about me:',
+      content: [
+        'Live in Bordeaux',
+        'Practice volley-Ball',
+        'Watch netflix',
+        'Love coffee'
+      ]
+    },
+    {
+      content: 'Comme un lundi: frais dans la matinée, soleil l’après-midi, la recette des sports d’hiver réussis.'
+    }
+  ],
+  footer: {
+    content: [
+      'Paris / Bordeaux',
+      '© 2021 Valentin Genest - All rights reserved.'
+    ],
+    links: [
+      {
+        title: 'linkedin',
+        url: 'https://www.linkedin.com/valentin-genest'
+      },
+      {
+        title: 'github',
+        url: 'https://github.com/valentingnt'
+      },
+      {
+        title: 'malt',
+        url: 'https://www.malt.fr/profile/valentingenest'
+      },
+      {
+        title: 'threads',
+        url: 'https://threads.net/nulentin'
+      }
+    ],
+  }
+}
 
-const starsURL = computed(() => !isMobile.value ? '/img/stars.svg' : '/img/stars_mobile.svg')
+const mediaRef = ref<HTMLElement>()
+const mail = ref<string>('mail')
+const {width} = useOnWindowResize()
+
+function copyMail() {
+  navigator.clipboard.writeText('valentin64.genest@gmail.com')
+  mail.value = 'copied!'
+  
+  setTimeout(() => mail.value = 'mail', 2000)
+}
+
+function downloadResume() {
+  window.open('/CV2024_Valentin_Genest.pdf', '_blank')
+}
+
+function parseMarkdown(content: string) {
+  return content.
+    replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="link">$1</a>')
+}
+
+function onScroll(scrollY: number) {
+  const value = scrollY * 0.1
+
+  window.requestAnimationFrame(() => {
+    mediaRef.value?.style.setProperty('--scrollY', `${value}px`)
+  })
+}
+
+watchScroll(onScroll)
 </script>
 
 <template>
-  <div class="HomePage">
+  <div class="AboutPage">
     <div class="container">
-      <BigTitle v-bind="MOCK_DATA.bigTitle" />
-      <UiLink v-bind="MOCK_DATA.link" />
-
-      <div class="stars-container">
-        <NuxtImg
-          class="stars"
-          :src="starsURL"
+      {{ console.log(width) }}
+      <div class="content">
+        <BigTitle
+          :title="MOCK_DATA.header.title"
+          :subtitle="MOCK_DATA.header.subtitle"
         />
+
+        <div
+          ref="mediaRef"
+          class="media-container"
+        >
+          <NuxtImg 
+            src="/img/moi.jpeg"
+            alt="Valentin Genest"
+            class="media"
+          />
+        </div>
+
+        <div
+          v-for="(section, index) in MOCK_DATA.sections"
+          :key="index"
+          class="sections"
+        >
+          <h3
+            v-if="section.title"
+            class="title"
+          >
+            {{ section.title }}
+          </h3>
+          <span v-if="Array.isArray(section.content)">
+            <ul class="list">
+              <li
+                v-for="(item, index) in section.content"
+                :key="index"
+                class="list-item"
+              >
+                <NuxtLink
+                  v-if="typeof item === 'object'"
+                  :to="item.href"
+                  :class="item.href ? 'link' : 'link-disabled'"
+                >
+                  {{ item.title }}
+                </NuxtLink>
+                <span v-else>{{ item }}</span>
+              </li>
+            </ul>
+          </span>
+          <div
+            v-else
+            :class="section.title ? null : 'quote'"
+            v-html="parseMarkdown(section.content)"
+          />
+        </div>
+        <div class="button-container">
+          <button
+            class="button"
+            type="button"
+            @click="downloadResume"
+          >
+            <NuxtImg
+              src="/img/dl.svg"
+              alt="Download"
+              width="12"
+              height="15"
+              class="icon"
+            />
+            Download my resume <span class="pdfSize">(1.80 Mo)</span>
+          </button>
+        </div>
+        
+        <svg
+          class="separator"
+          width="100%"
+          height="1"
+          viewBox="0 0 100% 1"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          data-v-77c8d1ae=""
+        ><line
+          x1="0.5"
+          y1="0.5"
+          x2="100%"
+          y2="0.5"
+          stroke="var(--color-black)"
+          data-v-77c8d1ae=""
+        />
+        </svg>
+
+        <footer class="footer">
+          <span
+            v-for="(content, index) in MOCK_DATA.footer.content"
+            :key="index"
+          >
+            {{ content }}
+          </span>
+          <div class="links">
+            <span
+              class="link-title"
+              :style="{ cursor: 'pointer' }"
+              @click="copyMail"
+            >
+              {{ mail }}
+            </span>
+            <p class="link-separator">
+              ~
+            </p>
+            <div
+              v-for="(link, index) in MOCK_DATA.footer.links"
+              :key="index"
+              class="link"
+            >
+              <NuxtLink
+                :to="link.url"
+                class="link-title"
+              >
+                {{ link.title }}
+              </NuxtLink>
+              <p
+                v-if="index !== MOCK_DATA.footer.links.length - 1"
+                class="link-separator"
+              >
+                ~
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
-
-      <ProjectsList v-bind="MOCK_DATA.projectsList" />
-
-      <p class="text">
-        {{ MOCK_DATA.text }}
-      </p>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.HomePage {
+.AboutPage {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 
   .container {
-    @extend %grid;
-    @extend %container;
+    max-width: 480px;
+    align-self: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 32px 16px;
 
-    margin-top: 96px;
-    row-gap: 16px;
-
-    @media screen and (min-width: $screen-tablet) {
-      row-gap: 32px;
-    }
-
-    .BigTitle {
-      grid-column: 1 / -1;
-      grid-row: 1;
-
-      @media screen and (min-width: $screen-tablet) {
-        grid-column: 2 / span 4;
-      }
-    }
-
-    .Link {
-      grid-column: 1 / span 3;
-      grid-row: 2;
-
-      @media screen and (min-width: $screen-tablet) {
-        grid-column: 2 / span 3;
-        align-self: center;
-      }
-    }
-
-    .stars-container {
-      grid-column: 1 / -1;
-      grid-row: 3;
-      overflow: hidden;
-      margin-top: 24px;
-
-      @media screen and (min-width: $screen-tablet) {
-        grid-column: 6 / -2;
-        grid-row: 2;
-      }
-    }
-
-    .ProjectsList {
-      grid-column: 1 / -1;
-      grid-row: 4;
-
-      @media screen and (min-width: $screen-tablet) {
-        grid-column: 6 / -2;
-        grid-row: 3;
-      }
-    }
-
-    .text {
+    .content {
       @extend %text-body;
 
-      grid-column: 1 / -1;
-      grid-row: 5;
       text-align: justify;
-      font-size: 7px;
-      font-style: italic;
 
-      @media screen and (min-width: $screen-tablet) {
-        grid-column: 2 / span 3;
-        grid-row: 3 / span 2;
+      .media-container {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        margin-top: 64px;
+        aspect-ratio: 1.618 / 1;
+
+        .media {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          transform: translateY(var(--scrollY));
+        }
+      }
+
+      .sections {
+        margin-top: 40px;
+
+        .title {
+          @extend %text-h2;
+
+          margin-bottom: 20px;
+        }
+
+
+
+        .list {
+          .list-item {
+            list-style: '• ' inside;
+            padding-left: 5px;
+            
+            .link {
+              @extend %link;
+
+              transition: padding-left cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+
+              &:hover {
+                padding-left: 8px;
+              }
+            }
+
+            .link-disabled {
+              cursor: auto;
+            }
+          }
+        }
+
+        .quote {
+          font-style: italic;
+          position: relative;
+          padding: 0 40px;
+
+          &::before {
+            content: '“';
+            position: absolute;
+            font-family: "DM Serif Text";
+            line-height: 0;
+            font-size: 56px;
+            top: 12px;
+            left: 0px;
+            color: var(--color-black);
+          }
+
+          &::after {
+            content: '”';
+            position: absolute;
+            font-family: "DM Serif Text";
+            line-height: 0;
+            font-size: 56px;
+            bottom: -12px;
+            right: 0;
+            color: var(--color-black);
+          }
+        }
+      }
+
+      .button-container{
+        display: flex;
+        justify-content: center;
+
+        .button {
+          @extend %text-body;
+
+          color: var(--color-black);
+          font-weight: 600;
+          margin-top: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 60px;
+          border: 1px solid var(--color-black);
+          background: var(--color-white);
+          box-shadow: 1px 1px 0px 0px var(--color-black);
+          padding: 8px 16px;
+          cursor: pointer;
+          transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s, box-shadow cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+
+          .icon {
+            margin-right: 10px;
+            transition: filter 0.3s;
+          }
+
+          .pdfSize {
+            font-size: 8px;
+            font-style: italic;
+            margin-left: 8px;
+          }
+
+          @media (hover: hover) {
+            &:hover {
+              transform: translate(-2px, -2px);
+              box-shadow: 3px 3px 0px 0px var(--color-black);
+            }
+          }
+
+
+          &:active {
+            transform: translate(0, 0);
+            box-shadow: 0px 0px 0px 0px var(--color-black);
+          }
+        }
+      }
+
+      .separator {
+        margin: 64px 0 48px 0;
+      }
+
+      .footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+
+        .links {
+          display: flex;
+          gap: 8px;
+
+          .link {
+            display: flex;
+            gap: 8px;
+          }
+          
+          .link-title {
+            @extend %link;
+
+            transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+
+            &:hover {
+              transform: translateY(-2px);
+            }
+          }
+        }
       }
     }
   }
-
 }
 </style>
