@@ -168,6 +168,7 @@ watchScroll(onScroll)
                   v-if="typeof item === 'object'"
                   :to="item.href"
                   :class="item.href ? 'link' : 'link-disabled'"
+                  target="_blank"
                 >
                   {{ item.title }}
                 </NuxtLink>
