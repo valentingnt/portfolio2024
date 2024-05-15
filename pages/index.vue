@@ -65,8 +65,8 @@ const MOCK_DATA: AboutPageContent = {
         'Continuously learning and exploring new technologies',
         'Passionate about creating intuitive and delightful user experiences',
         'Committed to writing clean, maintainable, and scalable code',
-        'Watching Netflix',
-        'Loving coffee',
+        'Love coffee',
+        'Enjoy traveling. For real.',
       ]
     },
     {
@@ -101,7 +101,7 @@ const MOCK_DATA: AboutPageContent = {
 
 const mediaRef = ref<HTMLElement>()
 const mail = ref<string>('mail')
-const {width} = useOnWindowResize()
+const { width } = useOnWindowResize()
 
 function copyMail() {
   navigator.clipboard.writeText('valentin64.genest@gmail.com')
@@ -174,6 +174,7 @@ watchScroll(onScroll)
                   :to="item.href"
                   :class="item.href ? 'link' : 'link-disabled'"
                   target="_blank"
+                  @click.passive="item.href ? null : $event.preventDefault()"
                 >
                   {{ item.title }}
                 </NuxtLink>
@@ -184,7 +185,7 @@ watchScroll(onScroll)
           <div
             v-else
             :class="section.title ? null : 'quote'"
-            v-html="parseMarkdown(section.content)"
+            v-html="section.title ? parseMarkdown(section.content) : section.content"
           />
         </div>
         <div class="button-container">
