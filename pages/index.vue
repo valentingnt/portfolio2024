@@ -102,6 +102,7 @@ const MOCK_DATA: AboutPageContent = {
 const mediaRef = ref<HTMLElement>()
 const mail = ref<string>('mail')
 const { width } = useOnWindowResize()
+const img = useImage()
 
 function copyMail() {
   navigator.clipboard.writeText('valentin64.genest@gmail.com')
@@ -148,6 +149,9 @@ watchScroll(onScroll)
             src="/img/moi.jpeg"
             alt="Valentin Genest"
             class="media"
+            sizes="sm:480px md:640px lg:800px xl:960px"
+            densities="1x 2x 3x"
+            :placeholder="img('/img/moi.jpeg', { h: 10, f: 'png', blur: 2, q: 50 })"
           />
         </div>
 
