@@ -2,13 +2,7 @@
 import aboutFr from '@/content/about_fr.json'
 import aboutEn from '@/content/about_en.json'
 
-interface AboutPageData { }
-
-interface AboutPageProps extends AboutPageData { }
-
-defineProps<AboutPageProps>()
-
-export type AboutPageContent = {
+type AboutPageContent = {
   header: {
     title: string
     subtitle: string
@@ -16,7 +10,7 @@ export type AboutPageContent = {
   sections: {
     title?: string
     content: string | string[] | { title: string, href?: string }[]
-  }[],
+  }[]
   downloadText: string
   footer: {
     content: string[]
@@ -28,14 +22,18 @@ export type AboutPageContent = {
 
 const mediaRef = ref<HTMLElement>()
 const mail = ref<string>('mail')
+const cursor = ref<HTMLElement>()
+const path = ref<HTMLElement>()
 const { lang, setLang } = useLang()
 const cookieLang = useCookie('lang')
 const MOCK_DATA: ComputedRef<AboutPageContent> = computed(() => lang.value === 'en' ? aboutEn : aboutFr)
 
+const EMAIL = 'valentin64.genest@gmail.com'
+
 function copyMail() {
-  navigator.clipboard.writeText('valentin64.genest@gmail.com')
+  navigator.clipboard.writeText(EMAIL)
   mail.value = lang.value === 'en' ? 'copied!' : 'copié!'
-  
+
   setTimeout(() => mail.value = 'mail', 2000)
 }
 
@@ -44,45 +42,104 @@ function downloadResume() {
 }
 
 function parseMarkdown(content: string) {
-  return content.
-    replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="link" target="_blank" rel="noopener noreferrer">$1</a>')
+  return content.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="link" target="_blank" rel="noopener noreferrer">$1</a>')
 }
 
 function onScroll(scrollY: number) {
   const value = Math.max(scrollY * 0.1, 0)
-
   window.requestAnimationFrame(() => {
     mediaRef.value?.style.setProperty('--scrollY', `${value}px`)
   })
 }
 
+const points: { x: number, y: number }[] = []
+const segments = 100
+const mouse = { x: 0, y: 0 }
+
+function move(event: MouseEvent) {
+  const x = event.clientX
+  const y = event.clientY
+
+  mouse.x = x
+  mouse.y = y
+
+  if (points.length === 0) {
+    for (let i = 0; i < segments; i++) {
+      points.push({ x, y })
+    }
+  }
+}
+
+function animateCursorTrail() {
+  if (!path.value) return
+
+  let previousX = mouse.x
+  let previousY = mouse.y
+
+  points.forEach((point, index) => {
+    point.x = previousX
+    point.y = previousY
+
+    const nextPoint = points[index + 1]
+
+    if (nextPoint) {
+      previousX = previousX - (point.x - nextPoint.x) * 0.1
+      previousY = previousY - (point.y - nextPoint.y) * 0.1
+    }
+  })
+
+  window.requestAnimationFrame(() => {
+    if (!path.value) return
+
+    path.value.setAttribute('d', `M ${points.map(point => `${point.x} ${point.y}`).join(' L ')}`)
+
+    animateCursorTrail()
+  })
+}
+
+function resize() {
+  if (!cursor.value) return
+
+  const ww = window.innerWidth
+  const wh = window.innerHeight
+  cursor.value.style.width = `${ww}px`
+  cursor.value.style.height = `${wh}px`
+  cursor.value.setAttribute('viewBox', `0 0 ${ww} ${wh}`)
+}
+
 onMounted(() => {
+  document.addEventListener('mousemove', move, { passive: true })
+
   if (cookieLang.value) {
     lang.value = cookieLang.value
   } else {
     cookieLang.value = lang.value
   }
+
+  animateCursorTrail()
 })
 
-watch(lang, () => cookieLang.value = lang.value)
+onUnmounted(() => document.removeEventListener('mousemove', move))
+
+watch(lang, () => {
+  cookieLang.value = lang.value
+})
+
+watchWindowResize(resize)
 watchScroll(onScroll)
 </script>
 
 <template>
   <div class="AboutPage">
     <span class="lang-selector">
-      {<span
+      <span
         :class="{ active: lang === 'fr' }"
         @click="setLang('fr')"
-      >
-        FR
-      </span>
+      >FR</span>
       <span
         :class="{ active: lang === 'en' }"
         @click="setLang('en')"
-      >
-        EN
-      </span>}
+      >EN</span>
     </span>
     <div class="container">
       <div class="content">
@@ -90,12 +147,11 @@ watchScroll(onScroll)
           :title="MOCK_DATA.header.title"
           :subtitle="MOCK_DATA.header.subtitle"
         />
-
         <div
           ref="mediaRef"
           class="media-container"
         >
-          <NuxtImg 
+          <NuxtImg
             src="/img/moi.jpeg"
             alt="Valentin Genest"
             class="media"
@@ -104,7 +160,6 @@ watchScroll(onScroll)
             :placeholder="[480, 480, 75, 40]"
           />
         </div>
-
         <div
           v-for="(section, index) in MOCK_DATA.sections"
           :key="index"
@@ -158,7 +213,6 @@ watchScroll(onScroll)
             {{ MOCK_DATA.downloadText }}<span class="pdfSize">(1.80 Mo)</span>
           </button>
         </div>
-        
         <svg
           class="separator"
           width="100%"
@@ -166,32 +220,26 @@ watchScroll(onScroll)
           viewBox="0 0 100% 1"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          data-v-77c8d1ae=""
-        ><line
-          x1="0.5"
-          y1="0.5"
-          x2="100%"
-          y2="0.5"
-          stroke="var(--color-black)"
-          data-v-77c8d1ae=""
-        />
+        >
+          <line
+            x1="0.5"
+            y1="0.5"
+            x2="100%"
+            y2="0.5"
+            stroke="var(--color-black)"
+          />
         </svg>
-
         <footer class="footer">
           <span
             v-for="(content, index) in MOCK_DATA.footer.content"
             :key="index"
-          >
-            {{ content }}
-          </span>
+          >{{ content }}</span>
           <div class="links">
             <span
               class="link-title"
               :style="{ cursor: 'pointer' }"
               @click="copyMail"
-            >
-              {{ mail }}
-            </span>
+            >{{ mail }}</span>
             <p class="link-separator">
               ~
             </p>
@@ -217,6 +265,17 @@ watchScroll(onScroll)
         </footer>
       </div>
     </div>
+    <svg
+      ref="cursor"
+      class="trail"
+      viewBox="0 0 1791 838"
+      style="width: 1791px; height: 838px;"
+    >
+      <path
+        ref="path"
+        d="M 0 0 L 0 0"
+      />
+    </svg>
   </div>
 </template>
 
@@ -225,6 +284,31 @@ watchScroll(onScroll)
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  cursor: none;
+
+  .trail {
+    display: none;
+  }
+
+  @media (hover: hover) {
+    .trail {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      /* z-index: 1000; */
+    }
+
+    .trail path {
+      fill: none;
+      stroke: var(--color-accent);
+      stroke-width: 6px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      will-change: d;
+    }
+  }
 
   .lang-selector {
     @extend %text-body;
@@ -235,24 +319,23 @@ watchScroll(onScroll)
     display: flex;
     gap: 8px;
 
-      span {
-        cursor: pointer;
-        position: relative;
+    span {
+      cursor: pointer;
+      position: relative;
 
-        &.active {
-          font-weight: 600;
+      &.active {
+        font-weight: 600;
 
-          &::after {
-            content: '•';
-            position: absolute;
-            bottom: -12px;
-            left: calc(50% - 4px);
-          }
+        &::after {
+          content: '•';
+          position: absolute;
+          bottom: -12px;
+          left: calc(50% - 4px);
         }
+      }
 
-        &:hover {
-          text-decoration: underline;
-        }
+      &:hover {
+        text-decoration: underline;
       }
     }
   }
@@ -291,21 +374,18 @@ watchScroll(onScroll)
 
         .title {
           @extend %text-h2;
-
           margin-bottom: 20px;
         }
 
-
-
         .list {
           text-align: left;
+
           .list-item {
             list-style: '• ' inside;
             padding-left: 5px;
-            
+
             .link {
               @extend %link;
-
               transition: padding-left cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 
               &:hover {
@@ -348,7 +428,7 @@ watchScroll(onScroll)
         }
       }
 
-      .button-container{
+      .button-container {
         display: flex;
         justify-content: center;
 
@@ -387,7 +467,6 @@ watchScroll(onScroll)
             }
           }
 
-
           &:active {
             transform: translate(0, 0);
             box-shadow: 0px 0px 0px 0px var(--color-black);
@@ -414,10 +493,9 @@ watchScroll(onScroll)
             display: flex;
             gap: 8px;
           }
-          
+
           .link-title {
             @extend %link;
-
             transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 
             &:hover {
@@ -428,5 +506,5 @@ watchScroll(onScroll)
       }
     }
   }
-
+}
 </style>
