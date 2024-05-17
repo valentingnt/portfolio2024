@@ -250,6 +250,7 @@ watchScroll(onScroll)
             >
               <NuxtLink
                 :to="link.url"
+                target="_blank"
                 class="link-title"
               >
                 {{ link.title }}
