@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import aboutFr from '@/content/about_fr.json'
+import aboutEn from '@/content/about_en.json'
+
 interface AboutPageData { }
 
 interface AboutPageProps extends AboutPageData { }
 
 defineProps<AboutPageProps>()
 
-type AboutPageContent = {
+export type AboutPageContent = {
   header: {
     title: string
     subtitle: string
@@ -14,6 +17,7 @@ type AboutPageContent = {
     title?: string
     content: string | string[] | { title: string, href?: string }[]
   }[],
+  downloadText: string
   footer: {
     content: string[]
     links: {
@@ -22,90 +26,15 @@ type AboutPageContent = {
   }
 }
 
-const MOCK_DATA: AboutPageContent = {
-  header: {
-    title: 'Valentin Genest',
-    subtitle: 'Welcome to the official website of'
-  },
-  sections: [
-    {
-      title: 'Who am I:',
-      content: 'Web developer for 5 years. Working with cutting-edge front-end related technology, I worked for 2 years for [@derniercri](https://derniercri.io) and now in freelance accompanied by [@studiowawww](https://wawww.studio) for biggest dreams. I love what I do and do it the right way. The stack I use differs depending on the project and needs, but I keep learning new things to build an internet as it should be. With a deep understanding of modern web technologies and frameworks, I strive to create responsive, accessible, and performant web applications. My expertise includes proficiency in JavaScript frameworks, as well as a strong command of HTML, CSS, and related tools and libraries. I prioritize writing clean, maintainable code and adhere to industry best practices. I stay up-to-date with the latest trends and best practices in web development, ensuring that my work is not only visually appealing but also optimized for performance and accessibility'
-    },
-    {
-      title: 'I worked for:',
-      content: [
-        {
-          title: 'Maison Sablayrolles (WIP)',
-        },
-        {
-          title: 'Givenchy (NDA)',
-        },
-        {
-          title: 'iad mobile',
-          href: 'https://derniercri.io/clients/iad'
-        },
-      ]
-    },
-    {
-      title: 'I work with:',
-      content: [
-        'A computer',
-        'Everything JS related (and more!)',
-        'A lot of coffee',
-        'Cutting-edge development tools and technologies',
-        'Agile methodologies and collaborative workflows'
-      ]
-    },
-    {
-      title: 'More about me:',
-      content: [
-        'Living in Bordeaux',
-        'Practicing volley-Ball',
-        'Continuously learning and exploring new technologies',
-        'Passionate about creating intuitive and delightful user experiences',
-        'Committed to writing clean, maintainable, and scalable code',
-        'Love coffee',
-        'Enjoy traveling. For real.',
-      ]
-    },
-    {
-      content: 'Comme un lundi: frais dans la matinée, soleil l’après-midi, la recette des sports d’hiver réussis.'
-    }
-  ],
-  footer: {
-    content: [
-      'Paris / Bordeaux',
-      '© 2024 Valentin Genest - All rights reserved.'
-    ],
-    links: [
-      {
-        title: 'linkedin',
-        url: 'https://www.linkedin.com/valentin-genest'
-      },
-      {
-        title: 'github',
-        url: 'https://github.com/valentingnt'
-      },
-      {
-        title: 'malt',
-        url: 'https://www.malt.fr/profile/valentingenest'
-      },
-      {
-        title: 'threads',
-        url: 'https://threads.net/nulentin'
-      }
-    ],
-  }
-}
-
 const mediaRef = ref<HTMLElement>()
 const mail = ref<string>('mail')
-const { width } = useOnWindowResize()
+const { lang, setLang } = useLang()
+const cookieLang = useCookie('lang')
+const MOCK_DATA: ComputedRef<AboutPageContent> = computed(() => lang.value === 'en' ? aboutEn : aboutFr)
 
 function copyMail() {
   navigator.clipboard.writeText('valentin64.genest@gmail.com')
-  mail.value = 'copied!'
+  mail.value = lang.value === 'en' ? 'copied!' : 'copié!'
   
   setTimeout(() => mail.value = 'mail', 2000)
 }
@@ -127,13 +56,35 @@ function onScroll(scrollY: number) {
   })
 }
 
+onMounted(() => {
+  if (cookieLang.value) {
+    lang.value = cookieLang.value
+  } else {
+    cookieLang.value = lang.value
+  }
+})
+
+watch(lang, () => cookieLang.value = lang.value)
 watchScroll(onScroll)
 </script>
 
 <template>
   <div class="AboutPage">
+    <span class="lang-selector">
+      {<span
+        :class="{ active: lang === 'fr' }"
+        @click="setLang('fr')"
+      >
+        FR
+      </span>
+      <span
+        :class="{ active: lang === 'en' }"
+        @click="setLang('en')"
+      >
+        EN
+      </span>}
+    </span>
     <div class="container">
-      {{ console.log(width) }}
       <div class="content">
         <BigTitle
           :title="MOCK_DATA.header.title"
@@ -204,7 +155,7 @@ watchScroll(onScroll)
               height="15"
               class="icon"
             />
-            Download my resume <span class="pdfSize">(1.80 Mo)</span>
+            {{ MOCK_DATA.downloadText }}<span class="pdfSize">(1.80 Mo)</span>
           </button>
         </div>
         
@@ -275,13 +226,44 @@ watchScroll(onScroll)
   align-items: flex-start;
   justify-content: center;
 
+  .lang-selector {
+    @extend %text-body;
+
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+
+      span {
+        cursor: pointer;
+        position: relative;
+
+        &.active {
+          font-weight: 600;
+
+          &::after {
+            content: '•';
+            position: absolute;
+            bottom: -12px;
+            left: calc(50% - 4px);
+          }
+        }
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
   .container {
     max-width: 480px;
     align-self: auto;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    margin: 32px 16px;
+    margin: 48px 24px;
 
     .content {
       @extend %text-body;
@@ -446,5 +428,5 @@ watchScroll(onScroll)
       }
     }
   }
-}
+
 </style>
