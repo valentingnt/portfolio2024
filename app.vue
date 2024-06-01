@@ -26,9 +26,7 @@ onMounted(async () => {
   window.requestAnimationFrame(raf)
 })
 
-onUnmounted(() => {
-  lenis.value?.destroy()
-})
+onUnmounted(() => lenis.value?.destroy())
 </script>
 
 <template>
