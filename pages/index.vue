@@ -382,7 +382,7 @@ watchScroll(onScroll)
           text-align: left;
 
           .list-item {
-            list-style: '✦ ' inside;
+            list-style: '• ' inside;
             padding-left: 5px;
 
             .link {
