@@ -20,7 +20,6 @@ defineProps<BigTitleProps>()
         style="display: block;"
         width="100%"
         height="1"
-        viewBox="0 0 100% 1"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >

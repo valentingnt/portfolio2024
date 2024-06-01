@@ -89,11 +89,13 @@ function animateCursorTrail() {
   })
 
   window.requestAnimationFrame(() => {
-    if (!path.value) return
+    if (path.value && points.length !== 0) {
+      path.value?.setAttribute('d', `M ${points.map(point => `${point.x} ${point.y}`).join(' L ')}`)
 
-    path.value.setAttribute('d', `M ${points.map(point => `${point.x} ${point.y}`).join(' L ')}`)
-
-    animateCursorTrail()
+      animateCursorTrail()
+    } else {
+      animateCursorTrail()
+    }
   })
 }
 
@@ -217,7 +219,6 @@ watchScroll(onScroll)
           class="separator"
           width="100%"
           height="1"
-          viewBox="0 0 100% 1"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
