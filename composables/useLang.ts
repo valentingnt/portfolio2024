@@ -1,4 +1,4 @@
-export function useLang(defaultValue: string = 'en'): { lang: Ref<string>, setLang: (value: string) => void } {
+export function useLang(defaultValue: string = 'fr'): { lang: Ref<string>, setLang: (value: string) => void } {
   const lang = ref(defaultValue);
 
   function setLang(value: string) {
