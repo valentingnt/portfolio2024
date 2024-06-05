@@ -38,7 +38,11 @@ function copyMail() {
 }
 
 function downloadResume() {
-  window.open('/CV2024_Valentin_Genest.pdf', '_blank')
+  if (lang.value === 'en') {
+    window.open('/EN_CV2024_Valentin_Genest.pdf', '_blank')
+  } else {
+    window.open('/CV2024_Valentin_Genest.pdf', '_blank')
+  }
 }
 
 function parseMarkdown(content: string) {
