@@ -163,15 +163,20 @@ watchScroll(onScroll)
                 :key="index"
                 class="list-item"
               >
-                <NuxtLink
-                  v-if="typeof item === 'object'"
-                  :to="item.href"
-                  :class="item.href ? 'link' : 'link-disabled'"
-                  target="_blank"
-                  @click.passive="item.href ? null : $event.preventDefault()"
-                >
-                  {{ item.title }}
-                </NuxtLink>
+                <span v-if="typeof item === 'object' && item.href">
+                  <NuxtLink
+                    :to="item.href"
+                    class="link"
+                    target="_blank"
+                  >
+                    {{ item.title }}
+                  </NuxtLink>
+                </span>
+
+                <span v-else-if="typeof item === 'object' && !item.href">
+                  <span>{{ item.title }}</span>
+                </span>
+
                 <span v-else>{{ item }}</span>
               </li>
             </ul>
@@ -356,19 +361,16 @@ watchScroll(onScroll)
             list-style: '• ' inside;
             padding-left: 5px;
 
-
             .link {
               @extend %link;
+
               transition: padding-left cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+
               @media (hover: hover) {
                 &:hover {
                   padding-left: 8px;
                 }
               }
-            }
-
-            .link-disabled {
-              cursor: auto;
             }
           }
         }
