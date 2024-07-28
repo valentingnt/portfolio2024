@@ -27,6 +27,7 @@ const mail = ref<string>('mail')
 const canvas3d = ref()
 const app = ref<Application>()
 const isMobile = ref(false)
+const isReducedMotion = ref(false)
 
 const MOCK_DATA: ComputedRef<AboutPageContent> = computed(() => lang.value === 'en' ? aboutEn : aboutFr)
   
@@ -68,8 +69,9 @@ function preventSpacebarScroll(event: KeyboardEvent) {
 
 onMounted(() => {
   isMobile.value = window.matchMedia('(hover: none)').matches
+  isReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  if (!isMobile.value) {
+  if (!isMobile.value || !isReducedMotion.value) {
     document.addEventListener('keypress', preventSpacebarScroll)
     app.value = new Application(canvas3d.value)
 
