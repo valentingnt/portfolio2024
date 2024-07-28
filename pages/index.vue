@@ -67,18 +67,29 @@ function preventSpacebarScroll(event: KeyboardEvent) {
   if (event.key === ' ') event.preventDefault()
 }
 
+async function initializeSpline() {
+  if (!isMobile.value && !isReducedMotion.value) {
+    app.value = new Application(canvas3d.value)
+    
+    try {
+      await app.value.load('https://prod.spline.design/kz-R06edYbCwBzh0/scene.splinecode')
+      
+      app.value.addEventListener('rendered', () => {
+        canvas3d.value.style.display = 'block'
+      })
+    } catch (error) {
+      console.error('Failed to load Spline scene:', error)
+    }
+  }
+}
+
 onMounted(() => {
   isMobile.value = window.matchMedia('(hover: none)').matches
   isReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   if (!isMobile.value || !isReducedMotion.value) {
     document.addEventListener('keypress', preventSpacebarScroll)
-    app.value = new Application(canvas3d.value)
-
-    window.requestAnimationFrame(() => {
-      canvas3d.value.style.display = 'block'
-      app.value?.load('https://prod.spline.design/kz-R06edYbCwBzh0/scene.splinecode')
-    })
+    initializeSpline()
   }
 
   if (cookieLang.value) {
@@ -87,6 +98,8 @@ onMounted(() => {
     cookieLang.value = lang.value
   }
 })
+
+
 
 onUnmounted(() => {
   document.removeEventListener('keypress', preventSpacebarScroll)
@@ -124,7 +137,7 @@ watchScroll(onScroll)
           class="media-container"
         >
           <NuxtImg
-            src="/img/moi.jpeg"
+            src="/img/moi.webp"
             alt="Valentin Genest"
             class="media"
             sizes="sm:480px md:640px lg:800px xl:960px"
