@@ -150,12 +150,12 @@ watchScroll(onScroll)
           :key="index"
           class="sections"
         >
-          <h3
+          <h2
             v-if="section.title"
             class="title"
           >
             {{ section.title }}
-          </h3>
+          </h2>
           <span v-if="Array.isArray(section.content)">
             <ul class="list">
               <li
