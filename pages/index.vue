@@ -2,6 +2,8 @@
 import aboutFr from '@/content/about_fr.json'
 import aboutEn from '@/content/about_en.json'
 
+import { Application } from '@splinetool/runtime';
+
 type AboutPageContent = {
   header: {
     title: string
@@ -22,12 +24,17 @@ type AboutPageContent = {
 
 const mediaRef = ref<HTMLElement>()
 const mail = ref<string>('mail')
+const canvas3d = ref()
+const app = ref<Application>()
+const isMobile = ref(false)
+
+const MOCK_DATA: ComputedRef<AboutPageContent> = computed(() => lang.value === 'en' ? aboutEn : aboutFr)
+  
 const { lang, setLang } = useLang()
 const cookieLang = useCookie('lang')
-const MOCK_DATA: ComputedRef<AboutPageContent> = computed(() => lang.value === 'en' ? aboutEn : aboutFr)
 
-const EMAIL = 'valentin64.genest@gmail.com'
-
+const EMAIL: string = 'valentin64.genest@gmail.com'
+  
 function copyMail() {
   navigator.clipboard.writeText(EMAIL)
   mail.value = lang.value === 'en' ? 'copied!' : 'copié!'
@@ -55,12 +62,33 @@ function onScroll(scrollY: number) {
   })
 }
 
+function preventSpacebarScroll(event: KeyboardEvent) {
+  if (event.key === ' ') event.preventDefault()
+}
+
 onMounted(() => {
+  isMobile.value = window.matchMedia('(hover: none)').matches
+
+  if (!isMobile.value) {
+    document.addEventListener('keypress', preventSpacebarScroll)
+    app.value = new Application(canvas3d.value)
+
+    window.requestAnimationFrame(() => {
+      canvas3d.value.style.display = 'block'
+      app.value?.load('https://prod.spline.design/kz-R06edYbCwBzh0/scene.splinecode')
+    })
+  }
+
   if (cookieLang.value) {
     lang.value = cookieLang.value
   } else {
     cookieLang.value = lang.value
   }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keypress', preventSpacebarScroll)
+  app.value?.dispose()
 })
 
 watch(lang, () => {
@@ -82,6 +110,7 @@ watchScroll(onScroll)
         @click="setLang('en')"
       >EN</span>
     </span>
+
     <div class="container">
       <div class="content">
         <BigTitle
@@ -151,7 +180,7 @@ watchScroll(onScroll)
               height="15"
               class="icon"
             />
-            {{ MOCK_DATA.downloadText }}<span class="pdfSize">(1.80 Mo)</span>
+            {{ MOCK_DATA.downloadText }}<span class="pdfSize">(2.4 Mo)</span>
           </button>
         </div>
         <svg
@@ -206,6 +235,11 @@ watchScroll(onScroll)
         </footer>
       </div>
     </div>
+
+    <canvas
+      ref="canvas3d"
+      class="canvas"
+    />
   </div>
 </template>
 
@@ -214,6 +248,15 @@ watchScroll(onScroll)
   display: flex;
   align-items: flex-start;
   justify-content: center;
+
+
+  .canvas {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
 
   .lang-selector {
     @extend %text-body;
@@ -255,6 +298,8 @@ watchScroll(onScroll)
     min-height: 100vh;
     margin: 48px 24px;
 
+    text-shadow: 0px 0px 8px var(--color-white);
+    
     .content {
       @extend %text-body;
 
@@ -287,15 +332,15 @@ watchScroll(onScroll)
 
         .list {
           text-align: left;
-
+          
           .list-item {
             list-style: '• ' inside;
             padding-left: 5px;
 
+
             .link {
               @extend %link;
               transition: padding-left cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
-
               @media (hover: hover) {
                 &:hover {
                   padding-left: 8px;
@@ -353,7 +398,7 @@ watchScroll(onScroll)
           justify-content: center;
           border-radius: 60px;
           border: 1px solid var(--color-black);
-          background: var(--color-white);
+          background: transparent;
           box-shadow: 1px 1px 0px 0px var(--color-black);
           padding: 8px 16px;
           cursor: pointer;
