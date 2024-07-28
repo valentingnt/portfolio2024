@@ -237,8 +237,8 @@ watchScroll(onScroll)
     </div>
 
     <canvas
+      id="canvas"
       ref="canvas3d"
-      class="canvas"
     />
   </div>
 </template>
@@ -250,12 +250,16 @@ watchScroll(onScroll)
   justify-content: center;
 
 
-  .canvas {
+  #canvas {
     display: none;
     position: fixed;
     top: 0;
     left: 0;
     z-index: -1;
+
+    @media (max-width: 1600px) {
+      display: none !important;
+    }
   }
 
   .lang-selector {
