@@ -22,8 +22,6 @@ type AboutPageContent = {
 
 const mediaRef = ref<HTMLElement>()
 const mail = ref<string>('mail')
-const cursor = ref<HTMLElement>()
-const path = ref<HTMLElement>()
 const { lang, setLang } = useLang()
 const cookieLang = useCookie('lang')
 const MOCK_DATA: ComputedRef<AboutPageContent> = computed(() => lang.value === 'en' ? aboutEn : aboutFr)
@@ -51,19 +49,10 @@ function parseMarkdown(content: string) {
 
 function onScroll(scrollY: number) {
   const value = Math.max(scrollY * 0.1, 0)
+
   window.requestAnimationFrame(() => {
     mediaRef.value?.style.setProperty('--scrollY', `${value}px`)
   })
-}
-
-function resize() {
-  if (!cursor.value) return
-
-  const ww = window.innerWidth
-  const wh = window.innerHeight
-  cursor.value.style.width = `${ww}px`
-  cursor.value.style.height = `${wh}px`
-  cursor.value.setAttribute('viewBox', `0 0 ${ww} ${wh}`)
 }
 
 onMounted(() => {
@@ -78,7 +67,6 @@ watch(lang, () => {
   cookieLang.value = lang.value
 })
 
-watchWindowResize(resize)
 watchScroll(onScroll)
 </script>
 
