@@ -268,6 +268,7 @@ watchScroll(onScroll)
         aspect-ratio: 1.618 / 1;
 
         .media {
+          will-change: transform;
           position: absolute;
           bottom: 0;
           left: 0;
