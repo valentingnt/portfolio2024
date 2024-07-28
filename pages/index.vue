@@ -56,53 +56,6 @@ function onScroll(scrollY: number) {
   })
 }
 
-const points: { x: number, y: number }[] = []
-const segments = 100
-const mouse = { x: 0, y: 0 }
-
-function move(event: MouseEvent) {
-  const x = event.clientX
-  const y = event.clientY
-
-  mouse.x = x
-  mouse.y = y
-
-  if (points.length === 0) {
-    for (let i = 0; i < segments; i++) {
-      points.push({ x, y })
-    }
-  }
-}
-
-function animateCursorTrail() {
-  if (!path.value) return
-
-  let previousX = mouse.x
-  let previousY = mouse.y
-
-  points.forEach((point, index) => {
-    point.x = previousX
-    point.y = previousY
-
-    const nextPoint = points[index + 1]
-
-    if (nextPoint) {
-      previousX = previousX - (point.x - nextPoint.x) * 0.1
-      previousY = previousY - (point.y - nextPoint.y) * 0.1
-    }
-  })
-
-  window.requestAnimationFrame(() => {
-    if (path.value && points.length !== 0) {
-      path.value?.setAttribute('d', `M ${points.map(point => `${point.x} ${point.y}`).join(' L ')}`)
-
-      animateCursorTrail()
-    } else {
-      animateCursorTrail()
-    }
-  })
-}
-
 function resize() {
   if (!cursor.value) return
 
@@ -114,18 +67,12 @@ function resize() {
 }
 
 onMounted(() => {
-  document.addEventListener('mousemove', move, { passive: true })
-
   if (cookieLang.value) {
     lang.value = cookieLang.value
   } else {
     cookieLang.value = lang.value
   }
-
-  animateCursorTrail()
 })
-
-onUnmounted(() => document.removeEventListener('mousemove', move))
 
 watch(lang, () => {
   cookieLang.value = lang.value
@@ -271,17 +218,6 @@ watchScroll(onScroll)
         </footer>
       </div>
     </div>
-    <svg
-      ref="cursor"
-      class="trail"
-      viewBox="0 0 1791 838"
-      style="width: 1791px; height: 838px;"
-    >
-      <path
-        ref="path"
-        d="M 0 0 L 0 0"
-      />
-    </svg>
   </div>
 </template>
 
@@ -290,30 +226,6 @@ watchScroll(onScroll)
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  cursor: none;
-
-  .trail {
-    display: none;
-  }
-
-  @media (hover: hover) {
-    .trail {
-      display: block;
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-    }
-
-    .trail path {
-      fill: none;
-      stroke: var(--color-accent);
-      stroke-width: 6px;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      will-change: d;
-    }
-  }
 
   .lang-selector {
     @extend %text-body;
@@ -339,8 +251,10 @@ watchScroll(onScroll)
         }
       }
 
-      &:hover {
-        text-decoration: underline;
+      @media (hover: hover) {  
+        &:hover {
+          text-decoration: underline;
+        }
       }
     }
   }
@@ -393,8 +307,10 @@ watchScroll(onScroll)
               @extend %link;
               transition: padding-left cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 
-              &:hover {
-                padding-left: 8px;
+              @media (hover: hover) {
+                &:hover {
+                  padding-left: 8px;
+                }
               }
             }
 
@@ -503,8 +419,10 @@ watchScroll(onScroll)
             @extend %link;
             transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 
-            &:hover {
-              transform: translateY(-2px);
+            @media (hover: hover) {
+              &:hover {
+                transform: translateY(-2px);
+              }
             }
           }
         }

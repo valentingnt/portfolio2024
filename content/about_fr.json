@@ -12,6 +12,10 @@
       "title": "J'ai travaillé pour:",
       "content": [
         {
+          "title": "Unlikely Technology",
+          "href": "https://unlikely.technology"
+        },
+        {
           "title": "Maison Sablayrolles (WIP)"
         },
         {
@@ -41,6 +45,7 @@
         "J'apprends et j'explore continuellement de nouvelles technologies",
         "Je suis passioné par la création d’expériences utilisateur intuitives et agréables",
         "Je suis engagé à écrire un code propre, maintenable et évolutif",
+        "Le DLC d'Elden Ring on en parle ?",
         "J'adore le café",
         "J'aime vraiment voyager."
       ]

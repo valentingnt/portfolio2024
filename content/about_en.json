@@ -12,6 +12,10 @@
       "title": "I worked for:",
       "content": [
         {
+          "title": "Unlikely Technology",
+          "href": "https://unlikely.technology"
+        },
+        {
           "title": "Maison Sablayrolles (WIP)"
         },
         {
@@ -41,6 +45,7 @@
         "Continuously learning and exploring new technologies",
         "Passionate about creating intuitive and delightful user experiences",
         "Committed to writing clean, maintainable, and scalable code",
+        "Elden Ring DLC, anyone?",
         "Love coffee",
         "Enjoy traveling. For real."
       ]
