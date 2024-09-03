@@ -206,7 +206,7 @@ watchScroll(onScroll)
   display: flex;
   align-items: flex-start;
   justify-content: center;
-
+  text-wrap: pretty;
 
   #canvas {
     display: none;
