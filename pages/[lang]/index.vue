@@ -2,8 +2,6 @@
 import aboutFr from '@/content/about_fr.json'
 import aboutEn from '@/content/about_en.json'
 
-import { Application } from '@splinetool/runtime';
-
 type AboutPageContent = {
   header: {
     title: string
@@ -22,89 +20,32 @@ type AboutPageContent = {
   }
 }
 
-const route = useRoute()
-
-const mediaRef = ref<HTMLElement>()
-const mail = ref<string>('mail')
-const canvas3d = ref()
-const app = ref<Application>()
 const isMobile = ref(false)
 const isReducedMotion = ref(false)
 
-const { lang, setLang } = useLang()
-const cookieLang = useCookie('lang')
+const { canvas3d } = useSpline(isMobile, isReducedMotion)
+const { mediaRef, onScroll } = useScrollEffect()
+const { lang, updateLanguage, isEnglish } = useLanguage()
 
-setLang(route.params.lang)
-cookieLang.value = lang.value
-
-const contentData: ComputedRef<AboutPageContent> = computed(() => lang.value === 'en' ? aboutEn : aboutFr)
-
+const mail = ref<string>('mail')
 const EMAIL: string = 'valentin64.genest@gmail.com'
-  
-function copyMail() {
-  navigator.clipboard.writeText(EMAIL)
-  mail.value = lang.value === 'en' ? 'copied!' : 'copié!'
 
+const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.value ? aboutEn : aboutFr)
+
+function copyMail() {
+  copyToClipboard(EMAIL)
+  mail.value = isEnglish.value ? 'copied!' : 'copié!'
   setTimeout(() => mail.value = 'mail', 2000)
 }
 
 function downloadResume() {
-  if (lang.value === 'en') {
-    window.open('/EN_CV2024_Valentin_Genest.pdf', '_blank')
-  } else {
-    window.open('/CV2024_Valentin_Genest.pdf', '_blank')
-  }
-}
-
-function parseMarkdown(content: string) {
-  return content.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="link" target="_blank" rel="noopener noreferrer">$1</a>')
-}
-
-function onScroll(scrollY: number) {
-  const value = Math.max(scrollY * 0.1, 0)
-
-  window.requestAnimationFrame(() => {
-    mediaRef.value?.style.setProperty('--scrollY', `${value}px`)
-  })
-}
-
-function preventSpacebarScroll(event: KeyboardEvent) {
-  if (event.key === ' ') event.preventDefault()
-}
-
-async function initializeSpline() {
-  if (!isMobile.value && !isReducedMotion.value) {
-    app.value = new Application(canvas3d.value)
-    
-    try {
-      await app.value.load('https://prod.spline.design/kz-R06edYbCwBzh0/scene.splinecode')
-      
-      app.value.addEventListener('rendered', () => {
-        canvas3d.value.style.display = 'block'
-      })
-    } catch (error) {
-      console.error('Failed to load Spline scene:', error)
-    }
-  }
+  const fileName = isEnglish.value ? 'EN_CV2024_Valentin_Genest.pdf' : 'CV2024_Valentin_Genest.pdf'
+  window.open(`/${fileName}`, '_blank')
 }
 
 onMounted(() => {
   isMobile.value = window.matchMedia('(hover: none)').matches
   isReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  if (!isMobile.value || !isReducedMotion.value) {
-    document.addEventListener('keypress', preventSpacebarScroll)
-    initializeSpline()
-  }
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keypress', preventSpacebarScroll)
-  app.value?.dispose()
-})
-
-watch(lang, () => {
-  cookieLang.value = lang.value
 })
 
 watchScroll(onScroll)
@@ -115,11 +56,11 @@ watchScroll(onScroll)
     <span class="lang-selector">
       <span
         :class="{ active: lang === 'fr' }"
-        @click="setLang('fr')"
+        @click="updateLanguage('fr')"
       >FR</span>
       <span
         :class="{ active: lang === 'en' }"
-        @click="setLang('en')"
+        @click="updateLanguage('en')"
       >EN</span>
     </span>
 
