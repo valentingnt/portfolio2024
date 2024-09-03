@@ -3,6 +3,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     const router = useRouter()
     const cookieLang = useCookie('lang')
 
+    if (!cookieLang.value) {
+      cookieLang.value = 'fr'
+    }
+
     return router.push(`/${cookieLang.value}`)
   }
 })
