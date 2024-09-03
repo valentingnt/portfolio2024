@@ -1,7 +1,19 @@
-export function useLanguage() {
+export interface Language {
+  lang: Ref<string>
+  isEnglish: ComputedRef<boolean>
+  setLang: (value: string) => void
+  updateLanguage: (newLang: string) => void
+}
+
+export function useLanguage(): Language {
+  const lang = ref()
   const route = useRoute()
-  const { lang, setLang } = useLang()
   const cookieLang = useCookie('lang')
+
+  function setLang(value: string) {
+    lang.value = value
+    history.replaceState({}, '', `/${value}`)
+  }
 
   const updateLanguage = (newLang: string) => {
     setLang(newLang)
@@ -19,5 +31,5 @@ export function useLanguage() {
     cookieLang.value = lang.value
   })
 
-  return { lang, setLang, updateLanguage, isEnglish }
+  return { lang, isEnglish, setLang, updateLanguage }
 }
