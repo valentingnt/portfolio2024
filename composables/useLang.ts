@@ -1,9 +1,11 @@
-export function useLang(defaultValue: string = 'fr'): { lang: Ref<string>, setLang: (value: string) => void } {
-  const lang = ref(defaultValue);
+export function useLang(): { lang: Ref<string>, setLang: (value: string) => void } {
+  const lang = ref()
+  const route = useRoute()
 
-  function setLang(value: string) {
-    lang.value = value;
+  async function setLang(value: string) {
+    lang.value = value
+    history.replaceState({}, '', `/${value}`)
   }
 
-  return { lang, setLang };
+  return { lang, setLang }
 }
