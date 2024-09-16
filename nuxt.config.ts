@@ -2,20 +2,24 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: {
-        lang: 'en',
+        lang: 'fr',
       },
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }
-      ]
+      ],
     }
   },
+
   modules: [
     '@nuxt/image',
   ],
+
   devtools: { enabled: false },
+
   css: [
     '~/assets/stylesheets/globals.scss'
   ],
+
   vite: {
     plugins: [[
       {
@@ -33,5 +37,7 @@ export default defineNuxtConfig({
         })
       }
     ]]
-  }
+  },
+
+  compatibilityDate: '2024-09-16'
 })

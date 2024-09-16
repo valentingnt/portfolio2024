@@ -3,8 +3,8 @@ import Lenis from 'lenis'
 
 useSeoMeta({
   title: 'Valentin Genest',
-  description: 'Valentin Genest - Web developer for 5 years. Now at the top working with cutting-edge front-end related technology. I worked for 2 years for @derniercri and now in freelance accompanied by @studiowawww for biggest dreams. I love what I do and do it the right way. The stack I use differs depending on the project and needs, but I keep learning new things to build an internet as it should be.',
-  ogDescription: "Valentin Genest - Web developer. Let's build an internet as it should be.",
+  description: "Valentin Genest - Développeur web depuis 5 ans. J'ai travaillé pendant 2 ans en tant que développeur front-end pour Dernier Cri, ai été freelance accompagné par le Studio Wawww pour des rêves plus grands et j’ai rejoint Unlikely dans l’optique de retrouver une cohésion d’agence. J'aime ce que je fais et je le fais bien. La stack que j'utilise est différente en fonction du projet et des besoins, mais je continue d'apprendre de nouvelles techniques pour construire un internet comme il se doit.",
+  ogDescription: "Valentin Genest - Développeur web. Construisons un internet comme il se doit.",
   ogTitle: 'Valentin Genest',
   ogType: 'website',
   ogUrl: 'https://valentingenest.fr',
@@ -20,7 +20,7 @@ function raf(time: number) {
   window.requestAnimationFrame(raf)
 }
 
-onMounted(async () => {
+onMounted(() => {
   lenis.value = new Lenis({ duration: 0.7 })
 
   window.requestAnimationFrame(raf)

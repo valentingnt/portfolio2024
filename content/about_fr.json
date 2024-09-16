@@ -13,16 +13,16 @@
       "content": [
         {
           "title": "Eric Bompard",
+          "subtitle": "/ Unlikely Technology",
           "href": "https://www.eric-bompard.com"
         },
         {
-          "title": "Maison Sablayrolles (WIP)"
-        },
-        {
-          "title": "Givenchy (NDA)"
+          "title": "Maison Sablayrolles (WIP)",
+          "subtitle": "/ Studio Wawww"
         },
         {
           "title": "iad mobile",
+          "subtitle": "/ Dernier Cri",
           "href": "https://derniercri.io/clients/iad"
         }
       ]

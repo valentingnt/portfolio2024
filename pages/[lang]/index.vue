@@ -43,70 +43,50 @@ function downloadResume() {
   window.open(`/${fileName}`, '_blank')
 }
 
+function preventSpacebarScroll(event: KeyboardEvent) {
+  if (event.key === ' ') event.preventDefault()
+}
+
+watchScroll(onScroll)
+
 onMounted(() => {
   isMobile.value = window.matchMedia('(hover: none)').matches
   isReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  document.addEventListener('keypress', preventSpacebarScroll)
 })
 
-watchScroll(onScroll)
+onUnmounted(() => {
+  document.removeEventListener('keypress', preventSpacebarScroll)
+})
 </script>
 
 <template>
   <div class="AboutPage">
     <span class="lang-selector">
-      <span
-        :class="{ active: lang === 'fr' }"
-        @click="updateLanguage('fr')"
-      >FR</span>
-      <span
-        :class="{ active: lang === 'en' }"
-        @click="updateLanguage('en')"
-      >EN</span>
+      <span :class="{ active: lang === 'fr' }" @click="updateLanguage('fr')">FR</span>
+      <span :class="{ active: lang === 'en' }" @click="updateLanguage('en')">EN</span>
     </span>
 
     <div class="container">
       <div class="content">
-        <BigTitle
-          :title="contentData.header.title"
-          :subtitle="contentData.header.subtitle"
-        />
-        <div
-          ref="mediaRef"
-          class="media-container"
-        >
-          <NuxtImg
-            src="/img/moi.webp"
-            alt="Valentin Genest"
-            class="media"
-            sizes="sm:480px md:640px lg:800px xl:960px"
-            densities="1x 2x"
-            :placeholder="[480, 480, 75, 40]"
-          />
+        <BigTitle :title="contentData.header.title" :subtitle="contentData.header.subtitle" />
+
+        <div ref="mediaRef" class="media-container">
+          <NuxtImg src="/img/moi.webp" alt="Valentin Genest" class="media" sizes="sm:480px md:640px lg:800px xl:960px"
+            densities="1x 2x" :placeholder="[480, 480, 75, 40]" />
         </div>
-        <div
-          v-for="(section, index) in contentData.sections"
-          :key="index"
-          class="sections"
-        >
-          <h2
-            v-if="section.title"
-            class="title"
-          >
+
+        <div v-for="(section, index) in contentData.sections" :key="index" class="sections">
+          <h2 v-if="section.title" class="title">
             {{ section.title }}
           </h2>
+
           <span v-if="Array.isArray(section.content)">
             <ul class="list">
-              <li
-                v-for="(item, index) in section.content"
-                :key="index"
-                class="list-item"
-              >
+              <li v-for="(item, index) in section.content" :key="index" class="list-item">
                 <span v-if="typeof item === 'object' && item.href">
-                  <NuxtLink
-                    :to="item.href"
-                    class="link"
-                    target="_blank"
-                  >
+                  <NuxtLink :to="item.href" class="link" target="_blank">
                     {{ item.title }}
                   </NuxtLink>
                 </span>
@@ -116,88 +96,58 @@ watchScroll(onScroll)
                 </span>
 
                 <span v-else>{{ item }}</span>
+
+                <span class="link-subtitle">{{ item.subtitle }}</span>
               </li>
             </ul>
           </span>
-          <div
-            v-else
-            :class="section.title ? null : 'quote'"
-            v-html="section.title ? parseMarkdown(section.content) : section.content"
-          />
+
+          <p v-else :class="section.title ? null : 'quote'"
+            v-html="section.title ? parseMarkdown(section.content) : section.content" />
         </div>
+
         <div class="button-container">
-          <button
-            class="button"
-            type="button"
-            @click="downloadResume"
-          >
-            <NuxtImg
-              src="/img/dl.svg"
-              alt="Download"
-              width="12"
-              height="15"
-              class="icon"
-            />
-            {{ contentData.downloadText }}<span class="pdfSize">(2.4 Mo)</span>
+          <button class="button" type="button" @click="downloadResume">
+            <NuxtImg src="/img/dl.svg" alt="Download" width="12" height="15" class="icon" />
+            {{ contentData.downloadText }}
+
+            <span class="pdfSize">(2.4 Mo)</span>
           </button>
         </div>
-        <svg
-          class="separator"
-          width="100%"
-          height="1"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <line
-            x1="0.5"
-            y1="0.5"
-            x2="100%"
-            y2="0.5"
-            stroke="var(--color-black)"
-          />
+
+        <svg class="separator" width="100%" height="1" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="0.5" y1="0.5" x2="100%" y2="0.5" stroke="var(--color-black)" />
         </svg>
+
         <footer class="footer">
-          <span
-            v-for="(content, index) in contentData.footer.content"
-            :key="index"
-          >{{ content }}</span>
-          <div class="links">
-            <span
-              class="link-title"
-              :style="{ cursor: 'pointer' }"
-              @click="copyMail"
-            >{{ mail }}</span>
+          <p v-for="(content, index) in contentData.footer.content" :key="index">
+            {{ content }}
+          </p>
+
+          <ul class="links">
+            <li class="link-title" :style="{ cursor: 'pointer' }" @click="copyMail">
+              {{ mail }}
+            </li>
+
             <p class="link-separator">
               ~
             </p>
-            <div
-              v-for="(link, index) in contentData.footer.links"
-              :key="index"
-              class="link"
-            >
-              <NuxtLink
-                :to="link.url"
-                target="_blank"
-                class="link-title"
-              >
+
+            <li v-for="(link, index) in contentData.footer.links" :key="index" class="link">
+              <NuxtLink :to="link.url" target="_blank" class="link-title">
                 {{ link.title }}
               </NuxtLink>
-              <p
-                v-if="index !== contentData.footer.links.length - 1"
-                class="link-separator"
-              >
+
+              <span v-if="index !== contentData.footer.links.length - 1" class="link-separator">
                 ~
-              </p>
-            </div>
-          </div>
+              </span>
+            </li>
+          </ul>
         </footer>
       </div>
     </div>
 
-    <canvas
-      id="canvas"
-      ref="canvas3d"
-    />
+    <canvas id="canvas" ref="canvas3d" />
   </div>
 </template>
 
@@ -244,7 +194,7 @@ watchScroll(onScroll)
         }
       }
 
-      @media (hover: hover) {  
+      @media (hover: hover) {
         &:hover {
           text-decoration: underline;
         }
@@ -261,7 +211,7 @@ watchScroll(onScroll)
     margin: 48px 24px;
 
     text-shadow: 0px 0px 8px var(--color-white);
-    
+
     .content {
       @extend %text-body;
 
@@ -294,7 +244,7 @@ watchScroll(onScroll)
 
         .list {
           text-align: left;
-          
+
           .list-item {
             list-style: '• ' inside;
             padding-left: 5px;
@@ -309,6 +259,13 @@ watchScroll(onScroll)
                   padding-left: 8px;
                 }
               }
+            }
+
+            .link-subtitle {
+              font-size: 10px;
+              opacity: 0.5;
+              margin-left: 5px;
+              font-style: italic;
             }
           }
         }
@@ -411,6 +368,7 @@ watchScroll(onScroll)
           .link-title {
             @extend %link;
             transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+            list-style: none;
 
             @media (hover: hover) {
               &:hover {

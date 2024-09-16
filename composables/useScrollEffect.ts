@@ -1,7 +1,10 @@
 export function useScrollEffect() {
   const mediaRef = ref<HTMLElement>()
+  const isIntersecting = ref(false)
 
   function onScroll(scrollY: number) {
+    if (!isIntersecting.value) return
+
     const value = Math.max(scrollY * 0.1, 0)
 
     window.requestAnimationFrame(() => {
@@ -9,17 +12,25 @@ export function useScrollEffect() {
     })
   }
 
-  function preventSpacebarScroll(event: KeyboardEvent) {
-    if (event.key === ' ') event.preventDefault()
-  }
-
   onMounted(() => {
-    document.addEventListener('keypress', preventSpacebarScroll)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        isIntersecting.value = entries[0].isIntersecting
+      },
+      { threshold: 0 }
+    )
+
+    if (mediaRef.value) {
+      observer.observe(mediaRef.value)
+    }
+
+    onUnmounted(() => {
+      if (mediaRef.value) {
+        observer.unobserve(mediaRef.value)
+      }
+    })
   })
 
-  onUnmounted(() => {
-    document.removeEventListener('keypress', preventSpacebarScroll)
-  })
 
   return { mediaRef, onScroll }
 }

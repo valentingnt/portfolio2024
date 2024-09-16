@@ -12,9 +12,9 @@ defineProps<BigTitleProps>()
 <template>
   <div class="BigTitle">
     <div class="subtitle-container">
-      <h2 class="subtitle">
+      <p class="subtitle">
         {{ subtitle }}
-      </h2>
+      </p>
       <svg
         class="separator"
         style="display: block;"
