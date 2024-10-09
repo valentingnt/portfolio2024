@@ -3,14 +3,14 @@ import Lenis from 'lenis'
 
 useSeoMeta({
   title: 'Valentin Genest',
-  description: "Valentin Genest - Développeur web depuis 5 ans. J'ai travaillé pendant 2 ans en tant que développeur front-end pour Dernier Cri, ai été freelance accompagné par le Studio Wawww pour des rêves plus grands et j’ai rejoint Unlikely dans l’optique de retrouver une cohésion d’agence. J'aime ce que je fais et je le fais bien. La stack que j'utilise est différente en fonction du projet et des besoins, mais je continue d'apprendre de nouvelles techniques pour construire un internet comme il se doit.",
+  description: "Valentin Genest - Développeur web passionné avec 5 ans d'expérience. Spécialisé en front-end, j'ai travaillé pour Dernier Cri, Studio Wawww, et rejoint Unlikely. À la pointe et en constante évolution pour créer un web de qualité.",
   ogDescription: "Valentin Genest - Développeur web. Construisons un internet comme il se doit.",
   ogTitle: 'Valentin Genest',
   ogType: 'website',
   ogUrl: 'https://valentingenest.fr',
   ogImage: '/img/moi2.jpeg',
   ogImageAlt: 'Valentin Genest',
-  ogSiteName: 'Valentin Genest',
+  ogSiteName: 'Valentin Genest'
 })
 
 const lenis = ref<Lenis>()
