@@ -12,8 +12,9 @@
       "title": "I worked for:",
       "content": [
         {
-          "title": "Eric Bompard (WIP)",
-          "subtitle": "/ Unlikely Technology"
+          "title": "Eric Bompard",
+          "subtitle": "/ Unlikely Technology",
+          "href": "https://eric-bompard.com/"
         },
         {
           "title": "Givenchy (NDA)",

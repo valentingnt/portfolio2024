@@ -9,7 +9,7 @@ type AboutPageContent = {
   }
   sections: {
     title?: string
-    content: string | string[] | { title: string, href?: string }[]
+    content: string | string[] | { title: string, href?: string, subtitle?: string }[]
   }[]
   downloadText: string
   footer: {
@@ -97,7 +97,9 @@ onUnmounted(() => {
 
                 <span v-else>{{ item }}</span>
 
-                <span class="link-subtitle">{{ item.subtitle }}</span>
+                <span v-if="typeof item === 'object' && item.subtitle" class="link-subtitle">
+                  {{ item.subtitle }}
+                </span>
               </li>
             </ul>
           </span>
