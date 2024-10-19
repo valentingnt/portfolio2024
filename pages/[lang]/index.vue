@@ -131,9 +131,9 @@ watchScroll(onScroll)
               {{ mail }}
             </li>
 
-            <p class="link-separator">
+            <li class="link-separator">
               ~
-            </p>
+            </li>
 
             <li v-for="(link, index) in contentData.footer.links" :key="index" class="link">
               <NuxtLink :to="link.url" target="_blank" class="link-title">
@@ -161,7 +161,7 @@ watchScroll(onScroll)
   text-wrap: pretty;
 
   //  #canvas {
-  //    display: none;
+  //    display: none;  
   //    position: fixed;
   //    top: 0;
   //    left: 0;
@@ -361,6 +361,7 @@ watchScroll(onScroll)
         .links {
           display: flex;
           gap: 8px;
+          list-style: none;
 
           .link {
             display: flex;
@@ -370,7 +371,6 @@ watchScroll(onScroll)
           .link-title {
             @extend %link;
             transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
-            list-style: none;
 
             @media (hover: hover) {
               &:hover {
