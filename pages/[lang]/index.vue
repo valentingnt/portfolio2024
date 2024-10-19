@@ -20,10 +20,10 @@ type AboutPageContent = {
   }
 }
 
-const isMobile = ref(false)
-const isReducedMotion = ref(false)
+// const isMobile = ref(false)
+// const isReducedMotion = ref(false)
 
-const { canvas3d } = useSpline(isMobile, isReducedMotion)
+// const { canvas3d } = useSpline(isMobile, isReducedMotion)
 const { mediaRef, onScroll } = useScrollEffect()
 const { lang, updateLanguage, isEnglish } = useLanguage()
 
@@ -43,22 +43,22 @@ function downloadResume() {
   window.open(`/${fileName}`, '_blank')
 }
 
-function preventSpacebarScroll(event: KeyboardEvent) {
-  if (event.key === ' ') event.preventDefault()
-}
+// function preventSpacebarScroll(event: KeyboardEvent) {
+//   if (event.key === ' ') event.preventDefault()
+// }
 
 watchScroll(onScroll)
 
-onMounted(() => {
-  isMobile.value = window.matchMedia('(hover: none)').matches
-  isReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+// onMounted(() => {
+//   isMobile.value = window.matchMedia('(hover: none)').matches
+//   isReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  document.addEventListener('keypress', preventSpacebarScroll)
-})
+//   document.addEventListener('keypress', preventSpacebarScroll)
+// })
 
-onUnmounted(() => {
-  document.removeEventListener('keypress', preventSpacebarScroll)
-})
+// onUnmounted(() => {
+//   document.removeEventListener('keypress', preventSpacebarScroll)
+// })
 </script>
 
 <template>
@@ -149,7 +149,7 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <canvas id="canvas" ref="canvas3d" />
+    <!-- <canvas id="canvas" ref="canvas3d" /> -->
   </div>
 </template>
 
@@ -160,17 +160,17 @@ onUnmounted(() => {
   justify-content: center;
   text-wrap: pretty;
 
-  #canvas {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: -1;
-
-    @media (max-width: 1600px) {
-      display: none !important;
-    }
-  }
+  //  #canvas {
+  //    display: none;
+  //    position: fixed;
+  //    top: 0;
+  //    left: 0;
+  //    z-index: -1;
+  //
+  //    @media (max-width: 1600px) {
+  //      display: none !important;
+  //    }
+  //  }
 
   .lang-selector {
     @extend %text-body;
