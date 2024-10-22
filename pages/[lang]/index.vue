@@ -20,15 +20,10 @@ type AboutPageContent = {
   }
 }
 
-// const isMobile = ref(false)
-// const isReducedMotion = ref(false)
-
-// const { canvas3d } = useSpline(isMobile, isReducedMotion)
-const { mediaRef, onScroll } = useScrollEffect()
-const { lang, updateLanguage, isEnglish } = useLanguage()
-
-const mail = ref<string>('mail')
-const EMAIL: string = 'valentin64.genest@gmail.com'
+const route = useRoute()
+const lang = computed(() => route.params.lang as string)
+const mail = ref('mail')
+const EMAIL = 'valentin64.genest@gmail.com'
 
 const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.value ? aboutEn : aboutFr)
 
@@ -43,29 +38,44 @@ function downloadResume() {
   window.open(`/${fileName}`, '_blank')
 }
 
-// function preventSpacebarScroll(event: KeyboardEvent) {
-//   if (event.key === ' ') event.preventDefault()
-// }
+const { mediaRef, onScroll } = useScrollEffect()
+const { updateLanguage, isEnglish } = useLanguage(lang.value)
 
 watchScroll(onScroll)
 
-// onMounted(() => {
-//   isMobile.value = window.matchMedia('(hover: none)').matches
-//   isReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-//   document.addEventListener('keypress', preventSpacebarScroll)
-// })
-
-// onUnmounted(() => {
-//   document.removeEventListener('keypress', preventSpacebarScroll)
-// })
+useHead(() => ({
+  htmlAttrs: {
+    lang: lang.value,
+  },
+  title: isEnglish.value ? 'Valentin Genest - Front-end Developer' : 'Valentin Genest - Développeur Front-end',
+  meta: [
+    {
+      name: 'description',
+      content: isEnglish.value
+        ? 'Valentin Genest - Front-end developer with 5 years of experience. Specialized in creating quality web experiences. Let\'s build the internet as it should be.'
+        : "Valentin Genest - Développeur front-end avec 5 ans d'expérience. Spécialisé dans la création d'expériences web de qualité. Construisons un internet comme il se doit.",
+    },
+    {
+      property: 'og:description',
+      content: isEnglish.value
+        ? 'Valentin Genest - Front-end developer. Let\'s build the internet as it should be.'
+        : 'Valentin Genest - Développeur front-end. Construisons un internet comme il se doit.',
+    },
+    { property: 'og:title', content: 'Valentin Genest' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: `https://valentingenest.fr` },
+    { property: 'og:image', content: '/img/ogImage.jpg' },
+    { property: 'og:image:alt', content: 'Valentin Genest' },
+    { property: 'og:site_name', content: 'Valentin Genest' },
+  ],
+}))
 </script>
 
 <template>
   <div class="AboutPage">
     <span class="lang-selector">
-      <span :class="{ active: lang === 'fr' }" @click="updateLanguage('fr')">FR</span>
-      <span :class="{ active: lang === 'en' }" @click="updateLanguage('en')">EN</span>
+      <span :class="{ active: !isEnglish }" @click="updateLanguage('fr')">FR</span>
+      <span :class="{ active: isEnglish }" @click="updateLanguage('en')">EN</span>
     </span>
 
     <div class="container">
@@ -148,8 +158,6 @@ watchScroll(onScroll)
         </footer>
       </div>
     </div>
-
-    <!-- <canvas id="canvas" ref="canvas3d" /> -->
   </div>
 </template>
 
@@ -159,18 +167,6 @@ watchScroll(onScroll)
   align-items: flex-start;
   justify-content: center;
   text-wrap: pretty;
-
-  //  #canvas {
-  //    display: none;  
-  //    position: fixed;
-  //    top: 0;
-  //    left: 0;
-  //    z-index: -1;
-  //
-  //    @media (max-width: 1600px) {
-  //      display: none !important;
-  //    }
-  //  }
 
   .lang-selector {
     @extend %text-body;
