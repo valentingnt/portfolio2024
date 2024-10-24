@@ -47,7 +47,7 @@ useHead(() => ({
   htmlAttrs: {
     lang: lang.value,
   },
-  title: isEnglish.value ? 'Valentin Genest - Front-end Developer' : 'Valentin Genest - Développeur Front-end',
+  title: 'Valentin Genest',
   meta: [
     {
       name: 'description',
