@@ -20,11 +20,11 @@ useHead(() => ({
   meta: [
     {
       name: 'description',
-      content: 'Valentin Genest - Développeur front-end avec 5 ans d\'expérience. Spécialisé dans la création d\'expériences web de qualité. Construisons un internet comme il se doit.',
+      content: 'Développeur front-end avec 5 ans d\'expérience. Spécialisé dans la création d\'expériences web de qualité. Construisons un internet comme il se doit. - Valentin Genest.',
     },
     {
       property: 'og:description',
-      content: 'Valentin Genest - Développeur front-end. Construisons un internet comme il se doit.',
+      content: 'Développeur front-end. Construisons un internet comme il se doit.',
     },
     { property: 'og:title', content: 'Valentin Genest' },
     { property: 'og:type', content: 'website' },
