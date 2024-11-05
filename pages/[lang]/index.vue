@@ -73,6 +73,8 @@ useHead(() => ({
 
 <template>
   <div class="AboutPage">
+    <ThemeToggle />
+
     <span class="lang-selector">
       <span :class="{ active: !isEnglish }" @click="updateLanguage('fr')">FR</span>
       <span :class="{ active: isEnglish }" @click="updateLanguage('en')">EN</span>
@@ -120,7 +122,12 @@ useHead(() => ({
 
         <div class="button-container">
           <button class="button" type="button" @click="downloadResume">
-            <NuxtImg src="/img/dl.svg" alt="Download" width="12" height="15" class="icon" />
+            <svg viewBox="0 0 14 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="icon" width="12"
+              height="15">
+              <path
+                d="M7.5 0.5C7.5 0.223858 7.27614 1.20705e-08 7 0C6.72386 -1.20705e-08 6.5 0.223858 6.5 0.5L7.5 0.5ZM6.64645 12.4325C6.84171 12.6278 7.15829 12.6278 7.35355 12.4325L10.5355 9.25052C10.7308 9.05526 10.7308 8.73868 10.5355 8.54341C10.3403 8.34815 10.0237 8.34815 9.82843 8.54341L7 11.3718L4.17157 8.54341C3.97631 8.34815 3.65973 8.34815 3.46447 8.54341C3.2692 8.73867 3.2692 9.05526 3.46447 9.25052L6.64645 12.4325ZM6.5 0.5L6.5 12.0789L7.5 12.0789L7.5 0.5L6.5 0.5Z" />
+              <path d="M1 15.5H13" stroke="currentColor" stroke-linecap="round" />
+            </svg>
             {{ contentData.downloadText }}
 
             <span class="pdfSize">(2.4 Mo)</span>
@@ -128,7 +135,7 @@ useHead(() => ({
         </div>
 
         <svg class="separator" width="100%" height="1" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="0.5" y1="0.5" x2="100%" y2="0.5" stroke="var(--color-black)" />
+          <line x1="0.5" y1="0.5" x2="100%" y2="0.5" stroke="var(--color-primary)" />
         </svg>
 
         <footer class="footer">
@@ -167,6 +174,75 @@ useHead(() => ({
   align-items: flex-start;
   justify-content: center;
   text-wrap: pretty;
+  color: var(--color-primary);
+
+  @media (max-width: 640px) {
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 72px;
+      z-index: 1;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      background: linear-gradient(to bottom,
+          #FFFDF9 0%,
+          color-mix(in srgb, #FFFDF9 98.7%, transparent) 8.1%,
+          color-mix(in srgb, #FFFDF9 95.1%, transparent) 15.5%,
+          color-mix(in srgb, #FFFDF9 89.6%, transparent) 22.5%,
+          color-mix(in srgb, #FFFDF9 82.5%, transparent) 29%,
+          color-mix(in srgb, #FFFDF9 74.1%, transparent) 35.3%,
+          color-mix(in srgb, #FFFDF9 64.8%, transparent) 41.2%,
+          color-mix(in srgb, #FFFDF9 55%, transparent) 47.1%,
+          color-mix(in srgb, #FFFDF9 45%, transparent) 52.9%,
+          color-mix(in srgb, #FFFDF9 35.2%, transparent) 58.8%,
+          color-mix(in srgb, #FFFDF9 25.9%, transparent) 64.7%,
+          color-mix(in srgb, #FFFDF9 17.5%, transparent) 71%,
+          color-mix(in srgb, #FFFDF9 10.4%, transparent) 77.5%,
+          color-mix(in srgb, #FFFDF9 4.9%, transparent) 84.5%,
+          color-mix(in srgb, #FFFDF9 1.3%, transparent) 91.9%,
+          color-mix(in srgb, #FFFDF9 0%, transparent) 100%);
+
+      [data-theme="dark"] & {
+        opacity: 0;
+      }
+    }
+  }
+
+  &::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 72px;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: linear-gradient(to bottom,
+        #2B2B2B 0%,
+        color-mix(in srgb, #2B2B2B 98.7%, transparent) 8.1%,
+        color-mix(in srgb, #2B2B2B 95.1%, transparent) 15.5%,
+        color-mix(in srgb, #2B2B2B 89.6%, transparent) 22.5%,
+        color-mix(in srgb, #2B2B2B 82.5%, transparent) 29%,
+        color-mix(in srgb, #2B2B2B 74.1%, transparent) 35.3%,
+        color-mix(in srgb, #2B2B2B 64.8%, transparent) 41.2%,
+        color-mix(in srgb, #2B2B2B 55%, transparent) 47.1%,
+        color-mix(in srgb, #2B2B2B 45%, transparent) 52.9%,
+        color-mix(in srgb, #2B2B2B 35.2%, transparent) 58.8%,
+        color-mix(in srgb, #2B2B2B 25.9%, transparent) 64.7%,
+        color-mix(in srgb, #2B2B2B 17.5%, transparent) 71%,
+        color-mix(in srgb, #2B2B2B 10.4%, transparent) 77.5%,
+        color-mix(in srgb, #2B2B2B 4.9%, transparent) 84.5%,
+        color-mix(in srgb, #2B2B2B 1.3%, transparent) 91.9%,
+        color-mix(in srgb, #2B2B2B 0%, transparent) 100%);
+
+    [data-theme="dark"] & {
+      opacity: 1;
+    }
+  }
 
   .lang-selector {
     @extend %text-body;
@@ -176,6 +252,7 @@ useHead(() => ({
     right: 24px;
     display: flex;
     gap: 8px;
+    z-index: 2;
 
     span {
       cursor: pointer;
@@ -206,9 +283,7 @@ useHead(() => ({
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    margin: 48px 24px;
-
-    text-shadow: 0px 0px 8px var(--color-white);
+    margin: 48px 24px 72px;
 
     .content {
       @extend %text-body;
@@ -281,7 +356,6 @@ useHead(() => ({
             font-size: 56px;
             top: 12px;
             left: 0px;
-            color: var(--color-black);
           }
 
           &::after {
@@ -292,7 +366,6 @@ useHead(() => ({
             font-size: 56px;
             bottom: -12px;
             right: 0;
-            color: var(--color-black);
           }
         }
       }
@@ -304,16 +377,16 @@ useHead(() => ({
         .button {
           @extend %text-body;
 
-          color: var(--color-black);
+          color: var(--color-primary);
           font-weight: 600;
           margin-top: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
           border-radius: 60px;
-          border: 1px solid var(--color-black);
+          border: 1px solid var(--color-primary);
           background: transparent;
-          box-shadow: 1px 1px 0px 0px var(--color-black);
+          box-shadow: 1px 1px 0px 0px var(--color-primary);
           padding: 8px 16px;
           cursor: pointer;
           transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s, box-shadow cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
@@ -332,13 +405,13 @@ useHead(() => ({
           @media (hover: hover) {
             &:hover {
               transform: translate(-2px, -2px);
-              box-shadow: 3px 3px 0px 0px var(--color-black);
+              box-shadow: 3px 3px 0px 0px var(--color-primary);
             }
           }
 
           &:active {
             transform: translate(0, 0);
-            box-shadow: 0px 0px 0px 0px var(--color-black);
+            box-shadow: 0px 0px 0px 0px var(--color-primary);
           }
         }
       }

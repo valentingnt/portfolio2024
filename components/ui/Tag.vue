@@ -33,9 +33,9 @@ defineProps<UiTagProps>()
   gap: 8px;
   font-weight: 600;
   border-radius: 60px;
-  border: 1px solid var(--color-black);
-  background-color: var(--color-white);
-  box-shadow: 1px 1px 0px 0px var(--color-black);
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-secondary);
+  box-shadow: 1px 1px 0px 0px var(--color-primary);
 
   .icon {
     width: 16px;

@@ -1,5 +1,11 @@
 :root {
-  --color-black: #2B2B2B;
+  --color-primary: #2B2B2B;
+  --color-secondary: #FFFDF9;
   --color-accent: #A5909F;
-  --color-white: #FFFDF9;
+}
+
+[data-theme="dark"] {
+  --color-primary: #FFFDF9;
+  --color-secondary: #2B2B2B;
+  --color-accent: #A5909F;
 }
