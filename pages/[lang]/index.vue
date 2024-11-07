@@ -209,38 +209,38 @@ useHead(() => ({
         opacity: 0;
       }
     }
-  }
 
-  &::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 72px;
-    z-index: 1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    background: linear-gradient(to bottom,
-        #2B2B2B 0%,
-        color-mix(in srgb, #2B2B2B 98.7%, transparent) 8.1%,
-        color-mix(in srgb, #2B2B2B 95.1%, transparent) 15.5%,
-        color-mix(in srgb, #2B2B2B 89.6%, transparent) 22.5%,
-        color-mix(in srgb, #2B2B2B 82.5%, transparent) 29%,
-        color-mix(in srgb, #2B2B2B 74.1%, transparent) 35.3%,
-        color-mix(in srgb, #2B2B2B 64.8%, transparent) 41.2%,
-        color-mix(in srgb, #2B2B2B 55%, transparent) 47.1%,
-        color-mix(in srgb, #2B2B2B 45%, transparent) 52.9%,
-        color-mix(in srgb, #2B2B2B 35.2%, transparent) 58.8%,
-        color-mix(in srgb, #2B2B2B 25.9%, transparent) 64.7%,
-        color-mix(in srgb, #2B2B2B 17.5%, transparent) 71%,
-        color-mix(in srgb, #2B2B2B 10.4%, transparent) 77.5%,
-        color-mix(in srgb, #2B2B2B 4.9%, transparent) 84.5%,
-        color-mix(in srgb, #2B2B2B 1.3%, transparent) 91.9%,
-        color-mix(in srgb, #2B2B2B 0%, transparent) 100%);
+    &::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 72px;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      background: linear-gradient(to bottom,
+          #2B2B2B 0%,
+          color-mix(in srgb, #2B2B2B 98.7%, transparent) 8.1%,
+          color-mix(in srgb, #2B2B2B 95.1%, transparent) 15.5%,
+          color-mix(in srgb, #2B2B2B 89.6%, transparent) 22.5%,
+          color-mix(in srgb, #2B2B2B 82.5%, transparent) 29%,
+          color-mix(in srgb, #2B2B2B 74.1%, transparent) 35.3%,
+          color-mix(in srgb, #2B2B2B 64.8%, transparent) 41.2%,
+          color-mix(in srgb, #2B2B2B 55%, transparent) 47.1%,
+          color-mix(in srgb, #2B2B2B 45%, transparent) 52.9%,
+          color-mix(in srgb, #2B2B2B 35.2%, transparent) 58.8%,
+          color-mix(in srgb, #2B2B2B 25.9%, transparent) 64.7%,
+          color-mix(in srgb, #2B2B2B 17.5%, transparent) 71%,
+          color-mix(in srgb, #2B2B2B 10.4%, transparent) 77.5%,
+          color-mix(in srgb, #2B2B2B 4.9%, transparent) 84.5%,
+          color-mix(in srgb, #2B2B2B 1.3%, transparent) 91.9%,
+          color-mix(in srgb, #2B2B2B 0%, transparent) 100%);
 
-    [data-theme="dark"] & {
-      opacity: 1;
+      [data-theme="dark"] & {
+        opacity: 1;
+      }
     }
   }
 
