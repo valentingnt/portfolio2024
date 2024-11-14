@@ -5,7 +5,7 @@ import type { AboutPageContent } from '@/types/about'
 
 const route = useRoute()
 const lang = computed(() => route.params.lang as string)
-const mail = ref('mail')
+const mail = ref('email')
 const EMAIL = 'valentin64.genest@gmail.com'
 
 const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.value ? aboutEn : aboutFr)
@@ -13,7 +13,7 @@ const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.valu
 function copyMail() {
   copyToClipboard(EMAIL)
   mail.value = isEnglish.value ? 'copied!' : 'copié!'
-  setTimeout(() => mail.value = 'mail', 2000)
+  setTimeout(() => mail.value = 'email', 2000)
 }
 
 function downloadResume() {
@@ -60,7 +60,7 @@ useHead(() => ({
       <AboutHeader :content="contentData" :is-english="isEnglish" :on-language-change="updateLanguage" />
 
       <div class="content">
-        <div ref="mediaRef" class="media-container">
+        <div class="media-container" ref="mediaRef">
           <NuxtImg src="/img/moi.webp" alt="Valentin Genest" class="media" sizes="sm:480px md:640px lg:800px xl:960px"
             densities="1x 2x" :placeholder="[480, 480, 75, 40]" />
         </div>
@@ -114,8 +114,8 @@ useHead(() => ({
     .media-container {
       position: relative;
       width: 100%;
-      overflow: hidden;
       margin-top: 64px;
+      overflow: hidden;
       aspect-ratio: 1.6180339887 / 1;
 
       .media {
@@ -124,7 +124,7 @@ useHead(() => ({
         bottom: 0;
         left: 0;
         width: 100%;
-        transform: translateY(var(--scrollY));
+        transform: translateY(calc(var(--scrollY) * 1px));
       }
     }
 

@@ -52,6 +52,10 @@ defineProps<FooterProps>()
       gap: 8px;
     }
 
+    .link-separator {
+      user-select: none;
+    }
+
     .link-title {
       @extend %link;
       transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s;

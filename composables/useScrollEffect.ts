@@ -8,7 +8,7 @@ export function useScrollEffect() {
     const value = Math.max(scrollY * 0.1, 0)
 
     window.requestAnimationFrame(() => {
-      mediaRef.value?.style.setProperty('--scrollY', `${value}px`)
+      mediaRef.value?.style.setProperty('--scrollY', `${value}`)
     })
   }
 

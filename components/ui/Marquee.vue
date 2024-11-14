@@ -27,7 +27,7 @@ const slotCount = computed(() => Math.ceil(componentWidth.value / wrapperWidth.v
 const shouldAnimate = computed<boolean>(() => enableAnimation && !reducedMotion.value)
 
 const { velocity, updateVelocity } = useVelocity()
-const reducedMotion = false
+const reducedMotion = useReducedMotion()
 
 let resizeObserver: ResizeObserver | null = null
 

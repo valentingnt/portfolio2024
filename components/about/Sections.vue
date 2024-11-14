@@ -36,7 +36,8 @@ defineProps<SectionsProps>()
       </ul>
     </span>
 
-    <p v-else :class="section.title ? null : 'quote'" v-html="section.title ? parseMarkdown(section.content) : section.content" />
+    <p v-else :class="section.title ? null : 'quote'"
+      v-html="section.title ? parseMarkdown(section.content) : section.content" />
   </div>
 </template>
 
@@ -83,7 +84,7 @@ defineProps<SectionsProps>()
     padding: 0 40px;
 
     &::before {
-      content: '"';
+      content: '“';
       position: absolute;
       font-family: "DM Serif Text";
       line-height: 0;
@@ -93,7 +94,7 @@ defineProps<SectionsProps>()
     }
 
     &::after {
-      content: '"';
+      content: '”';
       position: absolute;
       font-family: "DM Serif Text";
       line-height: 0;
@@ -103,4 +104,4 @@ defineProps<SectionsProps>()
     }
   }
 }
-</style> 
+</style>
