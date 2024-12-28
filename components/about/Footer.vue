@@ -41,6 +41,15 @@ defineProps<FooterProps>()
   align-items: center;
   justify-content: center;
   gap: 16px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.3s,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.3s;
+
+  .AboutPage.is-visible & {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   .links {
     display: flex;
@@ -68,4 +77,4 @@ defineProps<FooterProps>()
     }
   }
 }
-</style> 
+</style>

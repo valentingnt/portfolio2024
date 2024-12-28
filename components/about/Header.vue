@@ -11,20 +11,38 @@ defineProps<HeaderProps>()
 </script>
 
 <template>
-  <div class="Header">
-    <ThemeToggle />
+  <header class="Header">
+    <div class="top-bar">
+      <ThemeToggle />
+      <div class="lang-selector">
+        <span :class="{ active: !isEnglish }" @click="() => onLanguageChange('fr')">
+          FR
+        </span>
+        <span>/</span>
+        <span :class="{ active: isEnglish }" @click="() => onLanguageChange('en')">
+          EN
+        </span>
+      </div>
+    </div>
 
-    <span class="lang-selector">
-      <span :class="{ active: !isEnglish }" @click="onLanguageChange('fr')">FR</span>
-      <span :class="{ active: isEnglish }" @click="onLanguageChange('en')">EN</span>
-    </span>
-
-    <BigTitle :title="content.header.title" :subtitle="content.header.subtitle" />
-  </div>
+    <div class="title-container">
+      <BigTitle :title="content.header.title" :subtitle="content.header.subtitle" />
+    </div>
+  </header>
 </template>
 
 <style scoped lang="scss">
 .Header {
+  .top-bar {
+    position: fixed;
+    top: 16px;
+    right: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 2;
+  }
+
   @media (max-width: 640px) {
     &::before {
       content: '';
@@ -95,13 +113,17 @@ defineProps<HeaderProps>()
 
   .lang-selector {
     @extend %text-body;
-
-    position: fixed;
-    top: 16px;
-    right: 24px;
     display: flex;
     gap: 8px;
-    z-index: 2;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+
+    .AboutPage.is-visible & {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
     span {
       cursor: pointer;
@@ -123,6 +145,18 @@ defineProps<HeaderProps>()
           text-decoration: underline;
         }
       }
+    }
+  }
+
+  .title-container {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+
+    .AboutPage.is-visible & {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }

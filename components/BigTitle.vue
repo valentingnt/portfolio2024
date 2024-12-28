@@ -30,12 +30,30 @@ defineProps<BigTitleProps>()
 .BigTitle {
   .main-title {
     @extend %text-h1;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+
+    .AboutPage.is-visible & {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .subtitle-container {
     display: flex;
     align-items: center;
     gap: 20px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s,
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+
+    .AboutPage.is-visible & {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
     .subtitle {
       @extend %text-h2;

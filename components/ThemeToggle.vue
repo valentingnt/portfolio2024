@@ -47,40 +47,20 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="theme-toggle"
-    :class="{ open: isOpen }"
-  >
+  <div class="theme-toggle" :class="{ open: isOpen }">
     <template v-if="!isMobile">
-      <button
-        class="current-theme"
-        @click="isOpen = !isOpen"
-      >
+      <button class="current-theme" @click="isOpen = !isOpen">
         <span class="label">{{ currentTheme?.label }}</span>
       </button>
       <div class="theme-options">
-        <button
-          v-for="theme in themes"
-          :key="theme.value"
-          class="theme-option"
-          :class="{ active: theme.value === preference }"
-          @click="selectTheme(theme.value)"
-        >
+        <button v-for="theme in themes" :key="theme.value" class="theme-option"
+          :class="{ active: theme.value === preference }" @click="selectTheme(theme.value)">
           <span class="label">{{ theme.label }}</span>
         </button>
       </div>
     </template>
-    <select
-      v-else
-      class="mobile-select"
-      :value="preference"
-      @change="onSelectChange"
-    >
-      <option
-        v-for="theme in themes"
-        :key="theme.value"
-        :value="theme.value"
-      >
+    <select v-else class="mobile-select" :value="preference" @change="onSelectChange">
+      <option v-for="theme in themes" :key="theme.value" :value="theme.value">
         {{ theme.label }}
       </option>
     </select>
@@ -93,6 +73,15 @@ onMounted(() => {
   top: 16px;
   left: 24px;
   z-index: 2;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+
+  .AboutPage.is-visible & {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   .current-theme,
   .theme-option {

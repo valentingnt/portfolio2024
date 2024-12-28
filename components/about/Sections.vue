@@ -9,7 +9,8 @@ defineProps<SectionsProps>()
 </script>
 
 <template>
-  <div v-for="(section, index) in sections" :key="index" class="sections">
+  <div v-for="(section, index) in sections" :key="index" class="sections"
+    :style="{ '--delay': `${0.6 + index * 0.1}s` }">
     <h2 v-if="section.title" class="title">
       {{ section.title }}
     </h2>
@@ -44,6 +45,15 @@ defineProps<SectionsProps>()
 <style scoped lang="scss">
 .sections {
   margin-top: 40px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--delay),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--delay);
+
+  .AboutPage.is-visible & {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   .title {
     @extend %text-h2;
@@ -84,7 +94,7 @@ defineProps<SectionsProps>()
     padding: 0 40px;
 
     &::before {
-      content: '“';
+      content: '"';
       position: absolute;
       font-family: "DM Serif Text";
       line-height: 0;
@@ -94,7 +104,7 @@ defineProps<SectionsProps>()
     }
 
     &::after {
-      content: '”';
+      content: '"';
       position: absolute;
       font-family: "DM Serif Text";
       line-height: 0;
