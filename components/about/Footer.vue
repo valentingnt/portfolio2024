@@ -38,17 +38,12 @@ defineProps<FooterProps>()
 @import '@/assets/stylesheets/variables/animations';
 
 .footer {
+  @include page-transition($page-transition-footer-delay);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  @include page-transition($page-transition-footer-delay);
-
-  .AboutPage.is-visible & {
-    opacity: 1;
-    transform: translateY(0);
-  }
 
   .links {
     display: flex;

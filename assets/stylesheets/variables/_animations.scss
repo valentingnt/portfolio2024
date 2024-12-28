@@ -2,9 +2,11 @@
 $transition-timing: cubic-bezier(0.22, 1, 0.36, 1);
 
 // Page transition delays
+$page-transition-language-selector-delay: 0s;
+$page-transition-theme-toggle-delay: 0s;
 $page-transition-header-delay: 0s;
 $page-transition-title-delay: 0.05s;
-$page-transition-main-title-delay: 0.1s;
+$page-transition-main-title-delay: 0.15s;
 $page-transition-media-delay: 0.2s;
 $page-transition-sections-base-delay: 0.25s;
 $page-transition-sections-increment: 0.05s;
@@ -21,4 +23,9 @@ $transition-duration: 1.2s;
   transform: translateY(15px);
   transition: opacity $transition-duration $transition-timing $delay,
     transform $transition-duration $transition-timing $delay;
+
+  .AboutPage.is-visible & {
+    opacity: 1;
+    transform: translateY(0);
+  }
 } 

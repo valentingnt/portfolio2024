@@ -45,13 +45,9 @@ defineProps<SectionsProps>()
 @import '@/assets/stylesheets/variables/animations';
 
 .sections {
-  margin-top: 40px;
   @include page-transition(calc($page-transition-sections-base-delay + var(--index) * $page-transition-sections-increment));
 
-  .AboutPage.is-visible & {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  margin-top: 40px;
 
   .title {
     @extend %text-h2;

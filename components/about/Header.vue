@@ -47,31 +47,17 @@ defineProps<HeaderProps>()
   .title-container {
     @include page-transition($page-transition-header-delay);
 
-    .AboutPage.is-visible & {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
     .main-title {
       @extend %text-h1;
       @include page-transition($page-transition-main-title-delay);
-
-      .AboutPage.is-visible & {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
 
     .subtitle-container {
+      @include page-transition($page-transition-title-delay);
+
       display: flex;
       align-items: center;
       gap: 20px;
-      @include page-transition($page-transition-title-delay);
-
-      .AboutPage.is-visible & {
-        opacity: 1;
-        transform: translateY(0);
-      }
 
       .subtitle {
         @extend %text-h2;

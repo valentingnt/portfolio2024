@@ -142,6 +142,10 @@ useHead(() => ({
     min-height: 100vh;
     margin: 48px 24px 72px;
     max-width: 480px;
+
+    @media (max-width: 640px) {
+      margin-top: 64px;
+    }
   }
 
   .content {
@@ -170,11 +174,6 @@ useHead(() => ({
       display: flex;
       justify-content: center;
       @include page-transition($page-transition-button-delay);
-
-      .AboutPage.is-visible & {
-        opacity: 1;
-        transform: translateY(0);
-      }
 
       .button {
         @extend %text-body;
@@ -219,13 +218,9 @@ useHead(() => ({
     }
 
     .separator {
-      margin: 64px 0 48px 0;
       @include page-transition($page-transition-separator-delay);
 
-      .AboutPage.is-visible & {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      margin: 64px 0 48px 0;
     }
   }
 

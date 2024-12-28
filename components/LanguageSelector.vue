@@ -20,19 +20,15 @@ defineProps<LanguageSelectorProps>()
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/stylesheets/variables/animations';
+
 .LanguageSelector {
   @extend %text-body;
+  @include page-transition($page-transition-language-selector-delay);
+
   display: flex;
   gap: 8px;
   opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-
-  .AboutPage.is-visible & {
-    opacity: 1;
-    transform: translateY(0);
-  }
 
   span {
     cursor: pointer;

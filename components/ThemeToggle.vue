@@ -68,24 +68,21 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/stylesheets/variables/animations';
+
 .theme-toggle {
+  @include page-transition($page-transition-theme-toggle-delay);
+
   position: fixed;
   top: 16px;
   left: 24px;
   z-index: 2;
   opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-
-  .AboutPage.is-visible & {
-    opacity: 1;
-    transform: translateY(0);
-  }
 
   .current-theme,
   .theme-option {
     @extend %text-body;
+
     display: flex;
     align-items: center;
     gap: 8px;
