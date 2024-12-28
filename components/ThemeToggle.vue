@@ -112,6 +112,8 @@ onMounted(() => {
 
     .label {
       font-size: 12px;
+      text-decoration: none;
+      transition: text-decoration-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     @media (max-width: 640px) {
@@ -119,15 +121,13 @@ onMounted(() => {
     }
 
     @media (hover: hover) {
-      &:hover {
-        opacity: 1;
-        background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+      &:hover .label {
+        text-decoration: underline;
       }
     }
 
-    &:active {
-      opacity: 1;
-      background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    &:active .label {
+      text-decoration: underline;
     }
   }
 
@@ -155,9 +155,8 @@ onMounted(() => {
       border-radius: 8px;
       padding: 6px 12px;
 
-      &.active {
-        background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-        opacity: 1;
+      &.active .label {
+        text-decoration: underline;
       }
     }
   }
@@ -189,7 +188,6 @@ onMounted(() => {
 
     &:focus {
       outline: none;
-      opacity: 1;
     }
 
     option {
