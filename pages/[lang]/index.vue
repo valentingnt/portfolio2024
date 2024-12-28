@@ -12,81 +12,28 @@ const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.valu
 
 function copyMail() {
   copyToClipboard(EMAIL)
+  window.gtag?.('event', 'copy_email', { language: isEnglish.value ? 'en' : 'fr' })
   mail.value = isEnglish.value ? 'copied!' : 'copié!'
   setTimeout(() => mail.value = 'email', 2000)
 }
 
 function downloadResume() {
   const fileName = isEnglish.value ? 'EN_CV2024_Valentin_Genest.pdf' : 'CV2024_Valentin_Genest.pdf'
+  window.gtag?.('event', 'download_cv', {
+    language: isEnglish.value ? 'en' : 'fr',
+    file_name: fileName
+  })
   window.open(`/${fileName}`, '_blank')
 }
 
 const { mediaRef, onScroll } = useScrollEffect()
 const { updateLanguage, isEnglish } = useLanguage(lang.value)
 const { isVisible } = usePageTransition()
+const { meta } = useSEO(lang.value, isEnglish.value)
 
 watchScroll(onScroll)
 
-useHead(() => ({
-  htmlAttrs: {
-    lang: lang.value,
-  },
-  title: isEnglish.value
-    ? 'Valentin Genest - Front-end Developer'
-    : 'Valentin Genest - Développeur Front-end',
-  meta: [
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    { name: 'format-detection', content: 'telephone=no' },
-    { name: 'theme-color', content: '#2B2B2B' },
-    { name: 'robots', content: 'index, follow' },
-    { name: 'author', content: 'Valentin Genest' },
-    {
-      name: 'description',
-      content: isEnglish.value
-        ? 'Valentin Genest - Front-end developer with 5 years of experience. Specialized in creating quality web experiences. Let\'s build the internet as it should be.'
-        : "Valentin Genest - Développeur front-end avec 5 ans d'expérience. Spécialisé dans la création d'expériences web de qualité. Construisons un internet comme il se doit.",
-    },
-    {
-      property: 'og:description',
-      content: isEnglish.value
-        ? 'Valentin Genest - Front-end developer. Let\'s build the internet as it should be.'
-        : 'Valentin Genest - Développeur front-end. Construisons un internet comme il se doit.',
-    },
-    {
-      property: 'og:title',
-      content: isEnglish.value
-        ? 'Valentin Genest - Front-end Developer'
-        : 'Valentin Genest - Développeur Front-end'
-    },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:url', content: `https://valentingenest.fr/${lang.value}` },
-    { property: 'og:image', content: '/img/ogImage.jpg' },
-    { property: 'og:image:alt', content: 'Valentin Genest' },
-    { property: 'og:site_name', content: 'Valentin Genest' },
-    { property: 'og:locale', content: isEnglish.value ? 'en_US' : 'fr_FR' },
-    { property: 'og:locale:alternate', content: isEnglish.value ? 'fr_FR' : 'en_US' },
-    { name: 'twitter:card', content: 'summary_large_image' },
-    {
-      name: 'twitter:title',
-      content: isEnglish.value
-        ? 'Valentin Genest - Front-end Developer'
-        : 'Valentin Genest - Développeur Front-end'
-    },
-    {
-      name: 'twitter:description',
-      content: isEnglish.value
-        ? 'Front-end developer. Let\'s build the internet as it should be.'
-        : 'Développeur front-end. Construisons un internet comme il se doit.',
-    },
-    { name: 'twitter:image', content: '/img/ogImage.jpg' },
-    { name: 'twitter:image:alt', content: 'Valentin Genest' },
-  ],
-  link: [
-    { rel: 'canonical', href: `https://valentingenest.fr/${lang.value}` },
-    { rel: 'alternate', hreflang: 'fr', href: 'https://valentingenest.fr/fr' },
-    { rel: 'alternate', hreflang: 'en', href: 'https://valentingenest.fr/en' },
-  ]
-}))
+useHead(() => meta)
 </script>
 
 <template>

@@ -4,7 +4,7 @@ export function useTheme() {
     watch: true
   })
   
-  const theme = ref('light')
+  const theme = ref(userPreference.value)
   const isDark = computed(() => theme.value === 'dark')
 
   function setTheme(newTheme: 'light' | 'dark' | 'system') {
@@ -36,9 +36,7 @@ export function useTheme() {
     updateThemeFromPreference()
 
     // Cleanup
-    onUnmounted(() => {
-      mediaQuery.removeEventListener('change', updateThemeFromPreference)
-    })
+    onUnmounted(() => mediaQuery.removeEventListener('change', updateThemeFromPreference))
   })
 
   return {

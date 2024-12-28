@@ -20,7 +20,6 @@ useHead(() => ({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     { name: 'format-detection', content: 'telephone=no' },
-    { name: 'theme-color', content: '#2B2B2B' },
     { name: 'robots', content: 'index, follow' },
     { name: 'author', content: 'Valentin Genest' },
     {
