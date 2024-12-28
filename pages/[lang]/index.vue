@@ -127,6 +127,8 @@ useHead(() => ({
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/stylesheets/variables/animations';
+
 .AboutPage {
   display: flex;
   justify-content: center;
@@ -152,10 +154,7 @@ useHead(() => ({
       margin-top: 64px;
       overflow: hidden;
       aspect-ratio: 1.6180339887 / 1;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.4s,
-        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
+      @include page-transition($page-transition-media-delay);
 
       .media {
         will-change: transform;
@@ -170,10 +169,12 @@ useHead(() => ({
     .button-container {
       display: flex;
       justify-content: center;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.1s,
-        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.1s;
+      @include page-transition($page-transition-button-delay);
+
+      .AboutPage.is-visible & {
+        opacity: 1;
+        transform: translateY(0);
+      }
 
       .button {
         @extend %text-body;
@@ -219,10 +220,12 @@ useHead(() => ({
 
     .separator {
       margin: 64px 0 48px 0;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.2s,
-        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.2s;
+      @include page-transition($page-transition-separator-delay);
+
+      .AboutPage.is-visible & {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   }
 

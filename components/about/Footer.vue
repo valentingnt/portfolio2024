@@ -35,16 +35,15 @@ defineProps<FooterProps>()
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/stylesheets/variables/animations';
+
 .footer {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.3s,
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1.3s;
+  @include page-transition($page-transition-footer-delay);
 
   .AboutPage.is-visible & {
     opacity: 1;
