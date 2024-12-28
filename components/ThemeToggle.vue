@@ -1,21 +1,90 @@
 <script setup lang="ts">
-const { isDark, toggleTheme } = useTheme()
+const { preference, setTheme } = useTheme()
+
+const isOpen = ref(false)
+const isMobile = ref(false)
+
+const themes = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+  { value: 'system', label: 'System' }
+] as const
+
+function selectTheme(theme: 'light' | 'dark' | 'system') {
+  setTheme(theme)
+  isOpen.value = false
+}
+
+function onSelectChange(event: Event) {
+  const select = event.target as HTMLSelectElement
+  setTheme(select.value as 'light' | 'dark' | 'system')
+}
+
+const currentTheme = computed(() => themes.find(t => t.value === preference.value))
+
+// Close menu when clicking outside
+onMounted(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as HTMLElement
+    if (!target.closest('.theme-toggle')) {
+      isOpen.value = false
+    }
+  }
+
+  const checkMobile = () => {
+    isMobile.value = window.innerWidth <= 640
+  }
+
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+  document.addEventListener('click', handleClickOutside)
+
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+    window.removeEventListener('resize', checkMobile)
+  })
+})
 </script>
 
 <template>
-  <button class="theme-toggle" @click="toggleTheme">
-    <svg v-if="isDark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z"
-        stroke="currentColor" stroke-width="2" />
-      <path
-        d="M12 2V4M12 20V22M2 12H4M20 12H22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M19.07 4.93L17.66 6.34M6.34 17.66L4.93 19.07"
-        stroke="currentColor" stroke-width="2" />
-    </svg>
-    <svg v-else viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="2" />
-    </svg>
-  </button>
+  <div
+    class="theme-toggle"
+    :class="{ open: isOpen }"
+  >
+    <template v-if="!isMobile">
+      <button
+        class="current-theme"
+        @click="isOpen = !isOpen"
+      >
+        <span class="label">{{ currentTheme?.label }}</span>
+      </button>
+      <div class="theme-options">
+        <button
+          v-for="theme in themes"
+          :key="theme.value"
+          class="theme-option"
+          :class="{ active: theme.value === preference }"
+          @click="selectTheme(theme.value)"
+        >
+          <span class="label">{{ theme.label }}</span>
+        </button>
+      </div>
+    </template>
+    <select
+      v-else
+      class="mobile-select"
+      :value="preference"
+      @change="onSelectChange"
+    >
+      <option
+        v-for="theme in themes"
+        :key="theme.value"
+        :value="theme.value"
+      >
+        {{ theme.label }}
+      </option>
+    </select>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -23,15 +92,111 @@ const { isDark, toggleTheme } = useTheme()
   position: fixed;
   top: 16px;
   left: 24px;
-  width: 18px;
-  height: 18px;
   z-index: 2;
-  color: var(--color-primary);
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-  @media (hover: hover) {
-    &:hover {
-      transform: scale(0.9);
+  .current-theme,
+  .theme-option {
+    @extend %text-body;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-primary);
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 60px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+    white-space: nowrap;
+
+    .label {
+      font-size: 12px;
+    }
+
+    @media (max-width: 640px) {
+      padding: 0;
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        opacity: 1;
+        background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+      }
+    }
+
+    &:active {
+      opacity: 1;
+      background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    }
+  }
+
+  .current-theme {
+    position: relative;
+  }
+
+  .theme-options {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--color-secondary) 95%, var(--color-primary));
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+
+    .theme-option {
+      border-radius: 8px;
+      padding: 6px 12px;
+
+      &.active {
+        background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+        opacity: 1;
+      }
+    }
+  }
+
+  &.open {
+    .current-theme {
+      opacity: 1;
+    }
+
+    .theme-options {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+  }
+
+  .mobile-select {
+    @extend %text-body;
+    color: var(--color-primary);
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    text-decoration: underline;
+
+    &:focus {
+      outline: none;
+      opacity: 1;
+    }
+
+    option {
+      background: var(--color-secondary);
+      color: var(--color-primary);
+      font-size: 16px;
+      padding: 8px;
     }
   }
 }
