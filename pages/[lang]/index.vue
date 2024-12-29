@@ -49,6 +49,8 @@ useHead(() => meta)
 
         <AboutSections :sections="contentData.sections" />
 
+        <SkillsMarquee />
+
         <div class="button-container">
           <button class="button" type="button" @click="downloadResume">
             <svg viewBox="0 0 14 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="icon" width="12"

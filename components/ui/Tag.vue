@@ -6,18 +6,21 @@ export interface Media {
 
 export interface UiTagData {
   title: string
-  icon: Media
+  icon?: Media
 }
 
 export interface UiTagProps extends UiTagData { }
 
 defineProps<UiTagProps>()
+const emit = defineEmits<{
+  click: [title: string]
+}>()
 </script>
 
 <template>
-  <div class="Tag">
-    <NuxtImg :src="icon.src" :alt="icon.alt" class="icon" sizes="16px" />
-    <p class="title">{{ title }}</p>
+  <div class="Tag" @click="emit('click', title)">
+    <NuxtImg v-if="icon" :src="icon.src" :alt="icon.alt" class="icon" sizes="16px" />
+    <span class="title">{{ title }}</span>
   </div>
 </template>
 
@@ -25,21 +28,51 @@ defineProps<UiTagProps>()
 .Tag {
   @extend %text-body;
 
-  display: flex;
-  padding: 8px 10px;
-  margin: 1px;
-  justify-content: center;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
-  border-radius: 60px;
-  border: 1px solid var(--color-primary);
-  background-color: var(--color-secondary);
-  box-shadow: 1px 1px 0px 0px var(--color-primary);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-primary);
+  opacity: 0.8;
+  position: relative;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    background-color: var(--color-primary);
+    border-radius: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+    margin-left: -12px;
+  }
 
   .icon {
     width: 16px;
     height: 16px;
+    opacity: 0.7;
+  }
+
+  @media (hover: hover) {
+    transition: opacity 0.3s ease;
+
+    &:hover {
+      opacity: 1;
+
+      &::before {
+        opacity: 0.8;
+      }
+
+      .icon {
+        opacity: 1;
+      }
+    }
   }
 }
 </style>
