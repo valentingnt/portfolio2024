@@ -12,60 +12,44 @@ const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.valu
 
 function copyMail() {
   copyToClipboard(EMAIL)
+  window.gtag?.('event', 'copy_email', { language: isEnglish.value ? 'en' : 'fr' })
   mail.value = isEnglish.value ? 'copied!' : 'copié!'
   setTimeout(() => mail.value = 'email', 2000)
 }
 
 function downloadResume() {
   const fileName = isEnglish.value ? 'EN_CV2024_Valentin_Genest.pdf' : 'CV2024_Valentin_Genest.pdf'
+  window.gtag?.('event', 'download_cv', {
+    language: isEnglish.value ? 'en' : 'fr',
+    file_name: fileName
+  })
   window.open(`/${fileName}`, '_blank')
 }
 
 const { mediaRef, onScroll } = useScrollEffect()
 const { updateLanguage, isEnglish } = useLanguage(lang.value)
+const { isVisible } = usePageTransition()
+const { meta } = useSEO(lang.value, isEnglish.value)
 
 watchScroll(onScroll)
 
-useHead(() => ({
-  htmlAttrs: {
-    lang: lang.value,
-  },
-  title: 'Valentin Genest',
-  meta: [
-    {
-      name: 'description',
-      content: isEnglish.value
-        ? 'Valentin Genest - Front-end developer with 5 years of experience. Specialized in creating quality web experiences. Let\'s build the internet as it should be.'
-        : "Valentin Genest - Développeur front-end avec 5 ans d'expérience. Spécialisé dans la création d'expériences web de qualité. Construisons un internet comme il se doit.",
-    },
-    {
-      property: 'og:description',
-      content: isEnglish.value
-        ? 'Valentin Genest - Front-end developer. Let\'s build the internet as it should be.'
-        : 'Valentin Genest - Développeur front-end. Construisons un internet comme il se doit.',
-    },
-    { property: 'og:title', content: 'Valentin Genest' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:url', content: `https://valentingenest.fr` },
-    { property: 'og:image', content: '/img/ogImage.jpg' },
-    { property: 'og:image:alt', content: 'Valentin Genest' },
-    { property: 'og:site_name', content: 'Valentin Genest' },
-  ],
-}))
+useHead(() => meta)
 </script>
 
 <template>
-  <div class="AboutPage">
+  <div class="AboutPage" :class="{ 'is-visible': isVisible }">
     <div class="container">
       <AboutHeader :content="contentData" :is-english="isEnglish" :on-language-change="updateLanguage" />
 
       <div class="content">
-        <div class="media-container" ref="mediaRef">
+        <div ref="mediaRef" class="media-container">
           <NuxtImg src="/img/moi.webp" alt="Valentin Genest" class="media" sizes="sm:480px md:640px lg:800px xl:960px"
             densities="1x 2x" :placeholder="[480, 480, 75, 40]" />
         </div>
 
         <AboutSections :sections="contentData.sections" />
+
+        <SkillsMarquee />
 
         <div class="button-container">
           <button class="button" type="button" @click="downloadResume">
@@ -92,6 +76,8 @@ useHead(() => ({
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/stylesheets/variables/animations';
+
 .AboutPage {
   display: flex;
   justify-content: center;
@@ -105,6 +91,10 @@ useHead(() => ({
     min-height: 100vh;
     margin: 48px 24px 72px;
     max-width: 480px;
+
+    @media (max-width: 640px) {
+      margin-top: 64px;
+    }
   }
 
   .content {
@@ -117,6 +107,7 @@ useHead(() => ({
       margin-top: 64px;
       overflow: hidden;
       aspect-ratio: 1.6180339887 / 1;
+      @include page-transition($page-transition-media-delay);
 
       .media {
         will-change: transform;
@@ -131,6 +122,7 @@ useHead(() => ({
     .button-container {
       display: flex;
       justify-content: center;
+      @include page-transition($page-transition-button-delay);
 
       .button {
         @extend %text-body;
@@ -146,7 +138,8 @@ useHead(() => ({
         box-shadow: 1px 1px 0px 0px var(--color-primary);
         padding: 8px 16px;
         cursor: pointer;
-        transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s, box-shadow cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+        transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
+          box-shadow cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 
         .icon {
           margin-right: 10px;
@@ -174,7 +167,28 @@ useHead(() => ({
     }
 
     .separator {
+      @include page-transition($page-transition-separator-delay);
+
       margin: 64px 0 48px 0;
+    }
+  }
+
+  &.is-visible {
+    .content {
+      .media-container {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .button-container {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .separator {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   }
 }

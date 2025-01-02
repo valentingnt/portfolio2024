@@ -2,10 +2,16 @@
   --color-primary: #2B2B2B;
   --color-secondary: #FFFDF9;
   --color-accent: #A5909F;
+  --color-primary-rgb: 43, 43, 43;
+  --color-secondary-rgb: 255, 253, 249;
+  --color-accent-rgb: 165, 144, 159;
 }
 
 [data-theme="dark"] {
   --color-primary: #FFFDF9;
   --color-secondary: #2B2B2B;
   --color-accent: #A5909F;
+  --color-primary-rgb: 255, 253, 249;
+  --color-secondary-rgb: 43, 43, 43;
+  --color-accent-rgb: 165, 144, 159;
 }

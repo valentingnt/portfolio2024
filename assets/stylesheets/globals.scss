@@ -2,6 +2,7 @@
 @import './variables/grid';
 @import './variables/container';
 @import './variables/fonts';
+@import 'variables/animations';
 
 *,
 :after,
@@ -27,11 +28,12 @@ h4,
 h5,
 h6 {
   transition: 
-    color 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    stroke 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    stroke 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html {

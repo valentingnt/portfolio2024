@@ -9,7 +9,7 @@ defineProps<SectionsProps>()
 </script>
 
 <template>
-  <div v-for="(section, index) in sections" :key="index" class="sections">
+  <div v-for="(section, index) in sections" :key="index" class="sections" :style="{ '--index': index }">
     <h2 v-if="section.title" class="title">
       {{ section.title }}
     </h2>
@@ -42,7 +42,11 @@ defineProps<SectionsProps>()
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/stylesheets/variables/animations';
+
 .sections {
+  @include page-transition(calc($page-transition-sections-base-delay + var(--index) * $page-transition-sections-increment));
+
   margin-top: 40px;
 
   .title {
@@ -84,7 +88,7 @@ defineProps<SectionsProps>()
     padding: 0 40px;
 
     &::before {
-      content: '“';
+      content: '"';
       position: absolute;
       font-family: "DM Serif Text";
       line-height: 0;
@@ -94,7 +98,7 @@ defineProps<SectionsProps>()
     }
 
     &::after {
-      content: '”';
+      content: '"';
       position: absolute;
       font-family: "DM Serif Text";
       line-height: 0;

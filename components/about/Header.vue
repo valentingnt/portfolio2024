@@ -11,20 +11,69 @@ defineProps<HeaderProps>()
 </script>
 
 <template>
-  <div class="Header">
-    <ThemeToggle />
+  <header class="Header">
+    <div class="top-bar">
+      <ThemeToggle />
+      <LanguageSelector :onLanguageChange="onLanguageChange" :isEnglish="isEnglish" />
+    </div>
 
-    <span class="lang-selector">
-      <span :class="{ active: !isEnglish }" @click="onLanguageChange('fr')">FR</span>
-      <span :class="{ active: isEnglish }" @click="onLanguageChange('en')">EN</span>
-    </span>
-
-    <BigTitle :title="content.header.title" :subtitle="content.header.subtitle" />
-  </div>
+    <div class="title-container">
+      <div class="subtitle-container">
+        <p class="subtitle">{{ content.header.subtitle }}</p>
+        <svg class="separator" style="display: block;" width="100%" height="1" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <line x1="0.5" y1="0.5" x2="100%" y2="0.5" />
+        </svg>
+      </div>
+      <h1 class="main-title">{{ content.header.title }}</h1>
+    </div>
+  </header>
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/stylesheets/variables/animations';
+
 .Header {
+  .top-bar {
+    position: fixed;
+    top: 16px;
+    right: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 2;
+  }
+
+  .title-container {
+    @include page-transition($page-transition-header-delay);
+
+    .main-title {
+      @extend %text-h1;
+      @include page-transition($page-transition-main-title-delay);
+    }
+
+    .subtitle-container {
+      @include page-transition($page-transition-title-delay);
+
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .subtitle {
+        @extend %text-h2;
+        flex: 0 0 auto;
+      }
+
+      .separator {
+        flex: 1 0 0;
+
+        line {
+          stroke: var(--color-primary);
+        }
+      }
+    }
+  }
+
   @media (max-width: 640px) {
     &::before {
       content: '';
@@ -89,39 +138,6 @@ defineProps<HeaderProps>()
 
       [data-theme="dark"] & {
         opacity: 1;
-      }
-    }
-  }
-
-  .lang-selector {
-    @extend %text-body;
-
-    position: fixed;
-    top: 16px;
-    right: 24px;
-    display: flex;
-    gap: 8px;
-    z-index: 2;
-
-    span {
-      cursor: pointer;
-      position: relative;
-
-      &.active {
-        font-weight: 600;
-
-        &::after {
-          content: '•';
-          position: absolute;
-          bottom: -12px;
-          left: calc(50% - 4px);
-        }
-      }
-
-      @media (hover: hover) {
-        &:hover {
-          text-decoration: underline;
-        }
       }
     }
   }

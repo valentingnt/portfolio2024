@@ -35,7 +35,10 @@ defineProps<FooterProps>()
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/stylesheets/variables/animations';
+
 .footer {
+  @include page-transition($page-transition-footer-delay);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -68,4 +71,4 @@ defineProps<FooterProps>()
     }
   }
 }
-</style> 
+</style>

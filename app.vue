@@ -15,6 +15,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => lenis.value?.destroy())
+
+useAnalytics()
 </script>
 
 <template>
