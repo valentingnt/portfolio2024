@@ -29,6 +29,14 @@ const shouldAnimate = computed<boolean>(() => enableAnimation && !reducedMotion.
 const { velocity, updateVelocity } = useVelocity()
 const reducedMotion = useReducedMotion()
 
+// Drag state
+const isDragging = ref(false)
+const dragStartX = ref(0)
+const dragStartTransform = ref(0)
+const dragVelocity = ref(0)
+const lastDragX = ref(0)
+const dragTimestamp = ref(0)
+
 let resizeObserver: ResizeObserver | null = null
 
 function updateTransform() {
@@ -42,7 +50,11 @@ function updateTransform() {
     velocity.value *= 0.95
   }
 
-  transform.value += speed * scroll.value.direction + velocity.value * strength
+  if (isDragging.value) {
+    transform.value = dragStartTransform.value + (dragStartX.value - lastDragX.value)
+  } else {
+    transform.value += speed * scroll.value.direction + velocity.value * strength
+  }
 }
 
 function animate() {
@@ -65,6 +77,34 @@ function onScroll(scrollValue: number) {
 
 function onResize() {
   wrapperWidth.value = wrapper.value?.clientWidth || 1
+}
+
+function handleDragStart(event: MouseEvent | TouchEvent) {
+  isDragging.value = true
+  dragStartX.value = 'touches' in event ? event.touches[0].clientX : event.clientX
+  dragStartTransform.value = transform.value
+  lastDragX.value = dragStartX.value
+  dragTimestamp.value = Date.now()
+}
+
+function handleDragMove(event: MouseEvent | TouchEvent) {
+  if (!isDragging.value) return
+
+  const currentX = 'touches' in event ? event.touches[0].clientX : event.clientX
+  const deltaTime = Date.now() - dragTimestamp.value
+
+  if (deltaTime > 0) {
+    dragVelocity.value = (currentX - lastDragX.value) / deltaTime
+  }
+
+  lastDragX.value = currentX
+  dragTimestamp.value = Date.now()
+}
+
+function handleDragEnd() {
+  isDragging.value = false
+  velocity.value = dragVelocity.value * strength
+  dragVelocity.value = 0
 }
 
 watchScroll(onScroll, { enabled: shouldAnimate })
@@ -95,7 +135,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section ref="component" class="Marquee" :class="{ animate: shouldAnimate }">
+  <section ref="component" class="Marquee" :class="{ animate: shouldAnimate }" @mousedown="handleDragStart"
+    @mousemove="handleDragMove" @mouseup="handleDragEnd" @mouseleave="handleDragEnd" @touchstart="handleDragStart"
+    @touchmove="handleDragMove" @touchend="handleDragEnd">
     <div class="scroller" :style="{ '--scroll-count': `-${transform}px` }">
       <div ref="wrapper" class="wrapper">
         <slot />
@@ -111,6 +153,15 @@ onUnmounted(() => {
 .Marquee {
   overflow: hidden;
   backface-visibility: hidden;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
 
   &.animate {
     .scroller {
