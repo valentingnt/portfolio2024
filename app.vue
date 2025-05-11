@@ -9,7 +9,7 @@ function raf(time: number) {
 }
 
 onMounted(() => {
-  lenis.value = new Lenis({ duration: 0.4 })
+  lenis.value = new Lenis({ duration: 0.7 })
 
   window.requestAnimationFrame(raf)
 })

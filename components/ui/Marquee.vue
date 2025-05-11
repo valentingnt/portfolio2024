@@ -13,7 +13,6 @@ const { enableAnimation, strength, speed } = withDefaults(defineProps<MarqueePro
 
 const component = ref<HTMLDivElement | null>(null)
 const wrapper = ref<HTMLDivElement | null>(null)
-const animationFrameRequest = ref<number>()
 const transform = ref<number>(0)
 const scroll = ref<{ current: number; last: number; direction: number }>({
   current: 0,
