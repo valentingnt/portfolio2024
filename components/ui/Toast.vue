@@ -66,11 +66,12 @@ defineExpose({ showToast })
   color: var(--color-primary);
   background-color: rgba(var(--color-secondary-rgb), 0.6);
   border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 10%, transparent);
   box-shadow:
     0px 1px 1px rgba(0, 0, 0, 0.02),
     0px 4px 8px rgba(0, 0, 0, 0.04),
-    0px 8px 16px rgba(0, 0, 0, 0.06);
+    0px 8px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1.5px 8px 0 rgba(var(--color-primary-rgb), 0.05);
   backdrop-filter: blur(8px);
   max-width: min(calc(100vw - 48px), 480px);
   width: max-content;
