@@ -88,7 +88,7 @@ defineProps<SectionsProps>()
     padding: 0 40px;
 
     &::before {
-      content: '"';
+      content: '“';
       position: absolute;
       font-family: "DM Serif Text";
       line-height: 0;
@@ -98,7 +98,7 @@ defineProps<SectionsProps>()
     }
 
     &::after {
-      content: '"';
+      content: '”';
       position: absolute;
       font-family: "DM Serif Text";
       line-height: 0;
