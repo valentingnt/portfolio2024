@@ -40,14 +40,13 @@ const rafId = ref<number>()
 
 let resizeObserver: ResizeObserver | null = null
 
+function normalizeTransform(value: number): number {
+  if (wrapperWidth.value === 0) return 0;
+  return ((value % wrapperWidth.value) + wrapperWidth.value) % wrapperWidth.value;
+}
+
 // Debounced transform update
 function updateTransform() {
-  if (transform.value >= wrapperWidth.value && scroll.value.direction === 1) {
-    transform.value = 0
-  } else if (transform.value <= 0 && scroll.value.direction === -1) {
-    transform.value = wrapperWidth.value
-  }
-
   if (Math.abs(velocity.value) > 0.001) {
     velocity.value *= 0.95
   }
@@ -57,6 +56,9 @@ function updateTransform() {
   } else {
     transform.value += speed * scroll.value.direction + velocity.value * strength
   }
+
+  // Always wrap the transform
+  transform.value = normalizeTransform(transform.value)
 }
 
 function animate() {
@@ -117,11 +119,12 @@ function handleDragMove(event: MouseEvent | TouchEvent) {
 
   // Update transform directly during drag
   transform.value = dragStartTransform.value + (dragStartX.value - currentX)
+  transform.value = normalizeTransform(transform.value)
 }
 
 function handleDragEnd() {
   isDragging.value = false
-  velocity.value = dragVelocity.value * strength
+  velocity.value = -dragVelocity.value * strength
   dragVelocity.value = 0
   startAnimation()
 }
