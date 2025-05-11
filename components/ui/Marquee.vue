@@ -29,39 +29,51 @@ const shouldAnimate = computed<boolean>(() => enableAnimation && !reducedMotion.
 const { velocity, updateVelocity } = useVelocity()
 const reducedMotion = useReducedMotion()
 
-// Optimized drag state
-const isDragging = ref(false)
-const dragStartX = ref(0)
-const dragStartTransform = ref(0)
-const dragVelocity = ref(0)
-const lastDragX = ref(0)
-const lastDragTime = ref(0)
+// Merge drag state into a single object for clarity
+type DragState = {
+  isDragging: boolean
+  startX: number
+  startTransform: number
+  velocity: number
+  lastX: number
+  lastTime: number
+}
+
+const dragState = ref<DragState>({
+  isDragging: false,
+  startX: 0,
+  startTransform: 0,
+  velocity: 0,
+  lastX: 0,
+  lastTime: 0
+})
+
 const rafId = ref<number>()
 
 let resizeObserver: ResizeObserver | null = null
 
 function normalizeTransform(value: number): number {
-  if (wrapperWidth.value === 0) return 0;
-  return ((value % wrapperWidth.value) + wrapperWidth.value) % wrapperWidth.value;
+  if (wrapperWidth.value === 0) return 0
+  return ((value % wrapperWidth.value) + wrapperWidth.value) % wrapperWidth.value
 }
 
-// Debounced transform update
 function updateTransform() {
   if (Math.abs(velocity.value) > 0.001) {
     velocity.value *= 0.95
   }
 
-  if (isDragging.value) {
-    transform.value = dragStartTransform.value + (dragStartX.value - lastDragX.value)
-  } else {
-    transform.value += speed * scroll.value.direction + velocity.value * strength
+  if (dragState.value.isDragging) {
+    transform.value = dragState.value.startTransform + (dragState.value.startX - dragState.value.lastX)
+    transform.value = normalizeTransform(transform.value)
+    return
   }
 
-  // Always wrap the transform
+  transform.value += speed * scroll.value.direction + velocity.value * strength
   transform.value = normalizeTransform(transform.value)
 }
 
 function animate() {
+  if (!shouldAnimate.value && !dragState.value.isDragging) return
   updateTransform()
   rafId.value = requestAnimationFrame(animate)
 }
@@ -73,10 +85,9 @@ function startAnimation() {
 }
 
 function stopAnimation() {
-  if (rafId.value) {
-    cancelAnimationFrame(rafId.value)
-    rafId.value = undefined
-  }
+  if (!rafId.value) return
+  cancelAnimationFrame(rafId.value)
+  rafId.value = undefined
 }
 
 function onScroll(scrollValue: number) {
@@ -90,42 +101,42 @@ function onScroll(scrollValue: number) {
 }
 
 function onResize() {
-  wrapperWidth.value = wrapper.value?.clientWidth || 1
+  if (!wrapper.value) return
+  wrapperWidth.value = wrapper.value.clientWidth || 1
 }
 
-// Optimized drag handlers
 function handleDragStart(event: MouseEvent | TouchEvent) {
-  isDragging.value = true
-  dragStartX.value = 'touches' in event ? event.touches[0].clientX : event.clientX
-  dragStartTransform.value = transform.value
-  lastDragX.value = dragStartX.value
-  lastDragTime.value = performance.now()
+  dragState.value.isDragging = true
+  dragState.value.startX = 'touches' in event ? event.touches[0].clientX : event.clientX
+  dragState.value.startTransform = transform.value
+  dragState.value.lastX = dragState.value.startX
+  dragState.value.lastTime = performance.now()
   stopAnimation()
 }
 
 function handleDragMove(event: MouseEvent | TouchEvent) {
-  if (!isDragging.value) return
+  if (!dragState.value.isDragging) return
 
   const currentX = 'touches' in event ? event.touches[0].clientX : event.clientX
   const currentTime = performance.now()
-  const deltaTime = currentTime - lastDragTime.value
+  const deltaTime = currentTime - dragState.value.lastTime
 
   if (deltaTime > 0) {
-    dragVelocity.value = (currentX - lastDragX.value) / deltaTime
+    dragState.value.velocity = (currentX - dragState.value.lastX) / deltaTime
   }
 
-  lastDragX.value = currentX
-  lastDragTime.value = currentTime
+  dragState.value.lastX = currentX
+  dragState.value.lastTime = currentTime
 
-  // Update transform directly during drag
-  transform.value = dragStartTransform.value + (dragStartX.value - currentX)
+  transform.value = dragState.value.startTransform + (dragState.value.startX - currentX)
   transform.value = normalizeTransform(transform.value)
 }
 
 function handleDragEnd() {
-  isDragging.value = false
-  velocity.value = -dragVelocity.value * strength
-  dragVelocity.value = 0
+  if (!dragState.value.isDragging) return
+  dragState.value.isDragging = false
+  velocity.value = -dragState.value.velocity * strength
+  dragState.value.velocity = 0
   startAnimation()
 }
 
