@@ -1,15 +1,15 @@
 {
   "header": {
     "title": "Valentin Genest",
-    "subtitle": "Construisons un internet comme il se doit."
+    "subtitle": "Créateur d'expériences digitales réfléchies"
   },
   "sections": [
     {
-      "title": "Qui suis-je:",
-      "content": "Développeur web depuis 5 ans. J'ai travaillé pendant 2 ans en tant que développeur front-end pour [Dernier Cri](https://derniercri.io), ai été freelance accompagné par le [Studio WAWWW](https://wawww.studio) pour des rêves plus grands et j’ai rejoint [Unlikely](https://unlikely.technology) dans l’optique de retrouver une cohésion d’agence. J'aime ce que je fais et je le fais bien. La stack que j'utilise est différente en fonction du projet et des besoins, mais je continue d'apprendre de nouvelles techniques pour construire un internet comme il se doit. Avec une compréhension approfondie des technologies et des frameworks modernes, je m'efforce de créer des applications web réactives, accessibles et performantes. Mon expertise comprend une maîtrise des frameworks JavaScript, mais aussi une solide maîtrise de HTML, CSS et des librairies associés. Je privilégie l'écriture de code propre et maintenable et respecte les meilleures pratiques communes. Je reste à jour avec les dernières tendances et les meilleures pratiques en matière de développement web, m'assurant que mon travail est non seulement visuellement attrayant, mais aussi optimisé pour les performances et l'accessibilité."
+      "title": "À propos:",
+      "content": "Développeur frontend avec 5 ans d'expérience spécialisé dans les technologies web modernes. J'ai travaillé avec [Dernier Cri](https://derniercri.io) pendant 2 ans, collaboré avec le [Studio WAWWW](https://wawww.studio) en tant que freelance, et je m'associe actuellement avec [Unlikely](https://unlikely.technology) pour livrer des solutions digitales exceptionnelles. Je suis passionné par la création d'applications web réactives, accessibles et performantes en utilisant les bons outils pour chaque projet. Mon expertise couvre les frameworks JavaScript, avec une solide base en HTML, CSS et pratiques de développement modernes. Je privilégie un code propre et maintenable et reste à jour avec les tendances de l'industrie pour garantir que chaque projet respecte les plus hauts standards de performance et d'expérience utilisateur."
     },
     {
-      "title": "J'ai travaillé pour:",
+      "title": "Projets récents:",
       "content": [
         {
           "title": "Lunii",
@@ -42,26 +42,26 @@
       ]
     },
     {
-      "title": "Je travaille avec:",
+      "title": "Ma boîte à outils:",
       "content": [
-        "Un ordinateur",
-        "Tout ce qui est lié à Javascript (et plus encore !)",
-        "Beaucoup de café",
-        "Des outils et technologies de développement de pointe",
-        "Des méthodologies agiles et des flux de travail collaboratifs"
+        "Frameworks et librairies JavaScript modernes",
+        "Vue.js, Nuxt.js, écosystème React",
+        "TypeScript pour des applications robustes",
+        "Développement et personnalisation Shopify",
+        "Design responsive et standards d'accessibilité",
+        "Optimisation des performances et bonnes pratiques"
       ]
     },
     {
-      "title": "En savoir plus sur moi:",
+      "title": "Quand je ne code pas:",
       "content": [
-        "Je vis à Bordeaux",
-        "Je joue au volley-ball",
-        "J'apprends et j'explore continuellement de nouvelles technologies",
-        "Je suis passioné par la création d’expériences utilisateur intuitives et agréables",
-        "Je suis engagé à écrire un code propre, maintenable et évolutif",
-        "Le DLC d'Elden Ring on en parle ?",
-        "J'adore le café",
-        "J'aime vraiment voyager."
+        "Basé à Bordeaux, France",
+        "Pratique du volleyball en compétition",
+        "Exploration de nouvelles technologies et frameworks",
+        "Création d'expériences utilisateur intuitives",
+        "Dégustation de cafés de spécialité",
+        "Voyages et découverte de nouvelles cultures",
+        "Actuellement en train de maîtriser Shadow of the Erdtree"
       ]
     },
     {

@@ -1,15 +1,15 @@
 {
   "header": {
     "title": "Valentin Genest",
-    "subtitle": "Let's build the internet as it should be."
+    "subtitle": "Building thoughtful digital experiences"
   },
   "sections": [
     {
-      "title": "Who am I:",
-      "content": "Web developer for 5 years. Working with cutting-edge front-end related technology, I worked for 2 years for [Dernier Cri](https://derniercri.io), been in freelance accompanied by [Studio WAWWW](https://wawww.studio) for bigger dreams, and now teaming up with [Unlikely](https://unlikely.technology) to find another agency cohesion. I love what I do and do it the right way. The stack I use differs depending on the project and needs, but I keep learning new things to build an internet as it should be. With a deep understanding of modern web technologies and frameworks, I strive to create responsive, accessible, and performant web applications. My expertise includes proficiency in JavaScript frameworks, as well as a strong command of HTML, CSS, and related tools and libraries. I prioritize writing clean, maintainable code and adhere to industry best practices. I stay up-to-date with the latest trends and best practices in web development, ensuring that my work is not only visually appealing but also optimized for performance and accessibility"
+      "title": "About me:",
+      "content": "Frontend developer with 5 years of experience specializing in modern web technologies. I've worked with [Dernier Cri](https://derniercri.io) for 2 years, collaborated with [Studio WAWWW](https://wawww.studio) as a freelancer, and currently partner with [Unlikely](https://unlikely.technology) to deliver exceptional digital solutions. I'm passionate about creating responsive, accessible, and performant web applications using the right tools for each project. My expertise spans JavaScript frameworks, with a strong foundation in HTML, CSS, and modern development practices. I prioritize clean, maintainable code and stay current with industry trends to ensure every project meets the highest standards of performance and user experience."
     },
     {
-      "title": "I worked for:",
+      "title": "Recent projects:",
       "content": [
         {
           "title": "Lunii",
@@ -42,30 +42,30 @@
       ]
     },
     {
-      "title": "I work with:",
+      "title": "My toolkit:",
       "content": [
-        "A computer",
-        "Everything JS related (and more!)",
-        "A lot of coffee",
-        "Cutting-edge development tools and technologies",
-        "Agile methodologies and collaborative workflows"
+        "Modern JavaScript frameworks & libraries",
+        "Vue.js, Nuxt.js, React ecosystem",
+        "TypeScript for robust applications",
+        "Shopify development & customization",
+        "Responsive design & accessibility standards",
+        "Performance optimization & best practices"
       ]
     },
     {
-      "title": "More about me:",
+      "title": "When I'm not coding:",
       "content": [
-        "Living in Bordeaux",
-        "Practicing volley-Ball",
-        "Continuously learning and exploring new technologies",
-        "Passionate about creating intuitive and delightful user experiences",
-        "Committed to writing clean, maintainable, and scalable code",
-        "Elden Ring DLC, anyone?",
-        "Love coffee",
-        "Enjoy traveling. For real."
+        "Based in Bordeaux, France",
+        "Playing volleyball competitively",
+        "Exploring new technologies and frameworks",
+        "Crafting intuitive user experiences",
+        "Enjoying specialty coffee",
+        "Traveling and discovering new cultures",
+        "Currently mastering Elden Ring's Shadow of the Erdtree"
       ]
     },
     {
-      "content": "Like a Monday: fresh in the morning, sunny in the afternoon, the recipe for successful winter sports."
+      "content": "Like a perfect Monday morning: fresh start, sunny afternoon, the recipe for successful winter sports."
     }
   ],
   "downloadText": "View my resume",

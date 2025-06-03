@@ -9,11 +9,11 @@ defineProps<LanguageSelectorProps>()
 
 <template>
   <div class="LanguageSelector">
-    <span :class="{ active: !isEnglish }" @click="() => onLanguageChange('fr')">
+    <span :class="{ active: !isEnglish }" class="language-selector-item" @click="() => onLanguageChange('fr')">
       FR
     </span>
     <span>/</span>
-    <span :class="{ active: isEnglish }" @click="() => onLanguageChange('en')">
+    <span :class="{ active: isEnglish }" class="language-selector-item" @click="() => onLanguageChange('en')">
       EN
     </span>
   </div>
@@ -30,7 +30,7 @@ defineProps<LanguageSelectorProps>()
   gap: 8px;
   opacity: 0;
 
-  span {
+  .language-selector-item {
     cursor: pointer;
     position: relative;
 
