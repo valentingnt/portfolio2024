@@ -15,9 +15,9 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
     name: "Valentin Genest",
     jobTitle: isEnglish ? "Front-end Developer" : "Développeur Front-end",
     url: isEnglish
-      ? "https://valentingenest.com/en"
-      : "https://valentingenest.com",
-    image: "https://valentingenest.com/img/moi.webp",
+      ? "https://valentingenest.fr/en"
+      : "https://valentingenest.fr",
+    image: "https://valentingenest.fr/img/moi.webp",
     sameAs: [
       "https://github.com/valentingnt",
       "https://linkedin.com/in/valentin-genest",
@@ -43,7 +43,7 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/img/ogImage.jpg" },
-      { property: "og:url", content: `https://valentingenest.com/${lang}` },
+      { property: "og:url", content: `https://valentingenest.fr/${lang}` },
       { property: "og:locale", content: isEnglish ? "en_US" : "fr_FR" },
       { property: "og:site_name", content: "Valentin Genest" },
       // Twitter
@@ -66,7 +66,7 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
       },
     ],
     link: [
-      { rel: "canonical", href: `https://valentingenest.com/${lang}` },
+      { rel: "canonical", href: `https://valentingenest.fr/${lang}` },
       { rel: "me", href: "https://github.com/valentingnt" },
       { rel: "me", href: "https://linkedin.com/in/valentin-genest" },
       { rel: "me", href: "https://threads.net/nulentin" },
