@@ -5,11 +5,7 @@ interface MarqueeProps {
   speed?: number
 }
 
-const { enableAnimation, strength, speed } = withDefaults(defineProps<MarqueeProps>(), {
-  enableAnimation: true,
-  strength: 1.5,
-  speed: 0.5
-})
+const { enableAnimation = true, strength = 1.5, speed = 0.5 } = defineProps<MarqueeProps>()
 
 const component = ref<HTMLDivElement | null>(null)
 const wrapper = ref<HTMLDivElement | null>(null)

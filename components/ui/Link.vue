@@ -7,9 +7,7 @@ export interface LinkData {
 
 interface LinkProps extends LinkData { }
 
-const { href } = withDefaults(defineProps<LinkProps>(), {
-  external: false
-})
+const { href, text, external = false } = defineProps<LinkProps>()
 
 const component = computed(() => href ? resolveComponent('NuxtLink') : 'span')
 </script>
