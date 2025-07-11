@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Analytics } from '@vercel/analytics/nuxt'
+
 const isReducedMotion = useReducedMotion()
 let lenis: any
 
@@ -23,6 +25,7 @@ useAnalytics()
 
 <template>
   <main>
+    <Analytics />
     <NuxtPage />
   </main>
 </template>

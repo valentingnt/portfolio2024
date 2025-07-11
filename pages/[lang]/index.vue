@@ -2,7 +2,6 @@
 import aboutFr from '@/content/about_fr.json'
 import aboutEn from '@/content/about_en.json'
 import type { AboutPageContent } from '@/types/about'
-import { Analytics } from '@vercel/analytics/nuxt'
 
 const route = useRoute()
 const lang = computed(() => route.params.lang as string)
@@ -38,7 +37,6 @@ useHead(() => meta)
 </script>
 
 <template>
-  <Analytics />
   <div class="AboutPage" :class="{ 'is-visible': isVisible }">
     <div class="container">
       <AboutHeader :content="contentData" :is-english="isEnglish" :on-language-change="updateLanguage" />
