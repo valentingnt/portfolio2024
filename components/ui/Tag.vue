@@ -25,6 +25,8 @@ const emit = defineEmits<{
 </template>
 
 <style scoped lang="scss">
+@use '~/assets/stylesheets/resources/typography' as *;
+
 .Tag {
   @extend %text-body;
 

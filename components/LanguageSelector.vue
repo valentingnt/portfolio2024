@@ -20,7 +20,8 @@ defineProps<LanguageSelectorProps>()
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/stylesheets/variables/animations';
+@use '~/assets/stylesheets/resources/typography' as *;
+@use '~/assets/stylesheets/variables/animations' as *;
 
 .LanguageSelector {
   @extend %text-body;
@@ -35,7 +36,7 @@ defineProps<LanguageSelectorProps>()
     position: relative;
 
     &.active {
-      font-weight: 600;
+      font-weight: 500;
 
       &::after {
         content: '•';

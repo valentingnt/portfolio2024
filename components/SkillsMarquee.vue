@@ -39,7 +39,8 @@ const onTagClick = (skill: Skill) => {
 </template>
 
 <style lang="scss" scoped>
-@import '@/assets/stylesheets/variables/animations';
+@use '~/assets/stylesheets/resources/typography' as *;
+@use '~/assets/stylesheets/variables/animations' as *;
 
 .SkillsMarquee {
   .skills-container {

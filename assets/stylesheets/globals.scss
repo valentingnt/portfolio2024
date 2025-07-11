@@ -1,8 +1,8 @@
-@import './variables/colors';
-@import './variables/grid';
-@import './variables/container';
-@import './variables/fonts';
-@import 'variables/animations';
+@use "resources/index";
+@use "./variables/colors";
+@use "./variables/grid";
+@use "./variables/container";
+@use "./variables/animations";
 
 *,
 :after,
@@ -27,8 +27,7 @@ h3,
 h4,
 h5,
 h6 {
-  transition: 
-    color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+  transition: color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     background 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
@@ -104,62 +103,4 @@ html.lenis body {
 
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
-}
-
-// DMMono font
-@font-face {
-  font-family: 'DM Mono';
-  font-weight: 400;
-  font-style: normal;
-  src: url('/fonts/DMMono/DMMono-Light.ttf');
-}
-
-@font-face {
-  font-family: 'DM Mono';
-  font-weight: 500;
-  font-style: normal;
-  src: url('/fonts/DMMono/DMMono-Regular.ttf');
-}
-
-@font-face {
-  font-family: 'DM Mono';
-  font-weight: 600;
-  font-style: normal;
-  src: url('/fonts/DMMono/DMMono-Medium.ttf');
-}
-
-@font-face {
-  font-family: 'DM Mono';
-  font-weight: 400;
-  font-style: italic;
-  src: url('/fonts/DMMono/DMMono-LightItalic.ttf');
-}
-
-@font-face {
-  font-family: 'DM Mono';
-  font-weight: 500;
-  font-style: italic;
-  src: url('/fonts/DMMono/DMMono-Italic.ttf');
-}
-
-@font-face {
-  font-family: 'DM Mono';
-  font-weight: 600;
-  font-style: italic;
-  src: url('/fonts/DMMono/DMMono-MediumItalic.ttf');
-}
-
-// DM Serif Text font
-@font-face {
-  font-family: 'DM Serif Text';
-  font-weight: 700;
-  font-style: serif;
-  src: url('/fonts/DMSerifText/DMSerifText-Regular.ttf');
-}
-
-@font-face {
-  font-family: 'DM Serif Text';
-  font-weight: 700;
-  font-style: italic;
-  src: url('/fonts/DMSerifText/DMSerifText-Italic.ttf');
 }

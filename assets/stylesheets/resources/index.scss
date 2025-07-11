@@ -1,5 +1,6 @@
-@import './screens';
-@import './grid';
-@import './typography';
-@import './container';
-@import './easeGradient';
+@use "../variables/fonts";
+@use "./screens";
+@use "./grid";
+@use "./typography";
+@use "./container";
+@use "./easeGradient";

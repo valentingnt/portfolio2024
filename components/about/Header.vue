@@ -31,7 +31,8 @@ defineProps<HeaderProps>()
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/stylesheets/variables/animations';
+@use '~/assets/stylesheets/resources/typography' as *;
+@use '~/assets/stylesheets/variables/animations' as *;
 
 .Header {
   .top-bar {

@@ -35,7 +35,8 @@ defineProps<FooterProps>()
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/stylesheets/variables/animations';
+@use '~/assets/stylesheets/resources/typography' as *;
+@use '~/assets/stylesheets/variables/animations' as *;
 
 .footer {
   @include page-transition($page-transition-footer-delay);

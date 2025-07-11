@@ -42,7 +42,8 @@ defineProps<SectionsProps>()
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/stylesheets/variables/animations';
+@use '~/assets/stylesheets/resources/typography' as *;
+@use '~/assets/stylesheets/variables/animations' as *;
 
 .sections {
   @include page-transition(calc($page-transition-sections-base-delay + var(--index) * $page-transition-sections-increment));

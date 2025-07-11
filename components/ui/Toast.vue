@@ -86,7 +86,7 @@ defineExpose({ showToast })
   }
 
   .title {
-    font-weight: 600;
+    font-weight: 500;
     opacity: 0.95;
   }
 

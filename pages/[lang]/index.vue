@@ -76,7 +76,8 @@ useHead(() => meta)
 </template>
 
 <style scoped lang="scss">
-@import '@/assets/stylesheets/variables/animations';
+@use '~/assets/stylesheets/resources/typography' as *;
+@use '~/assets/stylesheets/variables/animations' as *;
 
 .AboutPage {
   display: flex;
@@ -127,7 +128,7 @@ useHead(() => meta)
       .button {
         @extend %text-body;
         color: var(--color-primary);
-        font-weight: 600;
+        font-weight: 500;
         margin-top: 40px;
         display: flex;
         align-items: center;
