@@ -676,20 +676,6 @@
   resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-3.1.1.tgz#af3aea7f1e52ec916d8b5c9dcc0f09d4c060a3fc"
   integrity sha512-5DGmA8FTdB2XbDeEwc/5ZXBl6UbBAyBOOLlPuBnZ/N1SwdH9Ii+cOX3tBROlDgcTXxjOYnLMVoKk9+FXAw0CJw==
 
-"@gtm-support/core@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@gtm-support/core/-/core-3.0.1.tgz#0e545a46d40ddc9192c478f990edeed523f9c85d"
-  integrity sha512-SctcoqvvAbGAgZzOb7DZ4wjbZF3ZS7Las3qIEByv6g7mzPf4E9LpRXcQzjmywYLcUx2jys7PWJAa3s5slvj/0w==
-
-"@gtm-support/vue-gtm@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@gtm-support/vue-gtm/-/vue-gtm-3.1.0.tgz#e1b292a8ed15c01f9c594aca3d5210433eea0ecf"
-  integrity sha512-kGUnCI+Z5lBeCKd7rzgU7UoFU8Q0EkJfh17SgeyAyx8cLdISqeq54BNJKZrME3WXersoigLZVJ1GLs0buYD3lA==
-  dependencies:
-    "@gtm-support/core" "^3.0.1"
-  optionalDependencies:
-    vue-router ">= 4.4.1 < 5.0.0"
-
 "@humanfs/core@^0.19.1":
   version "0.19.1"
   resolved "https://registry.yarnpkg.com/@humanfs/core/-/core-0.19.1.tgz#17c55ca7d426733fe3c561906b8173c336b40a77"
@@ -6885,7 +6871,7 @@ vue-eslint-parser@^10.2.0:
     esquery "^1.6.0"
     semver "^7.6.3"
 
-"vue-router@>= 4.4.1 < 5.0.0", vue-router@^4.5.1:
+vue-router@^4.5.1:
   version "4.5.1"
   resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-4.5.1.tgz#47bffe2d3a5479d2886a9a244547a853aa0abf69"
   integrity sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==
