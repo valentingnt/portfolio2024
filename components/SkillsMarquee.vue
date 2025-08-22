@@ -1,19 +1,16 @@
 <script setup lang="ts">
 import skillsData from '@/content/skills.json'
-interface Skill {
-  name: string
-  description: {
-    en: string
-    fr: string
-  }
-}
+import type { SkillsMultiLangContent, Skill } from '@/types/skills'
 
 const speed = ref(0.2)
 const toast = ref<{ showToast: (title: string, description: string) => void } | null>(null)
 const { isEnglish } = useLanguage(useRoute().params.lang as string)
+const skillsByLang = skillsData as SkillsMultiLangContent
+const skills = computed<Skill[]>(() => (isEnglish.value ? skillsByLang.en : skillsByLang.fr))
 
 const shuffledSkills = computed(() => {
-  const shuffled = [...skillsData]
+  const source = skills.value
+  const shuffled = [...source]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
@@ -22,8 +19,7 @@ const shuffledSkills = computed(() => {
 })
 
 const onTagClick = (skill: Skill) => {
-  const description = isEnglish.value ? skill.description.en : skill.description.fr
-  toast.value?.showToast(skill.name, description)
+  toast.value?.showToast(skill.name, skill.description)
 }
 </script>
 

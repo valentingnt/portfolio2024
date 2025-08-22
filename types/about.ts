@@ -5,7 +5,10 @@ export type AboutPageContent = {
   }
   sections: {
     title?: string
-    content: string | string[] | { title: string, href?: string, subtitle?: string }[]
+    content:
+      | string
+      | string[]
+      | { title: string; href?: string; subtitle?: string }[]
   }[]
   downloadText: string
   footer: {
@@ -16,4 +19,9 @@ export type AboutPageContent = {
       onClick?: () => void
     }[]
   }
-} 
+}
+
+export type AboutMultiLangContent = {
+  en: AboutPageContent
+  fr: AboutPageContent
+}

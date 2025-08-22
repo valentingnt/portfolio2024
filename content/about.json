@@ -1,0 +1,168 @@
+{
+  "en": {
+    "header": {
+      "title": "Valentin Genest",
+      "subtitle": "Building thoughtful digital experiences"
+    },
+    "sections": [
+      {
+        "title": "About me:",
+        "content": "Frontend developer with 5 years of experience specializing in modern web technologies. I've worked with [Dernier Cri](https://derniercri.io) for 2 years, collaborated with studio [WAWWW](https://wawww.studio) as a freelancer, and currently partner with [Unlikely](https://unlikely.technology) to deliver exceptional digital solutions. I'm passionate about creating responsive, accessible, and performant web applications using the right tools for each project. My expertise spans JavaScript frameworks, with a strong foundation in HTML, CSS, and modern development practices. I prioritize clean, maintainable code and stay current with industry trends to ensure every project meets the highest standards of performance and user experience."
+      },
+      {
+        "title": "Recent projects:",
+        "content": [
+          {
+            "title": "Lunii",
+            "subtitle": "/ Unlikely Technology",
+            "href": "https://b2b.lunii.com/"
+          },
+          {
+            "title": "Freeman T. Porter",
+            "subtitle": "/ Unlikely Technology",
+            "href": "https://www.freemantporter.com/"
+          },
+          {
+            "title": "Eric Bompard",
+            "subtitle": "/ Unlikely Technology",
+            "href": "https://eric-bompard.com/"
+          },
+          { "title": "Givenchy (NDA)", "subtitle": "/ Studio Wawww" },
+          {
+            "title": "Maison Sablayrolles (WIP)",
+            "subtitle": "/ Studio Wawww"
+          },
+          {
+            "title": "iad mobile",
+            "subtitle": "/ Dernier Cri",
+            "href": "https://derniercri.io/clients/iad"
+          }
+        ]
+      },
+      {
+        "title": "My toolkit:",
+        "content": [
+          "Modern JavaScript frameworks & libraries",
+          "Vue.js, Nuxt.js, React ecosystem",
+          "TypeScript for robust applications",
+          "Shopify development & customization",
+          "Responsive design & accessibility standards",
+          "Performance optimization & best practices"
+        ]
+      },
+      {
+        "title": "When I'm not coding:",
+        "content": [
+          "Based in Bordeaux, France",
+          "Playing volleyball",
+          "Exploring new technologies and frameworks",
+          "Crafting intuitive user experiences",
+          "Enjoying specialty coffee",
+          "Traveling and discovering new cultures",
+          "Currently mastering Elden Ring's Shadow of the Erdtree"
+        ]
+      },
+      {
+        "content": "Like a perfect Monday morning: fresh start, sunny afternoon, the recipe for successful winter sports."
+      }
+    ],
+    "downloadText": "View my resume",
+    "footer": {
+      "content": [
+        "Paris / Bordeaux",
+        "© 2025 Valentin Genest - All rights reserved."
+      ],
+      "links": [
+        {
+          "title": "linkedin",
+          "url": "https://www.linkedin.com/in/valentin-genest/"
+        },
+        { "title": "github", "url": "https://github.com/valentingnt" },
+        { "title": "malt", "url": "https://www.malt.fr/profile/valentingenest" }
+      ]
+    }
+  },
+  "fr": {
+    "header": {
+      "title": "Valentin Genest",
+      "subtitle": "Créateur d'expériences digitales réfléchies"
+    },
+    "sections": [
+      {
+        "title": "À propos:",
+        "content": "Développeur frontend avec 5 ans d'expérience spécialisé dans les technologies web modernes. J'ai travaillé avec [Dernier Cri](https://derniercri.io) pendant 2 ans, collaboré avec le studio [WAWWW](https://wawww.studio) en tant que freelance, et je m'associe actuellement avec [Unlikely](https://unlikely.technology) pour livrer des solutions digitales exceptionnelles. Je suis passionné par la création d'applications web réactives, accessibles et performantes en utilisant les bons outils pour chaque projet. Mon expertise couvre les frameworks JavaScript, avec une solide base en HTML, CSS et pratiques de développement modernes. Je privilégie un code propre et maintenable et reste à jour avec les tendances de l'industrie pour garantir que chaque projet respecte les plus hauts standards de performance et d'expérience utilisateur."
+      },
+      {
+        "title": "Projets récents:",
+        "content": [
+          {
+            "title": "Lunii",
+            "subtitle": "/ Unlikely Technology",
+            "href": "https://b2b.lunii.com/"
+          },
+          {
+            "title": "Freeman T. Porter",
+            "subtitle": "/ Unlikely Technology",
+            "href": "https://www.freemantporter.com/"
+          },
+          {
+            "title": "Eric Bompard",
+            "subtitle": "/ Unlikely Technology",
+            "href": "https://eric-bompard.com/"
+          },
+          { "title": "Givenchy (NDA)", "subtitle": "/ Studio Wawww" },
+          {
+            "title": "Maison Sablayrolles (WIP)",
+            "subtitle": "/ Studio Wawww"
+          },
+          {
+            "title": "iad mobile",
+            "subtitle": "/ Dernier Cri",
+            "href": "https://derniercri.io/clients/iad"
+          }
+        ]
+      },
+      {
+        "title": "Ma boîte à outils:",
+        "content": [
+          "Frameworks et librairies JavaScript modernes",
+          "Vue.js, Nuxt.js, écosystème React",
+          "TypeScript pour des applications robustes",
+          "Développement et personnalisation Shopify",
+          "Design responsive et standards d'accessibilité",
+          "Optimisation des performances et bonnes pratiques"
+        ]
+      },
+      {
+        "title": "Quand je ne code pas:",
+        "content": [
+          "Basé à Bordeaux, France",
+          "Pratique du volleyball",
+          "Exploration de nouvelles technologies et frameworks",
+          "Création d'expériences utilisateur intuitives",
+          "Dégustation de cafés de spécialité",
+          "Voyages et découverte de nouvelles cultures",
+          "Actuellement en train de maîtriser Shadow of the Erdtree"
+        ]
+      },
+      {
+        "content": "Comme un lundi: frais dans la matinée, soleil l’après-midi, la recette des sports d’hiver réussis."
+      }
+    ],
+    "downloadText": "Visualiser mon CV",
+    "footer": {
+      "content": [
+        "Paris / Bordeaux",
+        "© 2025 Valentin Genest - Tous droits réservés."
+      ],
+      "links": [
+        {
+          "title": "linkedin",
+          "url": "https://www.linkedin.com/in/valentin-genest/"
+        },
+        { "title": "github", "url": "https://github.com/valentingnt" },
+        { "title": "malt", "url": "https://www.malt.fr/profile/valentingenest" }
+      ]
+    }
+  }
+}

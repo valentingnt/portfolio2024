@@ -1,26 +1,29 @@
 <script setup lang="ts">
 const { preference, setTheme } = useTheme()
+const { isEnglish } = useLanguage(useRoute().params.lang as string)
 
 const isOpen = ref(false)
 const isMobile = ref(false)
 
-const themes = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'system', label: 'System' }
-] as const
+type Theme = 'light' | 'dark' | 'system'
 
-function selectTheme(theme: 'light' | 'dark' | 'system') {
+const themes = computed<{ value: Theme, label: string }[]>(() => [
+  { value: 'light', label: isEnglish.value ? 'Light' : 'Clair' },
+  { value: 'dark', label: isEnglish.value ? 'Dark' : 'Sombre' },
+  { value: 'system', label: isEnglish.value ? 'System' : 'Système' }
+])
+
+function selectTheme(theme: Theme) {
   setTheme(theme)
   isOpen.value = false
 }
 
 function onSelectChange(event: Event) {
   const select = event.target as HTMLSelectElement
-  setTheme(select.value as 'light' | 'dark' | 'system')
+  setTheme(select.value as Theme)
 }
 
-const currentTheme = computed(() => themes.find(t => t.value === preference.value))
+const currentTheme = computed(() => themes.value.find(t => t.value === preference.value))
 
 // Close menu when clicking outside
 onMounted(() => {

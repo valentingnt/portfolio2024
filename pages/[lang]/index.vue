@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import aboutFr from '@/content/about_fr.json'
-import aboutEn from '@/content/about_en.json'
-import type { AboutPageContent } from '@/types/about'
+import aboutAll from '@/content/about.json'
+import type { AboutMultiLangContent, AboutPageContent } from '@/types/about'
 
 const route = useRoute()
 const lang = computed(() => route.params.lang as string)
 const mail = ref('email')
 const EMAIL = 'valentin64.genest@gmail.com'
 
-const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.value ? aboutEn : aboutFr)
+const contentDataSource = aboutAll as AboutMultiLangContent
+const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.value ? contentDataSource.en : contentDataSource.fr)
 
 function copyMail() {
   copyToClipboard(EMAIL)
