@@ -52,16 +52,18 @@ useHead(() => meta)
         <SkillsMarquee />
 
         <div class="button-container">
-          <button class="button" type="button" @click="downloadResume">
+          <button class="button" type="button" @click.passive="downloadResume">
             <svg viewBox="0 0 14 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="icon" width="12"
               height="15">
               <path
                 d="M7.5 0.5C7.5 0.223858 7.27614 1.20705e-08 7 0C6.72386 -1.20705e-08 6.5 0.223858 6.5 0.5L7.5 0.5ZM6.64645 12.4325C6.84171 12.6278 7.15829 12.6278 7.35355 12.4325L10.5355 9.25052C10.7308 9.05526 10.7308 8.73868 10.5355 8.54341C10.3403 8.34815 10.0237 8.34815 9.82843 8.54341L7 11.3718L4.17157 8.54341C3.97631 8.34815 3.65973 8.34815 3.46447 8.54341C3.2692 8.73867 3.2692 9.05526 3.46447 9.25052L6.64645 12.4325ZM6.5 0.5L6.5 12.0789L7.5 12.0789L7.5 0.5L6.5 0.5Z" />
               <path d="M1 15.5H13" stroke="currentColor" stroke-linecap="round" />
             </svg>
+
             {{ contentData.downloadText }}
 
-            <span class="pdfSize">(2.4 Mo)</span>
+            <span class="pdfSize" v-if="isEnglish">(1.8Mo)</span>
+            <span class="pdfSize" v-if="!isEnglish">(1.9Mo)</span>
           </button>
         </div>
 
@@ -133,6 +135,7 @@ useHead(() => meta)
         display: flex;
         align-items: center;
         justify-content: center;
+        gap: 8px;
         border-radius: 60px;
         border: 1px solid var(--color-primary);
         background: transparent;
@@ -143,14 +146,14 @@ useHead(() => meta)
           box-shadow cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 
         .icon {
-          margin-right: 10px;
           transition: filter 0.3s;
         }
 
         .pdfSize {
           font-size: 8px;
           font-style: italic;
-          margin-left: 8px;
+          align-content: center;
+          margin-top: 2px;
         }
 
         @media (hover: hover) {

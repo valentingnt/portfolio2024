@@ -24,10 +24,11 @@ const onTagClick = (skill: Skill) => {
 </script>
 
 <template>
-  <div class="SkillsMarqueeWrapper" @mouseenter="speed = 0" @mouseleave="speed = 0.2">
+  <div class="SkillsMarqueeWrapper" @mouseenter.passive="speed = 0" @mouseleave.passive="speed = 0.2">
     <UiMarquee class="SkillsMarquee" :speed="speed" :strength="2">
       <div class="skills-container">
-        <UiTag v-for="skill in shuffledSkills" :key="skill.name" :title="skill.name" @click="() => onTagClick(skill)" />
+        <UiTag v-for="skill in shuffledSkills" :key="skill.name" :title="skill.name"
+          @click.passive="() => onTagClick(skill)" />
       </div>
     </UiMarquee>
   </div>

@@ -161,9 +161,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section ref="component" class="Marquee" :class="{ animate: shouldAnimate }" @mousedown="handleDragStart"
-    @mousemove="handleDragMove" @mouseup="handleDragEnd" @mouseleave="handleDragEnd" @touchstart="handleDragStart"
-    @touchmove="handleDragMove" @touchend="handleDragEnd">
+  <section ref="component" class="Marquee" :class="{ animate: shouldAnimate }" @mousedown.passive="handleDragStart"
+    @mousemove.passive="handleDragMove" @mouseup.passive="handleDragEnd" @mouseleave.passive="handleDragEnd"
+    @touchstart.passive="handleDragStart" @touchmove.passive="handleDragMove" @touchend.passive="handleDragEnd">
     <div class="scroller" :style="{ transform: `translate3d(${-transform}px, 0, 0)` }">
       <div ref="wrapper" class="wrapper">
         <slot />

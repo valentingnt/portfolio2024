@@ -17,7 +17,7 @@ defineProps<FooterProps>()
     </p>
 
     <ul class="links">
-      <li class="link-title" :style="{ cursor: 'pointer' }" @click="onMailClick">
+      <li class="link-title" :style="{ cursor: 'pointer' }" @click.passive="onMailClick">
         {{ mail }}
       </li>
 

@@ -33,7 +33,7 @@ defineExpose({ showToast })
 <template>
   <div class="ToastContainer">
     <TransitionGroup name="toast" tag="div" class="toasts-wrapper">
-      <div v-for="toast in toasts" :key="toast.id" class="Toast" @click="dismissToast(toast.id)">
+      <div v-for="toast in toasts" :key="toast.id" class="Toast" @click.passive="dismissToast(toast.id)">
         <div class="content">
           <strong class="title">{{ toast.title }}</strong>
           <span class="description">{{ toast.description }}</span>

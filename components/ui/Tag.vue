@@ -18,7 +18,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="Tag" @click="emit('click', title)">
+  <div class="Tag" @click.passive="emit('click', title)">
     <NuxtImg v-if="icon" :src="icon.src" :alt="icon.alt" class="icon" sizes="16px" />
     <span class="title">{{ title }}</span>
   </div>

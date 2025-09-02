@@ -52,17 +52,17 @@ onMounted(() => {
 <template>
   <div class="theme-toggle" :class="{ open: isOpen }">
     <template v-if="!isMobile">
-      <button class="current-theme" @click="isOpen = !isOpen">
+      <button class="current-theme" @click.passive="isOpen = !isOpen">
         <span class="label">{{ currentTheme?.label }}</span>
       </button>
       <div class="theme-options">
         <button v-for="theme in themes" :key="theme.value" class="theme-option"
-          :class="{ active: theme.value === preference }" @click="selectTheme(theme.value)">
+          :class="{ active: theme.value === preference }" @click.passive="selectTheme(theme.value)">
           <span class="label">{{ theme.label }}</span>
         </button>
       </div>
     </template>
-    <select v-else class="mobile-select" :value="preference" @change="onSelectChange">
+    <select v-else class="mobile-select" :value="preference" @change.passive="onSelectChange">
       <option v-for="theme in themes" :key="theme.value" :value="theme.value">
         {{ theme.label }}
       </option>
