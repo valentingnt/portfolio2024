@@ -43,8 +43,8 @@ useHead(() => meta)
 
       <div class="content">
         <div ref="mediaRef" class="media-container">
-          <NuxtImg src="/img/moi.webp" alt="Valentin Genest" class="media" sizes="sm:480px md:640px lg:800px xl:960px"
-            densities="1x 2x" :placeholder="[480, 480, 75, 40]" />
+          <NuxtImg src="/img/moi.webp" alt="Valentin Genest" class="media" sizes="480px" densities="1x 2x"
+            :placeholder="[480, 480, 75, 40]" />
         </div>
 
         <AboutSections :sections="contentData.sections" />
