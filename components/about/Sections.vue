@@ -36,7 +36,7 @@ defineProps<SectionsProps>()
       </ul>
     </span>
 
-    <p v-else :class="section.title ? null : 'quote'"
+    <p v-else :class="section.title ? null : 'quote'" class="paragraph"
       v-html="section.title ? parseMarkdown(section.content) : section.content" />
   </div>
 </template>
@@ -53,6 +53,10 @@ defineProps<SectionsProps>()
   .title {
     @extend %text-h2;
     margin-bottom: 20px;
+  }
+
+  :deep(.link) {
+    @extend %link;
   }
 
   .list {
