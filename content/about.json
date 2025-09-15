@@ -13,6 +13,11 @@
         "title": "Recent projects:",
         "content": [
           {
+            "title": "BulkTranslate (Shopify app)",
+            "subtitle": "/ Unlikely",
+            "href": "https://apps.shopify.com/bulktranslate"
+          },
+          {
             "title": "Lunii",
             "subtitle": "/ Unlikely",
             "href": "https://b2b.lunii.com/"
@@ -100,6 +105,11 @@
       {
         "title": "Projets récents:",
         "content": [
+          {
+            "title": "BulkTranslate (Shopify app)",
+            "subtitle": "/ Unlikely",
+            "href": "https://apps.shopify.com/bulktranslate?locale=fr"
+          },
           {
             "title": "Lunii",
             "subtitle": "/ Unlikely",
