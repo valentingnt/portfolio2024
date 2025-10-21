@@ -13,6 +13,11 @@
         "title": "Recent projects:",
         "content": [
           {
+            "title": "NV Gallery",
+            "subtitle": "/ Unlikely",
+            "href": "https://www.nvgallery.com/"
+          },
+          {
             "title": "BulkTranslate (Shopify app)",
             "subtitle": "/ Unlikely",
             "href": "https://apps.shopify.com/bulktranslate"
@@ -105,6 +110,11 @@
       {
         "title": "Projets récents:",
         "content": [
+          {
+            "title": "NV Gallery",
+            "subtitle": "/ Unlikely",
+            "href": "https://www.nvgallery.com/"
+          },
           {
             "title": "BulkTranslate (Shopify app)",
             "subtitle": "/ Unlikely",

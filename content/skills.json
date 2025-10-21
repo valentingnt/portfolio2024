@@ -1,6 +1,10 @@
 {
   "en": [
     {
+      "name": "App Shopify",
+      "description": "A custom Shopify app adds unique features or integrations to your Shopify store."
+    },
+    {
       "name": "Vue.js",
       "description": "My go-to framework for building reactive web applications"
     },
@@ -76,6 +80,10 @@
     }
   ],
   "fr": [
+    {
+      "name": "App Shopify",
+      "description": "Un app Shopify personnalisé ajoute des fonctionnalités ou des intégrations uniques à votre boutique Shopify."
+    },
     {
       "name": "Vue.js",
       "description": "Mon framework préféré pour créer des applications web réactives"
