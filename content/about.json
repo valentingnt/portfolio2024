@@ -13,6 +13,11 @@
         "title": "Recent projects:",
         "content": [
           {
+            "title": "Les Tricots de Léa",
+            "subtitle": "/ Unlikely",
+            "href": "https://www.lestricotsdelea.com/"
+          },
+          {
             "title": "NV Gallery",
             "subtitle": "/ Unlikely",
             "href": "https://www.nvgallery.com/"
@@ -110,6 +115,11 @@
       {
         "title": "Projets récents:",
         "content": [
+          {
+            "title": "Les Tricots de Léa",
+            "subtitle": "/ Unlikely",
+            "href": "https://www.lestricotsdelea.com/"
+          },
           {
             "title": "NV Gallery",
             "subtitle": "/ Unlikely",
