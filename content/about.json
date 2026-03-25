@@ -12,6 +12,11 @@
       {
         "title": "Recent projects:",
         "content": [
+           {
+            "title": "Distance",
+            "subtitle": "/ Unlikely",
+            "href": "https://distance-store.com/"
+          },
           {
             "title": "Les Tricots de Léa",
             "subtitle": "/ Unlikely",
@@ -115,6 +120,11 @@
       {
         "title": "Projets récents:",
         "content": [
+          {
+            "title": "Distance",
+            "subtitle": "/ Unlikely",
+            "href": "https://distance-store.com/"
+          },
           {
             "title": "Les Tricots de Léa",
             "subtitle": "/ Unlikely",
