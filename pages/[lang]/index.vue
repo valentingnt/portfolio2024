@@ -5,7 +5,7 @@ import type { AboutMultiLangContent, AboutPageContent } from '@/types/about'
 const route = useRoute()
 const lang = computed(() => route.params.lang as string)
 const mail = ref('email')
-const EMAIL = 'valentin64.genest@gmail.com'
+const EMAIL = 'contact@valentingenest.fr'
 
 const contentDataSource = aboutAll as AboutMultiLangContent
 const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.value ? contentDataSource.en : contentDataSource.fr)
@@ -182,16 +182,19 @@ useHead(() => meta)
       .media-container {
         opacity: 1;
         transform: translateY(0);
+        filter: blur(0);
       }
 
       .button-container {
         opacity: 1;
         transform: translateY(0);
+        filter: blur(0);
       }
 
       .separator {
         opacity: 1;
         transform: translateY(0);
+        filter: blur(0);
       }
     }
   }

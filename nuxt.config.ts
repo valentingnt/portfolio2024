@@ -13,11 +13,21 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@nuxt/image"],
+  modules: [
+    "@nuxt/image",
+    "@vercel/analytics/nuxt",
+    "@vercel/speed-insights/nuxt",
+  ],
 
   devtools: { enabled: false },
 
   css: ["~/assets/stylesheets/globals.scss"],
 
   compatibilityDate: "2024-09-16",
+
+  vite: {
+    optimizeDeps: {
+      include: ["lenis"],
+    },
+  },
 })

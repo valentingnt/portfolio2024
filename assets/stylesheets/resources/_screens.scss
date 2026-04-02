@@ -1,6 +1,6 @@
-@use 'sass:math';
-@use 'sass:map';
-@use 'sass:string';
+@use "sass:math";
+@use "sass:map";
+@use "sass:string";
 
 $breakpoints: (
   mobile: 640px,
@@ -19,6 +19,14 @@ $screen-large: 1440px;
   @return math.div($value, ($value * 0 + 1));
 }
 
+// Resolve a breakpoint map key to its value, or pass through a custom length
+@function breakpoint-or-value($key-or-value) {
+  @if map.has-key($breakpoints, $key-or-value) {
+    @return map.get($breakpoints, $key-or-value);
+  }
+  @return $key-or-value;
+}
+
 @mixin assignValueToMultipleProps($props, $value) {
   @each $prop in $props {
     #{$prop}: $value;
@@ -27,8 +35,8 @@ $screen-large: 1440px;
 
 @mixin fluidProps($props, $minBp, $maxBp, $minValue, $maxValue) {
   // Allow passing breakpoint key or a custom value
-  $minVw: if(map.has-key($breakpoints, $minBp), map.get($breakpoints, $minBp), $minBp);
-  $maxVw: if(map.has-key($breakpoints, $maxBp), map.get($breakpoints, $maxBp), $maxBp);
+  $minVw: breakpoint-or-value($minBp);
+  $maxVw: breakpoint-or-value($maxBp);
 
   $u1: unit($minVw);
   $u2: unit($maxVw);
@@ -40,8 +48,13 @@ $screen-large: 1440px;
       @include assignValueToMultipleProps($props, $minValue);
 
       @media screen and (min-width: $minVw) {
-        @include assignValueToMultipleProps($props,
-          calc(#{$minValue} + #{stripUnit($maxValue - $minValue)} * ((100vw - #{$minVw}) / #{stripUnit($maxVw - $minVw)})));
+        @include assignValueToMultipleProps(
+          $props,
+          calc(
+            #{$minValue} + #{stripUnit($maxValue - $minValue)} *
+              ((100vw - #{$minVw}) / #{stripUnit($maxVw - $minVw)})
+          )
+        );
       }
 
       @media screen and (min-width: $maxVw) {
