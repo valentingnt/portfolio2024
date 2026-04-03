@@ -16,7 +16,8 @@ defineProps<SectionsProps>()
 
     <span v-if="Array.isArray(section.content)">
       <ul class="list">
-        <li v-for="(item, index) in section.content" :key="index" class="list-item">
+        <li v-for="(item, index) in section.content" :key="index" class="list-item"
+          :class="{ 'has-badge': typeof item === 'object' && item.badge }">
           <span v-if="typeof item === 'object' && item.href">
             <NuxtLink :to="item.href" class="link" target="_blank">
               {{ item.title }}
@@ -32,6 +33,10 @@ defineProps<SectionsProps>()
           <span v-if="typeof item === 'object' && item.subtitle" class="link-subtitle">
             {{ item.subtitle }}
           </span>
+
+          <NuxtImg v-if="typeof item === 'object' && item.badge" :src="item.badge"
+            :alt="typeof item === 'object' ? item.title : ''" width="300" height="300" class="badge-preview"
+            aria-hidden="true" />
         </li>
       </ul>
     </span>
@@ -65,6 +70,7 @@ defineProps<SectionsProps>()
     .list-item {
       list-style: '• ' inside;
       padding-left: 5px;
+      position: relative;
 
       .link {
         @extend %link;
@@ -83,6 +89,34 @@ defineProps<SectionsProps>()
         opacity: 0.65;
         margin-left: 5px;
         font-style: italic;
+      }
+
+      .badge-preview {
+        position: absolute;
+        right: calc(100% + 12px);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 300px;
+        height: 300px;
+        object-fit: contain;
+        border-radius: 8px;
+        pointer-events: none;
+        opacity: 0;
+        filter: blur(10px);
+        will-change: opacity, filter;
+        transition: opacity cubic-bezier(0.22, 1, 0.36, 1) 0.6s,
+          filter cubic-bezier(0.22, 1, 0.36, 1) 0.6s;
+      }
+
+      @media (hover: hover) {
+        &.has-badge:hover .badge-preview {
+          opacity: 1;
+          filter: blur(0);
+          will-change: auto;
+          transform: translateY(-50%);
+          transition: opacity cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
+            filter cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+        }
       }
     }
   }

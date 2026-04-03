@@ -12,8 +12,8 @@ defineProps<FooterProps>()
 
 <template>
   <footer class="footer">
-    <p v-for="(content, index) in content.footer.content" :key="index">
-      {{ content }}
+    <p v-for="(contentItem, index) in content.footer.content" :key="index">
+      {{ contentItem }}
     </p>
 
     <ul class="links">
@@ -31,6 +31,7 @@ defineProps<FooterProps>()
         <span v-if="index !== content.footer.links.length - 1" class="link-separator">~</span>
       </li>
     </ul>
+
   </footer>
 </template>
 
@@ -71,5 +72,6 @@ defineProps<FooterProps>()
       }
     }
   }
+
 }
 </style>

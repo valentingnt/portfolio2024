@@ -8,7 +8,7 @@ export type AboutPageContent = {
     content:
       | string
       | string[]
-      | { title: string; href?: string; subtitle?: string }[]
+      | { title: string; href?: string; subtitle?: string; badge?: string }[]
   }[]
   downloadText: string
   footer: {

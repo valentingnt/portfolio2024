@@ -12,7 +12,7 @@
       {
         "title": "Recent projects:",
         "content": [
-           {
+          {
             "title": "Distance",
             "subtitle": "/ Unlikely",
             "href": "https://distance-store.com/"
@@ -76,6 +76,23 @@
         ]
       },
       {
+        "title": "Certifications:",
+        "content": [
+          {
+            "title": "Liquid Storefronts for Theme Developers",
+            "subtitle": "/ 2026",
+            "href": "https://www.credly.com/badges/67a7acfa-01fc-4d7d-b3b7-e33cd68efa6b/public_url",
+            "badge": "/img/liquid-storefronts-for-theme-developers.png"
+          },
+          {
+            "title": "Shopify Development Fundamentals",
+            "subtitle": "/ 2025",
+            "href": "https://www.credly.com/badges/b4c399bf-df55-4c45-b4b1-631f71fa7cef/public_url",
+            "badge": "/img/shopify-development-fundamentals-verified-skill-badge.png"
+          }
+        ]
+      },
+      {
         "title": "When I'm not coding:",
         "content": [
           "Based in Bordeaux, France",
@@ -114,11 +131,11 @@
     },
     "sections": [
       {
-        "title": "À propos:",
+        "title": "À propos :",
         "content": "Développeur frontend avec 5 ans d'expérience spécialisé dans les technologies web modernes. J'ai travaillé avec [Dernier Cri](https://derniercri.io) pendant 2 ans, collaboré avec le studio [WAWWW](https://wawww.studio) en tant que freelance, et je m'associe actuellement avec [Unlikely](https://unlikely.technology) pour livrer des solutions digitales exceptionnelles. Je suis passionné par la création d'applications web réactives, accessibles et performantes en utilisant les bons outils pour chaque projet. Mon expertise couvre les frameworks JavaScript, avec une solide base en HTML, CSS et pratiques de développement modernes. Je privilégie un code propre et maintenable et reste à jour avec les tendances de l'industrie pour garantir que chaque projet respecte les plus hauts standards de performance et d'expérience utilisateur."
       },
       {
-        "title": "Projets récents:",
+        "title": "Projets récents :",
         "content": [
           {
             "title": "Distance",
@@ -173,7 +190,7 @@
         ]
       },
       {
-        "title": "Ma boîte à outils:",
+        "title": "Ma boîte à outils :",
         "content": [
           "Frameworks et librairies JavaScript modernes",
           "Vue.js, Nuxt.js, écosystème React",
@@ -184,7 +201,24 @@
         ]
       },
       {
-        "title": "Quand je ne code pas:",
+        "title": "Certifications :",
+        "content": [
+          {
+            "title": "Liquid Storefronts for Theme Developers",
+            "subtitle": "/ 2026",
+            "href": "https://www.credly.com/badges/67a7acfa-01fc-4d7d-b3b7-e33cd68efa6b/public_url",
+            "badge": "/img/liquid-storefronts-for-theme-developers.png"
+          },
+          {
+            "title": "Fondamentaux du développement Shopify",
+            "subtitle": "/ 2025",
+            "href": "https://www.credly.com/badges/b4c399bf-df55-4c45-b4b1-631f71fa7cef/public_url",
+            "badge": "/img/shopify-development-fundamentals-verified-skill-badge.png"
+          }
+        ]
+      },
+      {
+        "title": "Quand je ne code pas :",
         "content": [
           "Basé à Bordeaux, France",
           "Pratique du volleyball",
