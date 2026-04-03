@@ -23,6 +23,7 @@ $transition-duration: 1.2s;
   opacity: 0;
   transform: translateY(15px);
   filter: blur(10px);
+  will-change: transform, opacity, filter;
   transition:
     opacity $transition-duration $transition-timing $delay,
     transform $transition-duration $transition-timing $delay,
@@ -32,5 +33,6 @@ $transition-duration: 1.2s;
     opacity: 1;
     transform: translateY(0);
     filter: blur(0);
+    will-change: auto;
   }
 }

@@ -2,10 +2,14 @@ export function usePageTransition() {
   const isVisible = ref(false)
 
   onMounted(() => {
-    isVisible.value = true
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        isVisible.value = true
+      })
+    })
   })
 
   return {
     isVisible
   }
-} 
+}
