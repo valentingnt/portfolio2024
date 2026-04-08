@@ -70,7 +70,6 @@ defineProps<SectionsProps>()
     .list-item {
       list-style: '• ' inside;
       padding-left: 5px;
-      position: relative;
 
       .link {
         @extend %link;
@@ -102,10 +101,10 @@ defineProps<SectionsProps>()
         border-radius: 8px;
         pointer-events: none;
         opacity: 0;
-        filter: blur(10px);
+        filter: blur(5px);
         will-change: opacity, filter;
-        transition: opacity cubic-bezier(0.22, 1, 0.36, 1) 0.6s,
-          filter cubic-bezier(0.22, 1, 0.36, 1) 0.6s;
+        transition: opacity cubic-bezier(0.22, 1, 0.36, 1) 0.4s,
+          filter cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
       }
 
       @media (hover: hover) {
@@ -114,8 +113,8 @@ defineProps<SectionsProps>()
           filter: blur(0);
           will-change: auto;
           transform: translateY(-50%);
-          transition: opacity cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
-            filter cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+          transition: opacity cubic-bezier(0.22, 1, 0.36, 1) 0.4s,
+            filter cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
         }
       }
     }
@@ -125,6 +124,7 @@ defineProps<SectionsProps>()
     font-style: italic;
     position: relative;
     padding: 0 40px;
+    text-align: center;
 
     &::before {
       content: '“';
