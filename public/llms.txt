@@ -14,8 +14,20 @@ This site is fully agent-ready: every HTML page can be requested as Markdown by 
 - [API catalog](https://valentingenest.fr/.well-known/api-catalog): RFC 9727 linkset describing the API.
 - [OpenAPI specification](https://valentingenest.fr/api/openapi.json): OpenAPI 3.1 description.
 - [Agent skills index](https://valentingenest.fr/.well-known/agent-skills/index.json): Agent Skills Discovery RFC v0.2.0 index.
+- [MCP server card](https://valentingenest.fr/.well-known/mcp/server-card.json): Model Context Protocol server descriptor.
+- [OAuth protected resource](https://valentingenest.fr/.well-known/oauth-protected-resource): RFC 9728 metadata (the API is open, no auth required).
 - [Sitemap](https://valentingenest.fr/sitemap.xml): Canonical URLs.
-- [robots.txt](https://valentingenest.fr/robots.txt): Crawler rules.
+- [robots.txt](https://valentingenest.fr/robots.txt): Crawler rules with Content Signals.
+
+## Tools (MCP)
+
+The MCP server at `https://valentingenest.fr/api/mcp` exposes these read-only tools:
+
+- `get_portfolio_markdown`: Full portfolio as Markdown (per language).
+- `list_skills`: Technical skills with descriptions.
+- `list_recent_projects`: Recent client projects with attribution and URLs.
+- `get_contact_info`: Email, professional profiles, resume URLs.
+- `get_resume_url`: Direct CV PDF URL per language.
 
 ## Contact
 

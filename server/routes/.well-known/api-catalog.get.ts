@@ -1,14 +1,14 @@
 export default defineEventHandler((event) => {
   const requestUrl = getRequestURL(event)
   const origin = `${requestUrl.protocol}//${requestUrl.host}`
-  const apiAnchor = `${origin}/api`
 
   setResponseHeader(event, "content-type", "application/linkset+json")
+  setResponseHeader(event, "cache-control", "public, max-age=3600")
 
   return {
     linkset: [
       {
-        anchor: apiAnchor,
+        anchor: `${origin}/api`,
         "service-desc": [
           {
             href: `${origin}/api/openapi.json`,
@@ -27,6 +27,28 @@ export default defineEventHandler((event) => {
             type: "application/json",
           },
         ],
+        describedby: [
+          {
+            href: `${origin}/.well-known/oauth-protected-resource`,
+            type: "application/json",
+          },
+        ],
+      },
+      {
+        anchor: `${origin}/api/mcp`,
+        "service-desc": [
+          {
+            href: `${origin}/.well-known/mcp/server-card.json`,
+            type: "application/json",
+          },
+        ],
+        "service-doc": [
+          {
+            href: `${origin}/api/docs`,
+            type: "text/html",
+          },
+        ],
+        type: "mcp-server",
       },
     ],
   }

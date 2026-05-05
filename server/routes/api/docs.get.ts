@@ -71,6 +71,30 @@ export default defineEventHandler((event) => {
         </div>
       </div>
 
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <div>
+          <a class="path" href="/.well-known/mcp/server-card.json">/.well-known/mcp/server-card.json</a>
+          <p class="desc">MCP Server Card describing the Model Context Protocol server.</p>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <span class="method">POST</span>
+        <div>
+          <span class="path">/api/mcp</span>
+          <p class="desc">Streamable-HTTP MCP server. Accepts JSON-RPC 2.0 requests (<code>initialize</code>, <code>tools/list</code>, <code>tools/call</code>, <code>resources/list</code>, <code>resources/read</code>, <code>prompts/list</code>, <code>prompts/get</code>).</p>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <span class="method">GET</span>
+        <div>
+          <a class="path" href="/.well-known/oauth-protected-resource">/.well-known/oauth-protected-resource</a>
+          <p class="desc">OAuth Protected Resource Metadata (RFC 9728). The API is open: no authorization is required.</p>
+        </div>
+      </div>
+
       <h2>Content negotiation</h2>
       <p>Any HTML page on this site can be requested as Markdown by sending an <code>Accept: text/markdown</code> header. The response uses <code>Content-Type: text/markdown</code> and includes an <code>x-markdown-tokens</code> estimate.</p>
 

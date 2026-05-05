@@ -4,20 +4,33 @@ const AGENT_LINK_HEADER = [
   '</api/docs>; rel="service-doc"; type="text/html"',
   '</api/health>; rel="status"; type="application/json"',
   '</.well-known/agent-skills/index.json>; rel="describedby"; type="application/json"',
+  '</.well-known/mcp/server-card.json>; rel="describedby"; type="application/json"',
+  '</.well-known/oauth-protected-resource>; rel="describedby"; type="application/json"',
   '</llms.txt>; rel="alternate"; type="text/plain"',
 ].join(", ")
 
-const AGENT_ROUTE_HEADERS = {
-  Link: AGENT_LINK_HEADER,
+const AGENT_ROUTE_RULE = {
+  headers: {
+    Link: AGENT_LINK_HEADER,
+    Vary: "Accept",
+  },
+  prerender: false,
 }
 
 export default defineNuxtConfig({
   ssr: false,
 
   routeRules: {
-    "/": { headers: AGENT_ROUTE_HEADERS },
-    "/fr": { headers: AGENT_ROUTE_HEADERS },
-    "/en": { headers: AGENT_ROUTE_HEADERS },
+    "/": AGENT_ROUTE_RULE,
+    "/fr": AGENT_ROUTE_RULE,
+    "/en": AGENT_ROUTE_RULE,
+  },
+
+  nitro: {
+    prerender: {
+      crawlLinks: false,
+      routes: [],
+    },
   },
 
   app: {

@@ -9,9 +9,9 @@ export default defineEventHandler((event) => {
     openapi: "3.1.0",
     info: {
       title: "valentingenest.fr API",
-      version: "1.1.0",
+      version: "1.2.0",
       description:
-        "Machine-readable API description for the valentingenest.fr portfolio. Exposes a health check, the API catalog, and content-negotiated Markdown for every page.",
+        "Machine-readable API description for the valentingenest.fr portfolio. Exposes a health check, the API catalog, content-negotiated Markdown for every page, and a Model Context Protocol (MCP) server.",
       contact: {
         name: "Valentin Genest",
         email: "contact@valentingenest.fr",
@@ -91,6 +91,70 @@ export default defineEventHandler((event) => {
                   schema: { $ref: "#/components/schemas/AgentSkillsIndex" },
                 },
               },
+            },
+          },
+        },
+      },
+      "/api/mcp": {
+        get: {
+          tags: ["discovery"],
+          summary: "MCP server metadata",
+          description:
+            "Returns metadata describing the MCP server hosted on this domain.",
+          operationId: "getMcpMetadata",
+          responses: {
+            "200": {
+              description: "MCP server metadata",
+              content: {
+                "application/json": {
+                  schema: { type: "object" },
+                },
+              },
+            },
+          },
+        },
+        post: {
+          tags: ["discovery"],
+          summary: "MCP JSON-RPC endpoint (Streamable HTTP)",
+          description:
+            "Accepts JSON-RPC 2.0 requests for the Model Context Protocol. Supported methods include `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, `prompts/get`, and `ping`.",
+          operationId: "callMcp",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: { type: "object" },
+                examples: {
+                  initialize: {
+                    value: {
+                      jsonrpc: "2.0",
+                      id: 1,
+                      method: "initialize",
+                      params: {
+                        protocolVersion: "2025-06-18",
+                        capabilities: {},
+                        clientInfo: { name: "example-client", version: "1.0" },
+                      },
+                    },
+                  },
+                  toolsList: {
+                    value: { jsonrpc: "2.0", id: 2, method: "tools/list" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "JSON-RPC response",
+              content: {
+                "application/json": {
+                  schema: { type: "object" },
+                },
+              },
+            },
+            "202": {
+              description: "Notification accepted (no response body)",
             },
           },
         },
