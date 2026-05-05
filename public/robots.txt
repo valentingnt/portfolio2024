@@ -6,7 +6,6 @@
 User-agent: *
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 Disallow: /admin/
 Disallow: /preview/
 
@@ -14,46 +13,37 @@ Disallow: /preview/
 User-agent: GPTBot
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 User-agent: ChatGPT-User
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 User-agent: OAI-SearchBot
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 User-agent: ClaudeBot
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 User-agent: Claude-Web
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 User-agent: anthropic-ai
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 User-agent: PerplexityBot
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 User-agent: Google-Extended
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 User-agent: CCBot
 Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /api/
 
 Sitemap: https://valentingenest.fr/sitemap.xml

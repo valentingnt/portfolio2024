@@ -6,7 +6,7 @@ import {
 } from "../utils/portfolio-content"
 
 const MARKDOWN_ACCEPT_RE = /(^|,)\s*text\/markdown\s*(;|,|$)/i
-const EXCLUDED_PREFIXES = ["/api", "/_nuxt", "/.well-known", "/img"]
+const EXCLUDED_PREFIXES = ["/mcp", "/_nuxt", "/.well-known", "/img"]
 const EXCLUDED_EXACT_PATHS = [
   "/robots.txt",
   "/sitemap.xml",
@@ -66,6 +66,12 @@ export default defineEventHandler((event) => {
 
   setResponseHeader(event, "content-type", "text/markdown; charset=utf-8")
   setResponseHeader(event, "vary", "Accept")
+  setResponseHeader(event, "cache-control", "no-store")
+  setResponseHeader(
+    event,
+    "content-signal",
+    "ai-train=no, search=yes, ai-input=yes",
+  )
   setResponseHeader(
     event,
     "x-markdown-tokens",

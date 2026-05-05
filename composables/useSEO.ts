@@ -33,6 +33,7 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
     title,
     htmlAttrs: { lang },
     meta: [
+      { name: "title", content: title },
       { name: "description", content: description },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "format-detection", content: "telephone=no" },

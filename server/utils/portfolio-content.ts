@@ -126,6 +126,31 @@ function renderFooter(
   return lines.join("\n")
 }
 
+export function getStructuredData(language: PortfolioLang): Record<string, unknown> {
+  const isFrench = language === "fr"
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: "Valentin Genest",
+    jobTitle: isFrench ? "Développeur Front-end" : "Front-end Developer",
+    url: `https://valentingenest.fr/${language}`,
+    image: "https://valentingenest.fr/img/moi.webp",
+    sameAs: [
+      "https://github.com/valentingnt",
+      "https://www.linkedin.com/in/valentin-genest/",
+      "https://www.malt.fr/profile/valentingenest",
+    ],
+    email: "contact@valentingenest.fr",
+    nationality: "French",
+    knowsLanguage: ["fr", "en"],
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Bordeaux",
+      addressCountry: "FR",
+    },
+  }
+}
+
 export function renderPortfolioMarkdown(language: PortfolioLang): string {
   const isFrench = language === "fr"
   const about = getAboutContent(language)
@@ -137,6 +162,7 @@ export function renderPortfolioMarkdown(language: PortfolioLang): string {
   const seoDescription = isFrench
     ? "Développeur front-end avec 5 ans d'expérience, basé entre Paris et Bordeaux. Spécialisé dans la création d'expériences web accessibles et performantes."
     : "Front-end developer with 5 years of experience, based between Paris and Bordeaux. Building accessible and performant web experiences."
+  const seoImage = "https://valentingenest.fr/img/ogImage.jpg"
 
   const altNote = isFrench
     ? "_Available in English at [/en](/en)._"
@@ -153,30 +179,14 @@ export function renderPortfolioMarkdown(language: PortfolioLang): string {
     .join("\n\n")
 
   const skillsHeading = isFrench ? "## Compétences" : "## Skills"
-  const navHeading = "## Navigation"
-  const navItems = isFrench
-    ? [
-        "- [Version française](/fr)",
-        "- [English version](/en)",
-        "- [Sitemap](/sitemap.xml)",
-        "- [robots.txt](/robots.txt)",
-        "- [Catalogue API](/.well-known/api-catalog)",
-        "- [llms.txt](/llms.txt)",
-      ]
-    : [
-        "- [French version](/fr)",
-        "- [English version](/en)",
-        "- [Sitemap](/sitemap.xml)",
-        "- [robots.txt](/robots.txt)",
-        "- [API catalog](/.well-known/api-catalog)",
-        "- [llms.txt](/llms.txt)",
-      ]
+
+  const structuredData = getStructuredData(language)
+  const jsonLdBlock = `\`\`\`json\n${JSON.stringify(structuredData, null, 2)}\n\`\`\``
 
   return `---
 title: ${seoTitle}
 description: ${seoDescription}
-language: ${language}
-canonical: https://valentingenest.fr/${language}
+image: ${seoImage}
 ---
 
 # ${about.header.title}
@@ -193,8 +203,6 @@ ${renderSkillsList(skills)}
 
 ${renderFooter(about.footer, isFrench)}
 
-${navHeading}
-
-${navItems.join("\n")}
+${jsonLdBlock}
 `
 }
