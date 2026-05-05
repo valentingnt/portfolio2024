@@ -1,7 +1,7 @@
 import {
   handleJsonRpcPayload,
   PARSE_ERROR,
-} from "../../utils/mcp-server"
+} from "../utils/mcp-server"
 
 export default defineEventHandler(async (event) => {
   setResponseHeader(event, "content-type", "application/json")

@@ -8,34 +8,7 @@ export default defineEventHandler((event) => {
   return {
     linkset: [
       {
-        anchor: `${origin}/api`,
-        "service-desc": [
-          {
-            href: `${origin}/api/openapi.json`,
-            type: "application/openapi+json",
-          },
-        ],
-        "service-doc": [
-          {
-            href: `${origin}/api/docs`,
-            type: "text/html",
-          },
-        ],
-        status: [
-          {
-            href: `${origin}/api/health`,
-            type: "application/json",
-          },
-        ],
-        describedby: [
-          {
-            href: `${origin}/.well-known/oauth-protected-resource`,
-            type: "application/json",
-          },
-        ],
-      },
-      {
-        anchor: `${origin}/api/mcp`,
+        anchor: `${origin}/mcp`,
         "service-desc": [
           {
             href: `${origin}/.well-known/mcp/server-card.json`,
@@ -44,8 +17,14 @@ export default defineEventHandler((event) => {
         ],
         "service-doc": [
           {
-            href: `${origin}/api/docs`,
-            type: "text/html",
+            href: `${origin}/llms.txt`,
+            type: "text/plain",
+          },
+        ],
+        status: [
+          {
+            href: `${origin}/mcp`,
+            type: "application/json",
           },
         ],
         type: "mcp-server",

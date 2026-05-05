@@ -16,7 +16,7 @@ export default defineEventHandler((event) => {
     },
     transport: {
       type: "streamable-http",
-      endpoint: `${origin}/api/mcp`,
+      endpoint: `${origin}/mcp`,
     },
     capabilities: {
       tools: { listChanged: false },
@@ -26,7 +26,7 @@ export default defineEventHandler((event) => {
     auth: {
       required: false,
     },
-    documentation: `${origin}/api/docs`,
+    documentation: `${origin}/llms.txt`,
     contact: {
       email: "contact@valentingenest.fr",
       url: "https://valentingenest.fr",
