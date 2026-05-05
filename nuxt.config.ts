@@ -14,7 +14,7 @@ const AGENT_ROUTE_RULE = {
 }
 
 export default defineNuxtConfig({
-  ssr: false,
+  ssr: true,
 
   routeRules: {
     "/": AGENT_ROUTE_RULE,
