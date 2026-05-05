@@ -1,0 +1,29 @@
+# Valentin Genest
+
+> Front-end developer with 5 years of experience, based between Paris and Bordeaux. Building accessible, performant, and thoughtful web experiences with Vue.js, Nuxt, TypeScript, and Shopify.
+
+This site is fully agent-ready: every HTML page can be requested as Markdown by sending an `Accept: text/markdown` header.
+
+## Portfolio
+
+- [Portfolio (English)](https://valentingenest.fr/en): Full portfolio in English — about, recent projects, toolkit, certifications.
+- [Portfolio (French)](https://valentingenest.fr/fr): Full portfolio in French — about, recent projects, toolkit, certifications.
+
+## Discovery
+
+- [API catalog](https://valentingenest.fr/.well-known/api-catalog): RFC 9727 linkset describing the API.
+- [OpenAPI specification](https://valentingenest.fr/api/openapi.json): OpenAPI 3.1 description.
+- [Agent skills index](https://valentingenest.fr/.well-known/agent-skills/index.json): Agent Skills Discovery RFC v0.2.0 index.
+- [Sitemap](https://valentingenest.fr/sitemap.xml): Canonical URLs.
+- [robots.txt](https://valentingenest.fr/robots.txt): Crawler rules.
+
+## Contact
+
+- [LinkedIn](https://www.linkedin.com/in/valentin-genest/): Professional profile.
+- [GitHub](https://github.com/valentingnt): Open source code.
+- [Malt](https://www.malt.fr/profile/valentingenest): Freelance hiring profile.
+
+## Optional
+
+- [English CV (PDF)](https://valentingenest.fr/EN_CV2024_Valentin_Genest.pdf): Detailed resume in English.
+- [French CV (PDF)](https://valentingenest.fr/CV2024_Valentin_Genest.pdf): Detailed resume in French.

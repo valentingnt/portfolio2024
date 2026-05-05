@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "portfolio-content",
+      "type": "skill-md",
+      "description": "Fetch any page of valentingenest.fr as structured Markdown via Accept: text/markdown content negotiation.",
+      "url": "https://valentingenest.fr/.well-known/agent-skills/portfolio-content/SKILL.md",
+      "digest": "sha256:e376c586a1ad3bf5dae4a1cf5f5fe52495c5a4c92ee1c55bc620ece76199c993"
+    },
+    {
+      "name": "contact",
+      "type": "skill-md",
+      "description": "How to contact Valentin Genest: email, LinkedIn, GitHub, Malt, and direct CV download links.",
+      "url": "https://valentingenest.fr/.well-known/agent-skills/contact/SKILL.md",
+      "digest": "sha256:e7c985f59edd47ba089b73ae14255d5007ed21ae63c29641e633e05bc2e5e7fb"
+    }
+  ]
+}
