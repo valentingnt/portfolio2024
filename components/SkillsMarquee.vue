@@ -8,14 +8,23 @@ const { isEnglish } = useLanguage(useRoute().params.lang as string)
 const skillsByLang = skillsData as SkillsMultiLangContent
 const skills = computed<Skill[]>(() => (isEnglish.value ? skillsByLang.en : skillsByLang.fr))
 
-const shuffledSkills = computed(() => {
-  const source = skills.value
-  const shuffled = [...source]
-  for (let i = shuffled.length - 1; i > 0; i--) {
+const shuffledSkills = ref<Skill[]>(skills.value)
+
+function shuffle(source: Skill[]): Skill[] {
+  const out = [...source]
+  for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    [out[i], out[j]] = [out[j], out[i]]
   }
-  return shuffled
+  return out
+}
+
+onMounted(() => {
+  shuffledSkills.value = shuffle(skills.value)
+})
+
+watch(skills, (next) => {
+  shuffledSkills.value = shuffle(next)
 })
 
 const onTagClick = (skill: Skill) => {
