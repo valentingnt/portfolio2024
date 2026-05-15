@@ -52,7 +52,7 @@ onMounted(() => {
 <template>
   <div class="theme-toggle" :class="{ open: isOpen }">
     <template v-if="!isMobile">
-      <button class="current-theme" @click.passive="isOpen = !isOpen">
+      <button class="current-theme" @click.passive="isOpen = !isOpen" aria-label="Toggle theme">
         <span class="label">{{ currentTheme?.label }}</span>
       </button>
       <div class="theme-options">
@@ -62,7 +62,7 @@ onMounted(() => {
         </button>
       </div>
     </template>
-    <select v-else class="mobile-select" :value="preference" @change.passive="onSelectChange">
+    <select v-else class="mobile-select" :value="preference" @change.passive="onSelectChange" aria-label="Select theme">
       <option v-for="theme in themes" :key="theme.value" :value="theme.value">
         {{ theme.label }}
       </option>

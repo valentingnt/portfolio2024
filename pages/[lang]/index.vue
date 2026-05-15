@@ -44,7 +44,7 @@ useHead(() => meta)
       <div class="content">
         <div ref="mediaRef" class="media-container">
           <img src="/img/moi.webp" srcset="/img/moi.webp 1x, /img/moi@2x.webp 2x" alt="Valentin Genest" class="media"
-            width="480" height="531" loading="eager" fetchpriority="high" decoding="async" />
+            width="480" loading="eager" fetchpriority="high" decoding="async" />
         </div>
 
         <AboutSections :sections="contentData.sections" />
