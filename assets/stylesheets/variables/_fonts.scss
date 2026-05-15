@@ -14,8 +14,7 @@
 */
 @font-face {
   font-family: "DM Serif Text";
-  src: url("~/assets/fonts/DMSerifText/DMSerifText-Regular.ttf")
-    format("truetype");
+  src: url("/fonts/DMSerifText/DMSerifText-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -23,8 +22,7 @@
 
 @font-face {
   font-family: "DM Serif Text";
-  src: url("~/assets/fonts/DMSerifText/DMSerifText-Italic.ttf")
-    format("truetype");
+  src: url("/fonts/DMSerifText/DMSerifText-Italic.woff2") format("woff2");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -35,7 +33,7 @@
 */
 @font-face {
   font-family: "DM Mono";
-  src: url("~/assets/fonts/DMMono/DMMono-Light.ttf") format("truetype");
+  src: url("/fonts/DMMono/DMMono-Light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -43,7 +41,7 @@
 
 @font-face {
   font-family: "DM Mono";
-  src: url("~/assets/fonts/DMMono/DMMono-LightItalic.ttf") format("truetype");
+  src: url("/fonts/DMMono/DMMono-LightItalic.woff2") format("woff2");
   font-weight: 300;
   font-style: italic;
   font-display: swap;
@@ -51,7 +49,7 @@
 
 @font-face {
   font-family: "DM Mono";
-  src: url("~/assets/fonts/DMMono/DMMono-Regular.ttf") format("truetype");
+  src: url("/fonts/DMMono/DMMono-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -59,7 +57,7 @@
 
 @font-face {
   font-family: "DM Mono";
-  src: url("~/assets/fonts/DMMono/DMMono-Italic.ttf") format("truetype");
+  src: url("/fonts/DMMono/DMMono-Italic.woff2") format("woff2");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -67,7 +65,7 @@
 
 @font-face {
   font-family: "DM Mono";
-  src: url("~/assets/fonts/DMMono/DMMono-Medium.ttf") format("truetype");
+  src: url("/fonts/DMMono/DMMono-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -75,7 +73,7 @@
 
 @font-face {
   font-family: "DM Mono";
-  src: url("~/assets/fonts/DMMono/DMMono-MediumItalic.ttf") format("truetype");
+  src: url("/fonts/DMMono/DMMono-MediumItalic.woff2") format("woff2");
   font-weight: 500;
   font-style: italic;
   font-display: swap;
