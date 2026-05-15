@@ -24,7 +24,7 @@ defineProps<FooterProps>()
       <li class="link-separator">~</li>
 
       <li v-for="(link, index) in content.footer.links" :key="index" class="link">
-        <NuxtLink :to="link.url" target="_blank" class="link-title">
+        <NuxtLink :to="link.url" target="_blank" rel="noopener noreferrer" class="link-title">
           {{ link.title }}
         </NuxtLink>
 

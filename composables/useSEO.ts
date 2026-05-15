@@ -21,6 +21,7 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
     email: "contact@valentingenest.fr",
     nationality: "French",
     knowsLanguage: ["fr", "en"],
+    inLanguage: isEnglish ? "en" : "fr",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Bordeaux",
@@ -81,6 +82,9 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
     ],
     link: [
       { rel: "canonical", href: url },
+      { rel: "alternate", hreflang: "fr", href: "https://valentingenest.fr/fr" },
+      { rel: "alternate", hreflang: "en", href: "https://valentingenest.fr/en" },
+      { rel: "alternate", hreflang: "x-default", href: "https://valentingenest.fr/fr" },
       { rel: "me", href: "https://github.com/valentingnt" },
       { rel: "me", href: "https://www.linkedin.com/in/valentin-genest/" },
       { rel: "me", href: "https://www.malt.fr/profile/valentingenest" },

@@ -16,6 +16,7 @@ export interface UseSeoReturn {
     link: {
       rel: string
       href: string
+      hreflang?: string
     }[]
   }
 } 

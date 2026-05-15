@@ -17,7 +17,6 @@ export default defineNuxtConfig({
   ssr: true,
 
   routeRules: {
-    "/": AGENT_ROUTE_RULE,
     "/fr": AGENT_ROUTE_RULE,
     "/en": AGENT_ROUTE_RULE,
   },

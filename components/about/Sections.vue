@@ -19,7 +19,7 @@ defineProps<SectionsProps>()
         <li v-for="(item, index) in section.content" :key="index" class="list-item"
           :class="{ 'has-badge': typeof item === 'object' && item.badge }">
           <span v-if="typeof item === 'object' && item.href">
-            <NuxtLink :to="item.href" class="link" target="_blank">
+            <NuxtLink :to="item.href" class="link" target="_blank" rel="noopener noreferrer">
               {{ item.title }}
             </NuxtLink>
           </span>
@@ -34,9 +34,8 @@ defineProps<SectionsProps>()
             {{ item.subtitle }}
           </span>
 
-          <NuxtImg v-if="typeof item === 'object' && item.badge" :src="item.badge"
-            :alt="typeof item === 'object' ? item.title : ''" width="300" height="300" class="badge-preview"
-            aria-hidden="true" />
+          <NuxtImg v-if="typeof item === 'object' && item.badge" :src="item.badge" alt="" width="300" height="300"
+            class="badge-preview" aria-hidden="true" loading="lazy" />
         </li>
       </ul>
     </span>
