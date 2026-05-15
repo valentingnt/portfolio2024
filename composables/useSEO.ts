@@ -2,31 +2,37 @@ import type { UseSeoReturn } from "@/types/seo"
 
 export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
   const title = isEnglish
-    ? "Valentin Genest - Front-end Developer"
-    : "Valentin Genest - Développeur Front-end"
+    ? "Valentin Genest — Front-end Developer"
+    : "Valentin Genest — Développeur Front-end"
 
   const description = isEnglish
-    ? "Valentin Genest - Building thoughtful digital experiences. Frontend developer with 5 years of experience specializing in modern web technologies, passionate about creating responsive, accessible, and performant web applications."
-    : "Valentin Genest - Créateur d'expériences digitales réfléchies. Développeur front-end avec 5 ans d'expérience, passionné par les technologies web modernes et la création d'applications réactives, accessibles et performantes."
+    ? "Front-end developer with 5 years of experience, based between Paris and Bordeaux. Specialized in building accessible and performant web experiences."
+    : "Développeur front-end avec 5 ans d'expérience, basé entre Paris et Bordeaux. Spécialisé dans la création d'expériences web accessibles et performantes."
+
+  const url = `https://valentingenest.fr/${lang}`
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Person",
     name: "Valentin Genest",
     jobTitle: isEnglish ? "Front-end Developer" : "Développeur Front-end",
-    url: isEnglish
-      ? "https://valentingenest.fr/en"
-      : "https://valentingenest.fr",
+    url,
     image: "https://valentingenest.fr/img/moi.webp",
+    email: "contact@valentingenest.fr",
+    nationality: "French",
+    knowsLanguage: ["fr", "en"],
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Bordeaux",
+      addressCountry: "FR",
+    },
     sameAs: [
       "https://github.com/valentingnt",
-      "https://linkedin.com/in/valentin-genest",
+      "https://www.linkedin.com/in/valentin-genest/",
+      "https://www.malt.fr/profile/valentingenest",
       "https://threads.net/nulentin",
       "https://instagram.com/nulentin",
     ],
-    email: "valentin64.genest@gmail.com",
-    nationality: "French",
-    knowsLanguage: ["fr", "en"],
   }
 
   const meta = {
@@ -43,8 +49,11 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
       { property: "og:title", content: title },
       { property: "og:description", content: description },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/img/ogImage.jpg" },
-      { property: "og:url", content: `https://valentingenest.fr/${lang}` },
+      {
+        property: "og:image",
+        content: "https://valentingenest.fr/img/ogImage.jpg",
+      },
+      { property: "og:url", content: url },
       { property: "og:locale", content: isEnglish ? "en_US" : "fr_FR" },
       { property: "og:site_name", content: "Valentin Genest" },
       // Twitter
@@ -53,10 +62,14 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
       { name: "twitter:creator", content: "@nulenting" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
-      { name: "twitter:image", content: "/img/ogImage.jpg" },
+      {
+        name: "twitter:image",
+        content: "https://valentingenest.fr/img/ogImage.jpg",
+      },
       // Additional social metadata
       { name: "linkedin:author", content: "valentin-genest" },
       { name: "github:author", content: "valentingnt" },
+      { name: "malt:author", content: "valentingenest" },
       { name: "threads:author", content: "nulentin" },
       { name: "instagram:author", content: "nulentin" },
     ],
@@ -67,9 +80,10 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
       },
     ],
     link: [
-      { rel: "canonical", href: `https://valentingenest.fr/${lang}` },
+      { rel: "canonical", href: url },
       { rel: "me", href: "https://github.com/valentingnt" },
-      { rel: "me", href: "https://linkedin.com/in/valentin-genest" },
+      { rel: "me", href: "https://www.linkedin.com/in/valentin-genest/" },
+      { rel: "me", href: "https://www.malt.fr/profile/valentingenest" },
       { rel: "me", href: "https://threads.net/nulentin" },
       { rel: "me", href: "https://instagram.com/nulentin" },
     ],
