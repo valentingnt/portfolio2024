@@ -1,25 +1,5 @@
-const AGENT_LINK_HEADER = [
-  '</.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"',
-  '</.well-known/agent-skills/index.json>; rel="describedby"; type="application/json"',
-  '</.well-known/mcp/server-card.json>; rel="describedby"; type="application/json"',
-  '</llms.txt>; rel="alternate"; type="text/plain"',
-].join(", ")
-
-const AGENT_ROUTE_RULE = {
-  headers: {
-    Link: AGENT_LINK_HEADER,
-    Vary: "Accept",
-    "Cache-Control": "no-store, must-revalidate",
-  },
-}
-
 export default defineNuxtConfig({
   ssr: true,
-
-  routeRules: {
-    "/fr": AGENT_ROUTE_RULE,
-    "/en": AGENT_ROUTE_RULE,
-  },
 
   app: {
     head: {

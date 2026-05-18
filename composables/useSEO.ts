@@ -31,7 +31,7 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
       "https://github.com/valentingnt",
       "https://www.linkedin.com/in/valentin-genest/",
       "https://www.malt.fr/profile/valentingenest",
-      "https://threads.net/nulentin",
+      "https://threads.com/nulentin",
       "https://instagram.com/nulentin",
     ],
   }
@@ -82,13 +82,25 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
     ],
     link: [
       { rel: "canonical", href: url },
-      { rel: "alternate", hreflang: "fr", href: "https://valentingenest.fr/fr" },
-      { rel: "alternate", hreflang: "en", href: "https://valentingenest.fr/en" },
-      { rel: "alternate", hreflang: "x-default", href: "https://valentingenest.fr/fr" },
+      {
+        rel: "alternate",
+        hreflang: "fr",
+        href: "https://valentingenest.fr/fr",
+      },
+      {
+        rel: "alternate",
+        hreflang: "en",
+        href: "https://valentingenest.fr/en",
+      },
+      {
+        rel: "alternate",
+        hreflang: "x-default",
+        href: "https://valentingenest.fr/fr",
+      },
       { rel: "me", href: "https://github.com/valentingnt" },
       { rel: "me", href: "https://www.linkedin.com/in/valentin-genest/" },
       { rel: "me", href: "https://www.malt.fr/profile/valentingenest" },
-      { rel: "me", href: "https://threads.net/nulentin" },
+      { rel: "me", href: "https://threads.com/nulentin" },
       { rel: "me", href: "https://instagram.com/nulentin" },
     ],
   }

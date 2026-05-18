@@ -1,49 +1,5 @@
-# robots.txt for valentingenest.fr
-# Spec: RFC 9309 — https://www.rfc-editor.org/rfc/rfc9309
-# Content Signals: https://contentsignals.org/ (IETF draft-romm-aipref-contentsignals)
-
-# Generic crawlers (search engines, etc.)
 User-agent: *
-Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /
-Disallow: /admin/
 Disallow: /preview/
-
-# AI training & retrieval crawlers — explicitly allowed
-User-agent: GPTBot
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
-
-User-agent: ChatGPT-User
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
-
-User-agent: OAI-SearchBot
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
-
-User-agent: ClaudeBot
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
-
-User-agent: Claude-Web
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
-
-User-agent: anthropic-ai
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
-
-User-agent: PerplexityBot
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
-
-User-agent: Google-Extended
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
-
-User-agent: CCBot
-Content-Signal: ai-train=no, search=yes, ai-input=yes
-Allow: /
 
 Sitemap: https://valentingenest.fr/sitemap.xml

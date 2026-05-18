@@ -41,7 +41,7 @@ useHead(() => meta)
     <div class="container">
       <AboutHeader :content="contentData" :is-english="isEnglish" :on-language-change="updateLanguage" />
 
-      <div class="content">
+      <main class="content">
         <div ref="mediaRef" class="media-container">
           <img src="/img/moi.webp" srcset="/img/moi.webp 1x, /img/moi@2x.webp 2x" alt="Valentin Genest" class="media"
             width="480" loading="eager" fetchpriority="high" decoding="async" />
@@ -72,7 +72,7 @@ useHead(() => meta)
         </svg>
 
         <AboutFooter :content="contentData" :mail="mail" :on-mail-click="copyMail" />
-      </div>
+      </main>
     </div>
   </div>
 </template>
