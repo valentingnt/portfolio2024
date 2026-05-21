@@ -59,6 +59,12 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2024-09-16",
 
+  nitro: {
+    prerender: {
+      routes: ["/fr", "/en"],
+    },
+  },
+
   vite: {
     optimizeDeps: {
       include: ["lenis"],
