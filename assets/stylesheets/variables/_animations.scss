@@ -20,7 +20,7 @@ $transition-duration: 1.2s;
 
 // Mixin for page transition
 @mixin page-transition($delay) {
-  opacity: 0;
+  opacity: 0.001;
   transform: translateY(15px);
   filter: blur(10px);
   will-change: transform, opacity, filter;
