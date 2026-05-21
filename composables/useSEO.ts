@@ -46,6 +46,7 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
       { name: "format-detection", content: "telephone=no" },
       { name: "robots", content: "index, follow" },
       { name: "author", content: "Valentin Genest" },
+
       // OpenGraph
       { property: "og:title", content: title },
       { property: "og:description", content: description },
@@ -57,16 +58,7 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
       { property: "og:url", content: url },
       { property: "og:locale", content: isEnglish ? "en_US" : "fr_FR" },
       { property: "og:site_name", content: "Valentin Genest" },
-      // Twitter
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@nulenting" },
-      { name: "twitter:creator", content: "@nulenting" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
-      {
-        name: "twitter:image",
-        content: "https://valentingenest.fr/img/ogImage.jpg",
-      },
+
       // Additional social metadata
       { name: "linkedin:author", content: "valentin-genest" },
       { name: "github:author", content: "valentingnt" },
