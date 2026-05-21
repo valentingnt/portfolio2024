@@ -9,12 +9,17 @@ interface LinkProps extends LinkData { }
 
 const { href, text, external = false } = defineProps<LinkProps>()
 
-const component = computed(() => href ? resolveComponent('NuxtLink') : 'span')
+const isExternal = computed(() => href?.startsWith('http') || href?.startsWith('//'))
+const component = computed(() => {
+  if (!href) return 'span'
+  return isExternal.value ? 'a' : resolveComponent('NuxtLink')
+})
 </script>
 
 <template>
-  <component :is="component" :target="external ? '_blank' : undefined" :to="href"
-    :rel="external ? 'noopener noreferrer' : ''" class="Link">
+  <component :is="component" :target="external || isExternal ? '_blank' : undefined"
+    :to="isExternal ? undefined : href" :href="isExternal ? href : undefined"
+    :rel="external || isExternal ? 'noopener noreferrer' : ''" class="Link">
     {{ text }}
   </component>
 </template>

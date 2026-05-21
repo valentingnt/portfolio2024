@@ -19,9 +19,9 @@ defineProps<SectionsProps>()
         <li v-for="(item, index) in section.content" :key="index" class="list-item"
           :class="{ 'has-badge': typeof item === 'object' && item.badge }">
           <span v-if="typeof item === 'object' && item.href">
-            <NuxtLink :to="item.href" class="link" target="_blank" rel="noopener noreferrer">
+            <a :href="item.href" class="link" target="_blank" rel="noopener noreferrer">
               {{ item.title }}
-            </NuxtLink>
+            </a>
           </span>
 
           <span v-else-if="typeof item === 'object' && !item.href">
