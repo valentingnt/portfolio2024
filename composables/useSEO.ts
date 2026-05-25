@@ -2,11 +2,11 @@ import type { UseSeoReturn } from "@/types/seo"
 
 export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
   const title = isEnglish
-    ? "Valentin Genest — Front-end Developer"
-    : "Valentin Genest — Développeur Front-end"
+    ? "Valentin Genest — Front-end Developer in Bordeaux and Paris"
+    : "Valentin Genest — Développeur Front-end à Bordeaux et Paris"
 
   const description = isEnglish
-    ? "Front-end developer with 5 years of experience, based between Paris and Bordeaux. Specialized in building accessible and performant web experiences."
+    ? "Frontend developer with 5 years of experience, based between Paris and Bordeaux. Specialized in building accessible and performant web experiences."
     : "Développeur front-end avec 5 ans d'expérience, basé entre Paris et Bordeaux. Spécialisé dans la création d'expériences web accessibles et performantes."
 
   const url = `https://valentingenest.fr/${lang}`
@@ -15,7 +15,7 @@ export function useSEO(lang: string, isEnglish: boolean): UseSeoReturn {
     "@context": "https://schema.org",
     "@type": "Person",
     name: "Valentin Genest",
-    jobTitle: isEnglish ? "Front-end Developer" : "Développeur Front-end",
+    jobTitle: isEnglish ? "Frontend Developer" : "Développeur Front-end",
     url,
     image: "https://valentingenest.fr/img/moi.webp",
     email: "contact@valentingenest.fr",
