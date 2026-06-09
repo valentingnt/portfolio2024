@@ -34,3 +34,27 @@
 @mixin easeGradient($direction: 'to bottom', $alpha: 1, $startColor: #000) {
   background-image: ease-gradient($direction, $alpha, $startColor);
 }
+
+// Theme-aware eased fade built on the --color-secondary-rgb custom property,
+// so a single gradient adapts to light/dark without duplicated blocks.
+@mixin theme-ease-gradient($direction: to bottom) {
+  background: linear-gradient(
+    $direction,
+    rgba(var(--color-secondary-rgb), 1) 0%,
+    rgba(var(--color-secondary-rgb), 0.987) 8.1%,
+    rgba(var(--color-secondary-rgb), 0.951) 15.5%,
+    rgba(var(--color-secondary-rgb), 0.896) 22.5%,
+    rgba(var(--color-secondary-rgb), 0.825) 29%,
+    rgba(var(--color-secondary-rgb), 0.741) 35.3%,
+    rgba(var(--color-secondary-rgb), 0.648) 41.2%,
+    rgba(var(--color-secondary-rgb), 0.55) 47.1%,
+    rgba(var(--color-secondary-rgb), 0.45) 52.9%,
+    rgba(var(--color-secondary-rgb), 0.352) 58.8%,
+    rgba(var(--color-secondary-rgb), 0.259) 64.7%,
+    rgba(var(--color-secondary-rgb), 0.175) 71%,
+    rgba(var(--color-secondary-rgb), 0.104) 77.5%,
+    rgba(var(--color-secondary-rgb), 0.049) 84.5%,
+    rgba(var(--color-secondary-rgb), 0.013) 91.9%,
+    rgba(var(--color-secondary-rgb), 0) 100%
+  );
+}

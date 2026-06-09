@@ -1,11 +1,13 @@
 <script setup lang="ts">
+type Theme = 'light' | 'dark' | 'system'
+
+const MOBILE_BREAKPOINT = 640
+
 const { preference, setTheme } = useTheme()
 const { isEnglish } = useLanguage(useRoute().params.lang as string)
 
 const isOpen = ref(false)
 const isMobile = ref(false)
-
-type Theme = 'light' | 'dark' | 'system'
 
 const themes = computed<{ value: Theme, label: string }[]>(() => [
   { value: 'light', label: isEnglish.value ? 'Light' : 'Clair' },
@@ -13,56 +15,65 @@ const themes = computed<{ value: Theme, label: string }[]>(() => [
   { value: 'system', label: isEnglish.value ? 'System' : 'Système' }
 ])
 
+const currentTheme = computed(() => themes.value.find((theme) => theme.value === preference.value))
+
 function selectTheme(theme: Theme) {
   setTheme(theme)
   isOpen.value = false
 }
 
-function onSelectChange(event: Event) {
+function handleSelectChange(event: Event) {
   const select = event.target as HTMLSelectElement
   setTheme(select.value as Theme)
 }
 
-const currentTheme = computed(() => themes.value.find(t => t.value === preference.value))
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!target.closest('.theme-toggle')) {
+    isOpen.value = false
+  }
+}
 
-// Close menu when clicking outside
+watchWindowResize(({ width }) => (isMobile.value = width <= MOBILE_BREAKPOINT))
+
 onMounted(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    const target = event.target as HTMLElement
-    if (!target.closest('.theme-toggle')) {
-      isOpen.value = false
-    }
-  }
-
-  const checkMobile = () => {
-    isMobile.value = window.innerWidth <= 640
-  }
-
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
   document.addEventListener('click', handleClickOutside)
-
-  onUnmounted(() => {
-    document.removeEventListener('click', handleClickOutside)
-    window.removeEventListener('resize', checkMobile)
-  })
+  onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 })
 </script>
 
 <template>
   <div class="theme-toggle" :class="{ open: isOpen }">
     <template v-if="!isMobile">
-      <button class="current-theme" @click.passive="isOpen = !isOpen" aria-label="Toggle theme">
+      <button
+        type="button"
+        class="current-theme"
+        aria-label="Toggle theme menu"
+        :aria-expanded="isOpen"
+        @click="isOpen = !isOpen"
+      >
         <span class="label">{{ currentTheme?.label }}</span>
       </button>
       <div class="theme-options">
-        <button v-for="theme in themes" :key="theme.value" class="theme-option"
-          :class="{ active: theme.value === preference }" @click.passive="selectTheme(theme.value)">
+        <button
+          v-for="theme in themes"
+          :key="theme.value"
+          type="button"
+          class="theme-option"
+          :class="{ active: theme.value === preference }"
+          @click="selectTheme(theme.value)"
+        >
           <span class="label">{{ theme.label }}</span>
         </button>
       </div>
     </template>
-    <select v-else class="mobile-select" :value="preference" @change.passive="onSelectChange" aria-label="Select theme">
+    <select
+      v-else
+      class="mobile-select"
+      :value="preference"
+      aria-label="Select theme"
+      @change="handleSelectChange"
+    >
       <option v-for="theme in themes" :key="theme.value" :value="theme.value">
         {{ theme.label }}
       </option>

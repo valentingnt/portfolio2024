@@ -1,8 +1,8 @@
 declare global {
   interface Window {
-    dataLayer: any[]
-    gtag?: (...args: any[]) => void
+    dataLayer: IArguments[]
+    gtag?: (...args: unknown[]) => void
   }
 }
 
-export {} 
+export {}

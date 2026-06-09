@@ -2,12 +2,17 @@
 import skillsData from '@/content/skills.json'
 import type { SkillsMultiLangContent, Skill } from '@/types/skills'
 
-const speed = ref(0.2)
+const MARQUEE_SPEED = 0.2
+const MARQUEE_HOVER_SPEED = 0.05
+
+const speed = ref(MARQUEE_SPEED)
 const toast = ref<{ showToast: (title: string, description: string) => void } | null>(null)
 const { isEnglish } = useLanguage(useRoute().params.lang as string)
+
 const skillsByLang = skillsData as SkillsMultiLangContent
 const skills = computed<Skill[]>(() => (isEnglish.value ? skillsByLang.en : skillsByLang.fr))
 
+// Render unshuffled on the server so hydration matches, then shuffle client-side
 const shuffledSkills = ref<Skill[]>(skills.value)
 
 function shuffle(source: Skill[]): Skill[] {
@@ -19,25 +24,29 @@ function shuffle(source: Skill[]): Skill[] {
   return out
 }
 
-onMounted(() => {
-  shuffledSkills.value = shuffle(skills.value)
-})
+onMounted(() => (shuffledSkills.value = shuffle(skills.value)))
 
-watch(skills, (next) => {
-  shuffledSkills.value = shuffle(next)
-})
+watch(skills, (next) => (shuffledSkills.value = shuffle(next)))
 
-const onTagClick = (skill: Skill) => {
+function handleTagClick(skill: Skill) {
   toast.value?.showToast(skill.name, skill.description)
 }
 </script>
 
 <template>
-  <div class="SkillsMarqueeWrapper" @mouseenter.passive="speed = 0" @mouseleave.passive="speed = 0.2">
+  <div
+    class="SkillsMarqueeWrapper"
+    @mouseenter.passive="speed = MARQUEE_HOVER_SPEED"
+    @mouseleave.passive="speed = MARQUEE_SPEED"
+  >
     <UiMarquee class="SkillsMarquee" :speed="speed" :strength="2">
       <div class="skills-container">
-        <UiTag v-for="skill in shuffledSkills" :key="skill.name" :title="skill.name"
-          @click.passive="() => onTagClick(skill)" />
+        <UiTag
+          v-for="skill in shuffledSkills"
+          :key="skill.name"
+          :title="skill.name"
+          @click="handleTagClick(skill)"
+        />
       </div>
     </UiMarquee>
   </div>
@@ -45,7 +54,7 @@ const onTagClick = (skill: Skill) => {
 </template>
 
 <style lang="scss" scoped>
-@use '~/assets/stylesheets/resources/typography' as *;
+@use '~/assets/stylesheets/resources/easeGradient' as *;
 @use '~/assets/stylesheets/variables/animations' as *;
 
 .SkillsMarquee {
@@ -77,84 +86,12 @@ const onTagClick = (skill: Skill) => {
 
   &::before {
     left: 0;
-    background: linear-gradient(to right,
-        #FFFDF9 0%,
-        color-mix(in srgb, #FFFDF9 98.7%, transparent) 8.1%,
-        color-mix(in srgb, #FFFDF9 95.1%, transparent) 15.5%,
-        color-mix(in srgb, #FFFDF9 89.6%, transparent) 22.5%,
-        color-mix(in srgb, #FFFDF9 82.5%, transparent) 29%,
-        color-mix(in srgb, #FFFDF9 74.1%, transparent) 35.3%,
-        color-mix(in srgb, #FFFDF9 64.8%, transparent) 41.2%,
-        color-mix(in srgb, #FFFDF9 55%, transparent) 47.1%,
-        color-mix(in srgb, #FFFDF9 45%, transparent) 52.9%,
-        color-mix(in srgb, #FFFDF9 35.2%, transparent) 58.8%,
-        color-mix(in srgb, #FFFDF9 25.9%, transparent) 64.7%,
-        color-mix(in srgb, #FFFDF9 17.5%, transparent) 71%,
-        color-mix(in srgb, #FFFDF9 10.4%, transparent) 77.5%,
-        color-mix(in srgb, #FFFDF9 4.9%, transparent) 84.5%,
-        color-mix(in srgb, #FFFDF9 1.3%, transparent) 91.9%,
-        color-mix(in srgb, #FFFDF9 0%, transparent) 100%);
-
-    [data-theme="dark"] & {
-      background: linear-gradient(to right,
-          #2B2B2B 0%,
-          color-mix(in srgb, #2B2B2B 98.7%, transparent) 8.1%,
-          color-mix(in srgb, #2B2B2B 95.1%, transparent) 15.5%,
-          color-mix(in srgb, #2B2B2B 89.6%, transparent) 22.5%,
-          color-mix(in srgb, #2B2B2B 82.5%, transparent) 29%,
-          color-mix(in srgb, #2B2B2B 74.1%, transparent) 35.3%,
-          color-mix(in srgb, #2B2B2B 64.8%, transparent) 41.2%,
-          color-mix(in srgb, #2B2B2B 55%, transparent) 47.1%,
-          color-mix(in srgb, #2B2B2B 45%, transparent) 52.9%,
-          color-mix(in srgb, #2B2B2B 35.2%, transparent) 58.8%,
-          color-mix(in srgb, #2B2B2B 25.9%, transparent) 64.7%,
-          color-mix(in srgb, #2B2B2B 17.5%, transparent) 71%,
-          color-mix(in srgb, #2B2B2B 10.4%, transparent) 77.5%,
-          color-mix(in srgb, #2B2B2B 4.9%, transparent) 84.5%,
-          color-mix(in srgb, #2B2B2B 1.3%, transparent) 91.9%,
-          color-mix(in srgb, #2B2B2B 0%, transparent) 100%);
-    }
+    @include theme-ease-gradient(to right);
   }
 
   &::after {
     right: 0;
-    background: linear-gradient(to left,
-        #FFFDF9 0%,
-        color-mix(in srgb, #FFFDF9 98.7%, transparent) 8.1%,
-        color-mix(in srgb, #FFFDF9 95.1%, transparent) 15.5%,
-        color-mix(in srgb, #FFFDF9 89.6%, transparent) 22.5%,
-        color-mix(in srgb, #FFFDF9 82.5%, transparent) 29%,
-        color-mix(in srgb, #FFFDF9 74.1%, transparent) 35.3%,
-        color-mix(in srgb, #FFFDF9 64.8%, transparent) 41.2%,
-        color-mix(in srgb, #FFFDF9 55%, transparent) 47.1%,
-        color-mix(in srgb, #FFFDF9 45%, transparent) 52.9%,
-        color-mix(in srgb, #FFFDF9 35.2%, transparent) 58.8%,
-        color-mix(in srgb, #FFFDF9 25.9%, transparent) 64.7%,
-        color-mix(in srgb, #FFFDF9 17.5%, transparent) 71%,
-        color-mix(in srgb, #FFFDF9 10.4%, transparent) 77.5%,
-        color-mix(in srgb, #FFFDF9 4.9%, transparent) 84.5%,
-        color-mix(in srgb, #FFFDF9 1.3%, transparent) 91.9%,
-        color-mix(in srgb, #FFFDF9 0%, transparent) 100%);
-
-    [data-theme="dark"] & {
-      background: linear-gradient(to left,
-          #2B2B2B 0%,
-          color-mix(in srgb, #2B2B2B 98.7%, transparent) 8.1%,
-          color-mix(in srgb, #2B2B2B 95.1%, transparent) 15.5%,
-          color-mix(in srgb, #2B2B2B 89.6%, transparent) 22.5%,
-          color-mix(in srgb, #2B2B2B 82.5%, transparent) 29%,
-          color-mix(in srgb, #2B2B2B 74.1%, transparent) 35.3%,
-          color-mix(in srgb, #2B2B2B 64.8%, transparent) 41.2%,
-          color-mix(in srgb, #2B2B2B 55%, transparent) 47.1%,
-          color-mix(in srgb, #2B2B2B 45%, transparent) 52.9%,
-          color-mix(in srgb, #2B2B2B 35.2%, transparent) 58.8%,
-          color-mix(in srgb, #2B2B2B 25.9%, transparent) 64.7%,
-          color-mix(in srgb, #2B2B2B 17.5%, transparent) 71%,
-          color-mix(in srgb, #2B2B2B 10.4%, transparent) 77.5%,
-          color-mix(in srgb, #2B2B2B 4.9%, transparent) 84.5%,
-          color-mix(in srgb, #2B2B2B 1.3%, transparent) 91.9%,
-          color-mix(in srgb, #2B2B2B 0%, transparent) 100%);
-    }
+    @include theme-ease-gradient(to left);
   }
 }
 </style>

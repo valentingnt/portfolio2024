@@ -1,21 +1,38 @@
 <script setup lang="ts">
 interface LanguageSelectorProps {
-  onLanguageChange: (lang: string) => void
   isEnglish: boolean
 }
 
 defineProps<LanguageSelectorProps>()
+
+const emit = defineEmits<{
+  change: [lang: string]
+}>()
 </script>
 
 <template>
   <div class="LanguageSelector">
-    <span :class="{ active: !isEnglish }" class="language-selector-item" @click.passive="() => onLanguageChange('fr')">
+    <button
+      type="button"
+      class="language-selector-item"
+      :class="{ active: !isEnglish }"
+      :aria-current="!isEnglish"
+      aria-label="Passer en français"
+      @click="emit('change', 'fr')"
+    >
       FR
-    </span>
-    <span>/</span>
-    <span :class="{ active: isEnglish }" class="language-selector-item" @click.passive="() => onLanguageChange('en')">
+    </button>
+    <span aria-hidden="true">/</span>
+    <button
+      type="button"
+      class="language-selector-item"
+      :class="{ active: isEnglish }"
+      :aria-current="isEnglish"
+      aria-label="Switch to English"
+      @click="emit('change', 'en')"
+    >
       EN
-    </span>
+    </button>
   </div>
 </template>
 
@@ -32,6 +49,9 @@ defineProps<LanguageSelectorProps>()
   opacity: 0;
 
   .language-selector-item {
+    @extend %text-body;
+
+    color: inherit;
     cursor: pointer;
     position: relative;
 

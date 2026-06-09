@@ -1,47 +1,70 @@
 <script setup lang="ts">
-import type { AboutPageContent } from '@/types/about'
+import type { AboutPageContent, AboutSectionItem } from '@/types/about'
 
 interface SectionsProps {
   sections: AboutPageContent['sections']
 }
 
 defineProps<SectionsProps>()
+
+function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem {
+  return typeof item === 'object'
+}
 </script>
 
 <template>
-  <div v-for="(section, index) in sections" :key="index" class="sections" :style="{ '--index': index }">
+  <div
+    v-for="(section, sectionIndex) in sections"
+    :key="sectionIndex"
+    class="sections"
+    :style="{ '--index': sectionIndex }"
+  >
     <h2 v-if="section.title" class="title">
       {{ section.title }}
     </h2>
 
-    <span v-if="Array.isArray(section.content)">
-      <ul class="list">
-        <li v-for="(item, index) in section.content" :key="index" class="list-item"
-          :class="{ 'has-badge': typeof item === 'object' && item.badge }">
-          <span v-if="typeof item === 'object' && item.href">
-            <a :href="item.href" class="link" target="_blank" rel="noopener noreferrer">
-              {{ item.title }}
-            </a>
-          </span>
+    <ul v-if="Array.isArray(section.content)" class="list">
+      <li
+        v-for="(item, itemIndex) in section.content"
+        :key="itemIndex"
+        class="list-item"
+        :class="{ 'has-badge': isItemObject(item) && item.badge }"
+      >
+        <template v-if="isItemObject(item)">
+          <a v-if="item.href" :href="item.href" class="link" target="_blank" rel="noopener noreferrer">
+            {{ item.title }}
+          </a>
+          <span v-else>{{ item.title }}</span>
 
-          <span v-else-if="typeof item === 'object' && !item.href">
-            <span>{{ item.title }}</span>
-          </span>
-
-          <span v-else>{{ item }}</span>
-
-          <span v-if="typeof item === 'object' && item.subtitle" class="link-subtitle">
+          <span v-if="item.subtitle" class="link-subtitle">
             {{ item.subtitle }}
           </span>
 
-          <NuxtImg v-if="typeof item === 'object' && item.badge" :src="item.badge" alt="" width="300" height="300"
-            class="badge-preview" aria-hidden="true" loading="lazy" />
-        </li>
-      </ul>
-    </span>
+          <NuxtImg
+            v-if="item.badge"
+            :src="item.badge"
+            alt=""
+            width="300"
+            height="300"
+            class="badge-preview"
+            aria-hidden="true"
+            loading="lazy"
+          />
+        </template>
 
-    <p v-else :class="section.title ? null : 'quote'" class="paragraph"
-      v-html="section.title ? parseMarkdown(section.content) : section.content" />
+        <span v-else>{{ item }}</span>
+      </li>
+    </ul>
+
+    <!-- Content comes from local JSON, not user input -->
+    <!-- eslint-disable vue/no-v-html -->
+    <p
+      v-else
+      class="paragraph"
+      :class="{ quote: !section.title }"
+      v-html="section.title ? parseMarkdown(section.content) : section.content"
+    />
+    <!-- eslint-enable vue/no-v-html -->
   </div>
 </template>
 

@@ -1,27 +1,19 @@
 <script setup lang="ts">
-export interface Media {
-  src: string
-  alt: string
-}
-
-export interface UiTagData {
+interface UiTagProps {
   title: string
-  icon?: Media
 }
-
-export interface UiTagProps extends UiTagData { }
 
 defineProps<UiTagProps>()
+
 const emit = defineEmits<{
   click: [title: string]
 }>()
 </script>
 
 <template>
-  <div class="Tag" @click.passive="emit('click', title)">
-    <NuxtImg v-if="icon" :src="icon.src" :alt="icon.alt" class="icon" sizes="16px" />
+  <button type="button" class="Tag" @click="emit('click', title)">
     <span class="title">{{ title }}</span>
-  </div>
+  </button>
 </template>
 
 <style scoped lang="scss">
@@ -55,12 +47,6 @@ const emit = defineEmits<{
     margin-left: -12px;
   }
 
-  .icon {
-    width: 16px;
-    height: 16px;
-    opacity: 0.7;
-  }
-
   @media (hover: hover) {
     transition: opacity 0.3s ease;
 
@@ -69,10 +55,6 @@ const emit = defineEmits<{
 
       &::before {
         opacity: 0.8;
-      }
-
-      .icon {
-        opacity: 1;
       }
     }
   }

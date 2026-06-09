@@ -1,57 +1,35 @@
 export interface Language {
+  lang: Ref<string>
   isEnglish: ComputedRef<boolean>
-  setLang: (value: string) => void
-  updateLanguage: (newLang: string) => void
+  setLanguage: (value: string) => void
 }
 
 export function useLanguage(baseLang?: string): Language {
   const route = useRoute()
-  const cookieLang = useCookie<string | undefined>("lang")
+  const cookieLang = useCookie<string | undefined>('lang')
 
-  // Shared reactive state across the whole app
-  const lang = useState<string>("lang", () => {
-    const fromRoute = route.params.lang as string | undefined
-    return fromRoute || cookieLang.value || baseLang || "en"
+  const lang = useState<string>('lang', () => {
+    return (route.params.lang as string | undefined) || cookieLang.value || baseLang || 'en'
   })
 
-  function setLang(value: string) {
+  const isEnglish = computed(() => lang.value === 'en')
+
+  function setLanguage(value: string) {
     if (lang.value === value) return
+
     lang.value = value
-    cookieLang.value = value
-    history.replaceState({}, "", `/${value}`)
+    // Go through the router so route.params.lang stays in sync with the URL
+    navigateTo(`/${value}`, { replace: true })
   }
 
-  function updateLanguage(newLang: string) {
-    setLang(newLang)
-  }
-
-  // Keep cookie in sync when lang changes from anywhere
-  watch(lang, (newVal) => {
-    cookieLang.value = newVal
-  })
-
-  // Keep in sync with route param changes
   watch(
-    () => route.params.lang,
-    (newParam) => {
-      const next =
-        (newParam as string | undefined) || cookieLang.value || baseLang || "en"
-      if (next !== lang.value) {
-        lang.value = next
-      }
+    () => route.params.lang as string | undefined,
+    (param) => {
+      lang.value = param || cookieLang.value || baseLang || 'en'
     }
   )
 
-  const isEnglish = computed(() => lang.value === "en")
+  watch(lang, (value) => (cookieLang.value = value), { immediate: true })
 
-  onMounted(() => {
-    const fromRoute = route.params.lang as string | undefined
-    const next = fromRoute || cookieLang.value || baseLang || "en"
-    if (lang.value !== next) {
-      lang.value = next
-    }
-    cookieLang.value = lang.value
-  })
-
-  return { isEnglish, setLang, updateLanguage }
+  return { lang, isEnglish, setLanguage }
 }

@@ -4,10 +4,13 @@ import type { AboutPageContent } from '@/types/about'
 interface FooterProps {
   content: Pick<AboutPageContent, 'footer'>
   mail: string
-  onMailClick: () => void
 }
 
 defineProps<FooterProps>()
+
+const emit = defineEmits<{
+  mailClick: []
+}>()
 </script>
 
 <template>
@@ -17,21 +20,25 @@ defineProps<FooterProps>()
     </p>
 
     <ul class="links">
-      <li class="link-title" :style="{ cursor: 'pointer' }" @click.passive="onMailClick">
-        {{ mail }}
+      <li class="link">
+        <button type="button" class="link-title" @click="emit('mailClick')">
+          {{ mail }}
+        </button>
+        <span class="link-separator" aria-hidden="true">~</span>
       </li>
 
-      <li class="link-separator">~</li>
-
-      <li v-for="(link, index) in content.footer.links" :key="index" class="link">
+      <li v-for="(link, index) in content.footer.links" :key="link.url" class="link">
         <NuxtLink :to="link.url" target="_blank" rel="noopener noreferrer" class="link-title">
           {{ link.title }}
         </NuxtLink>
 
-        <span v-if="index !== content.footer.links.length - 1" class="link-separator">~</span>
+        <span
+          v-if="index !== content.footer.links.length - 1"
+          class="link-separator"
+          aria-hidden="true"
+        >~</span>
       </li>
     </ul>
-
   </footer>
 </template>
 
@@ -41,6 +48,7 @@ defineProps<FooterProps>()
 
 .footer {
   @include page-transition($page-transition-footer-delay);
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -63,6 +71,8 @@ defineProps<FooterProps>()
 
     .link-title {
       @extend %link;
+
+      color: inherit;
       transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 
       @media (hover: hover) {
@@ -72,6 +82,5 @@ defineProps<FooterProps>()
       }
     }
   }
-
 }
 </style>

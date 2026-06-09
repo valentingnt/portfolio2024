@@ -1,3 +1,10 @@
+export type AboutSectionItem = {
+  title: string
+  href?: string
+  subtitle?: string
+  badge?: string
+}
+
 export type AboutPageContent = {
   header: {
     title: string
@@ -5,18 +12,14 @@ export type AboutPageContent = {
   }
   sections: {
     title?: string
-    content:
-      | string
-      | string[]
-      | { title: string; href?: string; subtitle?: string; badge?: string }[]
+    content: string | string[] | AboutSectionItem[]
   }[]
   downloadText: string
   footer: {
     content: string[]
     links: {
       title: string
-      url?: string
-      onClick?: () => void
+      url: string
     }[]
   }
 }

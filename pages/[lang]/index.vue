@@ -2,68 +2,93 @@
 import aboutAll from '@/content/about.json'
 import type { AboutMultiLangContent, AboutPageContent } from '@/types/about'
 
-const route = useRoute()
-const lang = computed(() => route.params.lang as string)
-const mail = ref('email')
+definePageMeta({
+  validate: (route) => ['fr', 'en'].includes(route.params.lang as string),
+  // Key by route name (not full path) so switching /fr <-> /en reuses the
+  // same component instance instead of remounting and replaying the
+  // entrance fade/blur animation.
+  key: (route) => route.name as string
+})
+
 const EMAIL = 'contact@valentingenest.fr'
+const MAIL_LABEL_RESET_MS = 2000
 
-const contentDataSource = aboutAll as AboutMultiLangContent
-const contentData: ComputedRef<AboutPageContent> = computed(() => isEnglish.value ? contentDataSource.en : contentDataSource.fr)
+const route = useRoute()
+const { setLanguage, isEnglish, lang } = useLanguage(route.params.lang as string)
+const { mediaRef, onScroll } = useScrollEffect()
+const { isVisible } = usePageTransition()
+const { meta } = useSEO(lang)
 
-function copyMail() {
+const contentSource = aboutAll as AboutMultiLangContent
+const content = computed<AboutPageContent>(() => isEnglish.value ? contentSource.en : contentSource.fr)
+
+const mailLabel = ref('email')
+let mailLabelTimeout: ReturnType<typeof setTimeout> | undefined
+
+function handleMailClick() {
   copyToClipboard(EMAIL)
-  window.gtag?.('event', 'copy_email', { language: isEnglish.value ? 'en' : 'fr' })
-  mail.value = isEnglish.value ? 'copied!' : 'copié!'
-  setTimeout(() => mail.value = 'email', 2000)
+  trackEvent('copy_email', { language: lang.value })
+  mailLabel.value = isEnglish.value ? 'copied!' : 'copié!'
+
+  clearTimeout(mailLabelTimeout)
+  mailLabelTimeout = setTimeout(() => (mailLabel.value = 'email'), MAIL_LABEL_RESET_MS)
 }
 
-function downloadResume() {
+function handleResumeDownload() {
   const fileName = isEnglish.value ? 'EN_CV2024_Valentin_Genest.pdf' : 'CV2024_Valentin_Genest.pdf'
-  window.gtag?.('event', 'download_cv', {
-    language: isEnglish.value ? 'en' : 'fr',
-    file_name: fileName
-  })
+  trackEvent('download_cv', { language: lang.value, file_name: fileName })
   window.open(`/${fileName}`, '_blank')
 }
 
-const { mediaRef, onScroll } = useScrollEffect()
-const { updateLanguage, isEnglish } = useLanguage(lang.value)
-const { isVisible } = usePageTransition()
-const { meta } = useSEO(lang.value, isEnglish.value)
+onUnmounted(() => clearTimeout(mailLabelTimeout))
 
-watchScroll(onScroll)
+watchScroll(onScroll, { defer: true })
 
-useHead(() => meta)
+useHead(() => meta.value)
 </script>
 
 <template>
   <div class="AboutPage" :class="{ 'is-visible': isVisible }">
     <div class="container">
-      <AboutHeader :content="contentData" :is-english="isEnglish" :on-language-change="updateLanguage" />
+      <AboutHeader :content="content" :is-english="isEnglish" @language-change="setLanguage" />
 
       <main class="content">
         <div ref="mediaRef" class="media-container">
-          <img src="/img/moi.webp" srcset="/img/moi.webp 1x, /img/moi@2x.webp 2x" alt="Valentin Genest" class="media"
-            width="480" loading="eager" fetchpriority="high" decoding="async" />
+          <img
+            src="/img/moi.webp"
+            srcset="/img/moi.webp 1x, /img/moi@2x.webp 2x"
+            alt="Valentin Genest"
+            class="media"
+            width="480"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          >
         </div>
 
-        <AboutSections :sections="contentData.sections" />
+        <AboutSections :sections="content.sections" />
 
         <SkillsMarquee />
 
         <div class="button-container">
-          <button class="button" type="button" @click.passive="downloadResume">
-            <svg viewBox="0 0 14 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="icon" width="12"
-              height="15">
+          <button class="button" type="button" @click="handleResumeDownload">
+            <svg
+              viewBox="0 0 14 16"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+              class="icon"
+              width="12"
+              height="15"
+            >
               <path
-                d="M7.5 0.5C7.5 0.223858 7.27614 1.20705e-08 7 0C6.72386 -1.20705e-08 6.5 0.223858 6.5 0.5L7.5 0.5ZM6.64645 12.4325C6.84171 12.6278 7.15829 12.6278 7.35355 12.4325L10.5355 9.25052C10.7308 9.05526 10.7308 8.73868 10.5355 8.54341C10.3403 8.34815 10.0237 8.34815 9.82843 8.54341L7 11.3718L4.17157 8.54341C3.97631 8.34815 3.65973 8.34815 3.46447 8.54341C3.2692 8.73867 3.2692 9.05526 3.46447 9.25052L6.64645 12.4325ZM6.5 0.5L6.5 12.0789L7.5 12.0789L7.5 0.5L6.5 0.5Z" />
+                d="M7.5 0.5C7.5 0.223858 7.27614 1.20705e-08 7 0C6.72386 -1.20705e-08 6.5 0.223858 6.5 0.5L7.5 0.5ZM6.64645 12.4325C6.84171 12.6278 7.15829 12.6278 7.35355 12.4325L10.5355 9.25052C10.7308 9.05526 10.7308 8.73868 10.5355 8.54341C10.3403 8.34815 10.0237 8.34815 9.82843 8.54341L7 11.3718L4.17157 8.54341C3.97631 8.34815 3.65973 8.34815 3.46447 8.54341C3.2692 8.73867 3.2692 9.05526 3.46447 9.25052L6.64645 12.4325ZM6.5 0.5L6.5 12.0789L7.5 12.0789L7.5 0.5L6.5 0.5Z"
+              />
               <path d="M1 15.5H13" stroke="currentColor" stroke-linecap="round" />
             </svg>
 
-            {{ contentData.downloadText }}
+            {{ content.downloadText }}
 
-            <span class="pdfSize" v-if="isEnglish">(1.8Mo)</span>
-            <span class="pdfSize" v-if="!isEnglish">(1.9Mo)</span>
+            <span class="pdfSize">{{ isEnglish ? '(1.8Mo)' : '(1.9Mo)' }}</span>
           </button>
         </div>
 
@@ -71,7 +96,7 @@ useHead(() => meta)
           <line x1="0.5" y1="0.5" x2="100%" y2="0.5" stroke="var(--color-primary)" />
         </svg>
 
-        <AboutFooter :content="contentData" :mail="mail" :on-mail-click="copyMail" />
+        <AboutFooter :content="content" :mail="mailLabel" @mail-click="handleMailClick" />
       </main>
     </div>
   </div>
@@ -179,18 +204,9 @@ useHead(() => meta)
 
   &.is-visible {
     .content {
-      .media-container {
-        opacity: 1;
-        transform: translateY(0);
-        filter: blur(0);
-      }
 
-      .button-container {
-        opacity: 1;
-        transform: translateY(0);
-        filter: blur(0);
-      }
-
+      .media-container,
+      .button-container,
       .separator {
         opacity: 1;
         transform: translateY(0);

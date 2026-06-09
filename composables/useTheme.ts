@@ -1,22 +1,16 @@
+type ThemePreference = 'light' | 'dark' | 'system'
+
 export function useTheme() {
-  const userPreference = useCookie('theme-preference', {
+  const userPreference = useCookie<ThemePreference>('theme-preference', {
     default: () => 'system',
     watch: true
   })
-  
-  const theme = ref(userPreference.value)
-  const isDark = computed(() => theme.value === 'dark')
 
-  function setTheme(newTheme: 'light' | 'dark' | 'system') {
+  const theme = useState<string>('theme', () => userPreference.value)
+
+  function setTheme(newTheme: ThemePreference) {
     userPreference.value = newTheme
     updateThemeFromPreference()
-  }
-
-  function toggleTheme() {
-    const newTheme = userPreference.value === 'system' 
-      ? (isDark.value ? 'light' : 'dark')
-      : (userPreference.value === 'light' ? 'dark' : 'light')
-    setTheme(newTheme)
   }
 
   function updateThemeFromPreference() {
@@ -28,22 +22,17 @@ export function useTheme() {
   }
 
   onMounted(() => {
-    // Listen for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     mediaQuery.addEventListener('change', updateThemeFromPreference)
 
-    // Initial theme setup
+    // The inline head script already set data-theme pre-paint; this syncs the reactive state
     updateThemeFromPreference()
 
-    // Cleanup
     onUnmounted(() => mediaQuery.removeEventListener('change', updateThemeFromPreference))
   })
 
   return {
-    isDark,
-    currentTheme: computed(() => theme.value),
     preference: computed(() => userPreference.value),
-    setTheme,
-    toggleTheme
+    setTheme
   }
-} 
+}

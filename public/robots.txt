@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /preview/
 
 Sitemap: https://valentingenest.fr/sitemap.xml

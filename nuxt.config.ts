@@ -7,6 +7,13 @@ export default defineNuxtConfig({
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },
       ],
+      script: [
+        {
+          // Apply the saved theme before first paint to avoid a light-mode flash
+          innerHTML: `(function(){try{var m=document.cookie.match(/(?:^|; )theme-preference=([^;]*)/);var p=m?decodeURIComponent(m[1]).replace(/^"|"$/g,""):"system";var d=p==="dark"||(p==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}})()`,
+          tagPosition: "head",
+        },
+      ],
       link: [
         { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
         {
@@ -57,7 +64,7 @@ export default defineNuxtConfig({
 
   css: ["~/assets/stylesheets/globals.scss"],
 
-  compatibilityDate: "2024-09-16",
+  compatibilityDate: "2026-06-09",
 
   nitro: {
     prerender: {

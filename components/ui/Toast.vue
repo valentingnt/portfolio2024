@@ -6,25 +6,24 @@ interface Toast {
 }
 
 const MAX_TOASTS = 3
+const TOAST_DURATION_MS = 5000
+
 const toasts = ref<Toast[]>([])
 let toastId = 0
 
-const showToast = (title: string, description: string) => {
+function showToast(title: string, description: string) {
   const id = toastId++
   toasts.value.unshift({ id, title, description })
 
-  // Keep only the 3 most recent toasts
   if (toasts.value.length > MAX_TOASTS) {
     toasts.value = toasts.value.slice(0, MAX_TOASTS)
   }
 
-  setTimeout(() => {
-    toasts.value = toasts.value.filter(toast => toast.id !== id)
-  }, 5000)
+  setTimeout(() => dismissToast(id), TOAST_DURATION_MS)
 }
 
 function dismissToast(id: number) {
-  toasts.value = toasts.value.filter(t => t.id !== id)
+  toasts.value = toasts.value.filter((toast) => toast.id !== id)
 }
 
 defineExpose({ showToast })
