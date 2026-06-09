@@ -13,6 +13,11 @@
         "title": "Recent projects:",
         "content": [
           {
+            "title": "Renaissance Santé",
+            "subtitle": "/ Freelance",
+            "href": "https://www.renaissancesante.fr/"
+          },
+          {
             "title": "Distance",
             "subtitle": "/ Unlikely",
             "href": "https://distance-store.com/"
@@ -54,8 +59,9 @@
           },
           { "title": "Givenchy (NDA)", "subtitle": "/ WAWWW" },
           {
-            "title": "Maison Sablayrolles (WIP)",
-            "subtitle": "/ WAWWW"
+            "title": "Maison Sablayrolles",
+            "subtitle": "/ WAWWW",
+            "href": "https://www.maisonsablayrolles.fr/"
           },
           {
             "title": "iad mobile",
@@ -138,6 +144,11 @@
         "title": "Projets récents :",
         "content": [
           {
+            "title": "Renaissance Santé",
+            "subtitle": "/ Freelance",
+            "href": "https://www.renaissancesante.fr/"
+          },
+          {
             "title": "Distance",
             "subtitle": "/ Unlikely",
             "href": "https://distance-store.com/"
@@ -179,8 +190,9 @@
           },
           { "title": "Givenchy (NDA)", "subtitle": "/ WAWWW" },
           {
-            "title": "Maison Sablayrolles (WIP)",
-            "subtitle": "/ WAWWW"
+            "title": "Maison Sablayrolles",
+            "subtitle": "/ WAWWW",
+            "href": "https://www.maisonsablayrolles.fr/"
           },
           {
             "title": "iad mobile",
