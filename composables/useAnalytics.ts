@@ -4,12 +4,7 @@ export function useAnalytics(): void {
   const route = useRoute()
 
   onMounted(() => {
-    const script = document.createElement('script')
-    script.defer = true
-    script.async = true
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`
-    document.head.appendChild(script)
-
+    // Stub immediately so events fired before the script loads queue in dataLayer
     window.dataLayer = window.dataLayer || []
     // GA4 requires the IArguments object to be pushed, not a plain array
     window.gtag = function gtag() {
@@ -18,6 +13,20 @@ export function useAnalytics(): void {
     }
     window.gtag('js', new Date())
     window.gtag('config', MEASUREMENT_ID)
+
+    // Load the 117KB gtag.js off the critical path, once the main thread is idle
+    function loadScript() {
+      const script = document.createElement('script')
+      script.async = true
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`
+      document.head.appendChild(script)
+    }
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(loadScript, { timeout: 3000 })
+    } else {
+      setTimeout(loadScript, 2000)
+    }
   })
 
   watch(
