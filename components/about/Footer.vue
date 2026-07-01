@@ -21,7 +21,7 @@ const emit = defineEmits<{
 
     <ul class="links">
       <li class="link">
-        <button type="button" class="link-title" @click="emit('mailClick')">
+        <button type="button" class="link-title" @click.passive="emit('mailClick')">
           {{ mail }}
         </button>
         <span class="link-separator" aria-hidden="true">~</span>
@@ -32,11 +32,7 @@ const emit = defineEmits<{
           {{ link.title }}
         </NuxtLink>
 
-        <span
-          v-if="index !== content.footer.links.length - 1"
-          class="link-separator"
-          aria-hidden="true"
-        >~</span>
+        <span v-if="index !== content.footer.links.length - 1" class="link-separator" aria-hidden="true">~</span>
       </li>
     </ul>
   </footer>

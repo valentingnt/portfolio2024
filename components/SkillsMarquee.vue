@@ -34,19 +34,12 @@ function handleTagClick(skill: Skill) {
 </script>
 
 <template>
-  <div
-    class="SkillsMarqueeWrapper"
-    @mouseenter.passive="speed = MARQUEE_HOVER_SPEED"
-    @mouseleave.passive="speed = MARQUEE_SPEED"
-  >
+  <div class="SkillsMarqueeWrapper" @mouseenter.passive="speed = MARQUEE_HOVER_SPEED"
+    @mouseleave.passive="speed = MARQUEE_SPEED">
     <UiMarquee class="SkillsMarquee" :speed="speed" :strength="2">
       <div class="skills-container">
-        <UiTag
-          v-for="skill in shuffledSkills"
-          :key="skill.name"
-          :title="skill.name"
-          @click="handleTagClick(skill)"
-        />
+        <UiTag v-for="skill in shuffledSkills" :key="skill.name" :title="skill.name"
+          @click.passive="handleTagClick(skill)" />
       </div>
     </UiMarquee>
   </div>

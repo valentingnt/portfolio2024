@@ -11,7 +11,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <button type="button" class="Tag" @click="emit('click', title)">
+  <button type="button" class="Tag" @click.passive="emit('click', title)">
     <span class="title">{{ title }}</span>
   </button>
 </template>

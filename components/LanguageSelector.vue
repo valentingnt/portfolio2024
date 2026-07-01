@@ -12,25 +12,13 @@ const emit = defineEmits<{
 
 <template>
   <div class="LanguageSelector">
-    <button
-      type="button"
-      class="language-selector-item"
-      :class="{ active: !isEnglish }"
-      :aria-current="!isEnglish"
-      aria-label="Passer en français"
-      @click="emit('change', 'fr')"
-    >
+    <button type="button" class="language-selector-item" :class="{ active: !isEnglish }" :aria-current="!isEnglish"
+      aria-label="Passer en français" @click.passive="emit('change', 'fr')">
       FR
     </button>
     <span aria-hidden="true">/</span>
-    <button
-      type="button"
-      class="language-selector-item"
-      :class="{ active: isEnglish }"
-      :aria-current="isEnglish"
-      aria-label="Switch to English"
-      @click="emit('change', 'en')"
-    >
+    <button type="button" class="language-selector-item" :class="{ active: isEnglish }" :aria-current="isEnglish"
+      aria-label="Switch to English" @click.passive="emit('change', 'en')">
       EN
     </button>
   </div>

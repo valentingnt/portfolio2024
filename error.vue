@@ -36,7 +36,7 @@ function handleError() {
     <div class="container">
       <p class="status">{{ error.statusCode }}</p>
       <h1 class="heading">{{ heading }}</h1>
-      <button type="button" class="link" @click="handleError">{{ linkLabel }}</button>
+      <button type="button" class="link" @click.passive="handleError">{{ linkLabel }}</button>
     </div>
   </main>
 </template>

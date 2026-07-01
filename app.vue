@@ -18,6 +18,7 @@ useAnalytics()
 
 <template>
   <main>
+    <DuckFeet />
     <NuxtPage />
   </main>
 </template>
