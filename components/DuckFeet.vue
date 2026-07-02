@@ -108,6 +108,9 @@ const SHUFFLE_DUR_MS = 300
 const MASK_BLUR_PX = 3
 const MASK_OPACITY_FACTOR = 0.3
 const MASK_RECT_REFRESH_MS = 500
+// Width (px, straddling the mask edge) over which a duck crossfades between
+// its on-glass and behind-glass look, instead of snapping at the boundary.
+const MASK_FADE_MARGIN_PX = 28
 
 // Clearance added to the off-screen shift used by the shadow-blur trick so
 // no part of a shape (plus its blur) ever pokes back into view.
@@ -250,9 +253,18 @@ function updateMaskRect() {
 // and not at all while reduced motion keeps the canvas blank).
 watchScroll(updateMaskRect, { defer: true, enabled: computed(() => !isReducedMotion.value) })
 
-function isBehindMask(x: number, y: number): boolean {
-  if (!maskRect) return false
-  return x >= maskRect.left && x <= maskRect.right && y >= maskRect.top && y <= maskRect.bottom
+// Smooth 0..1 "how behind the glass" amount instead of a hard in/out test, so
+// callers can crossfade a duck's look as it crosses the mask edge rather than
+// snapping between appearances. 0 = fully in front, 1 = fully behind; distance
+// is measured to the nearest edge of the mask rect (negative once outside),
+// smoothstepped over a band MASK_FADE_MARGIN_PX wide centered on that edge.
+function maskFactor(x: number, y: number): number {
+  if (!maskRect) return 0
+  const dx = Math.min(x - maskRect.left, maskRect.right - x)
+  const dy = Math.min(y - maskRect.top, maskRect.bottom - y)
+  const d = Math.min(dx, dy)
+  const t = Math.max(0, Math.min(1, (d + MASK_FADE_MARGIN_PX) / (MASK_FADE_MARGIN_PX * 2)))
+  return t * t * (3 - 2 * t)
 }
 
 let ctx: CanvasRenderingContext2D | null = null
@@ -701,24 +713,35 @@ function paintSprite(sprite: HTMLCanvasElement, x: number, y: number, rot: numbe
   const c = ctx!
   const w = (sprite.width / SHADOW_SPRITE_SCALE) * scale
   const h = (sprite.height / SHADOW_SPRITE_SCALE) * scale
-  c.save()
-  if (isBehindMask(x, y)) {
+  // Crossfade the on-glass and behind-glass looks across the mask edge
+  // rather than switching between them, by drawing both at complementary
+  // alphas and letting the near-zero one disappear.
+  const behind = maskFactor(x, y)
+
+  if (behind < 1) {
+    c.save()
+    c.globalAlpha = alpha * (1 - behind)
+    c.translate(x, y)
+    c.rotate(rot)
+    c.drawImage(sprite, -w / 2, -h / 2, w, h)
+    c.restore()
+  }
+
+  if (behind > 0) {
     // Behind the content column the shadow reads through frosted glass:
     // fainter, extra blur, and recolored to the live theme color via the
     // shadow (only the sprite's alpha channel matters here).
+    c.save()
     const shift = cssW + w + SHADOW_SHIFT_MARGIN_PX
-    c.globalAlpha = alpha * MASK_OPACITY_FACTOR
+    c.globalAlpha = alpha * MASK_OPACITY_FACTOR * behind
     c.shadowColor = drawColor
     c.shadowBlur = MASK_BLUR_PX * 2 * dpr
     c.shadowOffsetX = -shift * dpr
     c.translate(x + shift, y)
-  } else {
-    c.globalAlpha = alpha
-    c.translate(x, y)
+    c.rotate(rot)
+    c.drawImage(sprite, -w / 2, -h / 2, w, h)
+    c.restore()
   }
-  c.rotate(rot)
-  c.drawImage(sprite, -w / 2, -h / 2, w, h)
-  c.restore()
 }
 
 function paintFootPose(duck: Duck, foot: Foot, pose: FootPose, spawnFade: number) {
@@ -730,12 +753,16 @@ function paintFootPose(duck: Duck, foot: Foot, pose: FootPose, spawnFade: number
   // Focus falls off non-linearly with height off the glass, so blur leads
   // the rest of the lift slightly.
   const blur = pose.arc > 0 ? LIFT_BLUR_PX * Math.pow(pose.arc, LIFT_BLUR_GAMMA) : 0
-  if (isBehindMask(pose.x, pose.y)) {
+  // Crossfade the on-glass and behind-glass looks across the mask edge
+  // rather than switching between them.
+  const behind = maskFactor(pose.x, pose.y)
+  if (behind > 0) {
     // Feet under the content read as prints on frosted glass: fainter, and
     // always at least the glass blur (a lifted foot keeps its extra blur).
-    paintFoot(pose.x, pose.y, pose.heading, foot.side, alpha * MASK_OPACITY_FACTOR, scale, Math.max(MASK_BLUR_PX, blur))
-  } else {
-    paintFoot(pose.x, pose.y, pose.heading, foot.side, alpha, scale, blur)
+    paintFoot(pose.x, pose.y, pose.heading, foot.side, alpha * MASK_OPACITY_FACTOR * behind, scale, Math.max(MASK_BLUR_PX, blur))
+  }
+  if (behind < 1) {
+    paintFoot(pose.x, pose.y, pose.heading, foot.side, alpha * (1 - behind), scale, blur)
   }
 }
 
