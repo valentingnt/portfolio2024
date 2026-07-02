@@ -54,7 +54,6 @@ const LIFT_DUR_MAX_MS = 280
 const LIFT_PEAK = 0.25
 const LIFT_MIN_ALPHA = 0.35
 const LIFT_BLUR_PX = 7
-const LIFT_BLUR_GAMMA = 0.75
 const LIFT_SCALE_DROP = 0.45
 const LAND_SETTLE_MS = 130
 const LAND_PULSE = 0.08
@@ -194,6 +193,11 @@ function strideFor(speed: number) {
   return STEP_LENGTH_MIN + (STEP_LENGTH_MAX - STEP_LENGTH_MIN) * Math.min(1, speed / SPEED_FAST)
 }
 
+function smoothstep(t: number) {
+  const c = Math.max(0, Math.min(1, t))
+  return c * c * (3 - 2 * c)
+}
+
 // CSS-style cubic-bezier easing. Solved with a few Newton iterations, which
 // only ever runs for feet currently mid-lift (at most one per duck).
 function cubicBezier(p1x: number, p1y: number, p2x: number, p2y: number) {
@@ -217,9 +221,11 @@ function cubicBezier(p1x: number, p1y: number, p2x: number, p2y: number) {
 }
 
 // Swing-phase eases: the foot leaves the glass with a quick push-off, covers
-// most ground mid-swing, and decelerates into the plant. Blur/scale pop on
-// fast (foot instantly out of the focal plane), hang at the top, then dive
-// steeply into contact so the plant lands firm.
+// most ground mid-swing, and decelerates into the plant. Position follows this
+// curve raw for a snappy step; the foot's own fade/blur/shrink (paintFootPose)
+// instead follows footPose's separate `fade` envelope, which is spread over
+// the whole swing so leaving/touching the glass reads as a gradual fade
+// rather than an instant pop.
 const LIFT_TRANSLATE_EASE = cubicBezier(0.4, 0, 0.1, 1)
 const LIFT_RISE_EASE = cubicBezier(0.2, 0.8, 0.35, 1)
 const LIFT_FALL_EASE = cubicBezier(0.55, 0, 0.85, 0.4)
@@ -263,8 +269,7 @@ function maskFactor(x: number, y: number): number {
   const dx = Math.min(x - maskRect.left, maskRect.right - x)
   const dy = Math.min(y - maskRect.top, maskRect.bottom - y)
   const d = Math.min(dx, dy)
-  const t = Math.max(0, Math.min(1, (d + MASK_FADE_MARGIN_PX) / (MASK_FADE_MARGIN_PX * 2)))
-  return t * t * (3 - 2 * t)
+  return smoothstep((d + MASK_FADE_MARGIN_PX) / (MASK_FADE_MARGIN_PX * 2))
 }
 
 let ctx: CanvasRenderingContext2D | null = null
@@ -426,14 +431,19 @@ function shuffleFoot(d: Duck, now: number) {
 }
 
 // While lifted the foot arcs between its old and new plant: `arc` rises to 1
-// and back to 0, driving the lift's fade/blur/shrink together. The arc peaks
-// early (quick pick-up) and descends on a bezier whose slope is steepest at
-// contact, so the plant lands firm instead of floating in. `settle` pulses
-// 1 → 0 just after contact for the toe-spread press.
+// and back to 0, driving the body's bob/squash. The arc peaks early (quick
+// pick-up) and descends on a bezier whose slope is steepest at contact, so
+// the plant lands firm instead of floating in — but that fast rise happens
+// within the first ~5-15ms of a swing, too quick for a fade to read on
+// screen. `fade` drives the foot's own alpha/blur/shrink instead: a
+// symmetric envelope spread over the *entire* swing (not just the pick-up
+// window), so leaving and touching the glass reads as a visible fade rather
+// than a pop. `settle` pulses 1 → 0 just after contact for the toe-spread
+// press.
 function footPose(foot: Foot, now: number) {
   if (!foot.liftStart) {
     const settle = foot.landAt ? Math.max(0, 1 - (now - foot.landAt) / LAND_SETTLE_MS) : 0
-    return { x: foot.x, y: foot.y, heading: foot.heading, arc: 0, settle }
+    return { x: foot.x, y: foot.y, heading: foot.heading, arc: 0, fade: 0, settle }
   }
   const t = (now - foot.liftStart) / foot.liftDur
   if (t >= 1) {
@@ -444,6 +454,7 @@ function footPose(foot: Foot, now: number) {
       y: foot.y,
       heading: foot.heading,
       arc: 0,
+      fade: 0,
       settle: Math.max(0, 1 - (now - foot.landAt) / LAND_SETTLE_MS)
     }
   }
@@ -452,11 +463,13 @@ function footPose(foot: Foot, now: number) {
     t < LIFT_PEAK
       ? LIFT_RISE_EASE(t / LIFT_PEAK)
       : 1 - LIFT_FALL_EASE((t - LIFT_PEAK) / (1 - LIFT_PEAK))
+  const fade = Math.sin(Math.min(1, Math.max(0, t)) * Math.PI)
   return {
     x: foot.fromX + (foot.x - foot.fromX) * e,
     y: foot.fromY + (foot.y - foot.fromY) * e,
     heading: foot.fromHeading + normalizeAngle(foot.heading - foot.fromHeading) * e,
     arc,
+    fade,
     settle: 0
   }
 }
@@ -747,12 +760,10 @@ function paintSprite(sprite: HTMLCanvasElement, x: number, y: number, rot: numbe
 function paintFootPose(duck: Duck, foot: Foot, pose: FootPose, spawnFade: number) {
   const weightOn = 0.5 + 0.5 * duck.weight * foot.side
   const plantedAlpha = PLANT_ALPHA_MIN + (1 - PLANT_ALPHA_MIN) * weightOn
-  const alpha = (plantedAlpha + (LIFT_MIN_ALPHA - plantedAlpha) * pose.arc) * spawnFade
+  const alpha = (plantedAlpha + (LIFT_MIN_ALPHA - plantedAlpha) * pose.fade) * spawnFade
   const scale =
-    FOOT_SCALE * (1 + PRESS_SCALE * weightOn + LAND_PULSE * pose.settle) * (1 - LIFT_SCALE_DROP * pose.arc)
-  // Focus falls off non-linearly with height off the glass, so blur leads
-  // the rest of the lift slightly.
-  const blur = pose.arc > 0 ? LIFT_BLUR_PX * Math.pow(pose.arc, LIFT_BLUR_GAMMA) : 0
+    FOOT_SCALE * (1 + PRESS_SCALE * weightOn + LAND_PULSE * pose.settle) * (1 - LIFT_SCALE_DROP * pose.fade)
+  const blur = pose.fade > 0 ? LIFT_BLUR_PX * pose.fade : 0
   // Crossfade the on-glass and behind-glass looks across the mask edge
   // rather than switching between them.
   const behind = maskFactor(pose.x, pose.y)
