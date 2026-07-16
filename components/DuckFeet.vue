@@ -8,6 +8,58 @@ const IDLE_SPAWN_FALLBACK_MS = 1500
 const DUCK_SPEED_MULTIPLIER_MIN = 0.75
 const DUCK_SPEED_MULTIPLIER_MAX = 1.35
 
+// Breeding: two adult ducks that linger near each other court for a moment,
+// then summon a baby between them. When a birth pushes the flock past the
+// cap, the oldest duck walks off-screen and despawns.
+const POP_CAP = 14
+const BREED_RADIUS = 70
+const BREED_BREAK_RADIUS = BREED_RADIUS * 1.5
+const COURT_STOP_DIST = 34
+const COURT_MIN_S = 2.2
+const COURT_RANGE_S = 1.8
+const COURT_TURN_RATE = 3
+const BREED_COOLDOWN_MIN_S = 18
+const BREED_COOLDOWN_RANGE_S = 20
+const FIRST_BREED_DELAY_MIN_S = 4
+const FIRST_BREED_DELAY_RANGE_S = 6
+// Past the viewport by this much (covers the spring-lagged body trailing the
+// feet), a departing duck is removed.
+const DESPAWN_MARGIN_PX = 150
+
+// Babies grow in randomized spurts: the body holds a size, swells over a few
+// seconds, holds again — while the feet stay adult-sized throughout.
+const BABY_BODY_SCALE = 0.38
+const GROW_TOTAL_MIN_S = 50
+const GROW_TOTAL_RANGE_S = 70
+const GROW_SPURTS_MIN = 3
+const GROW_SPURTS_MAX = 5
+const GROW_SPURT_DUR_MIN_S = 2
+const GROW_SPURT_DUR_RANGE_S = 3
+
+// Each generation of inbreeding raises the odds and severity of
+// malformations: a third leg, a twin head, double beaks, lumpy bodies,
+// dwarf/giant adult sizes.
+const MUTATION_CHANCE_PER_GEN = 0.22
+const MUTATION_MAX_CHANCE = 0.9
+const MAX_TRAITS = 2
+const TRAIT_INHERIT_CHANCE = 0.35
+const SECOND_TRAIT_CHANCE_PER_GEN = 0.15
+const SECOND_TRAIT_CHANCE_MAX = 0.65
+const THIRD_FOOT_SETBACK_PX = 16
+const THIRD_FOOT_JITTER_PX = 3
+const REAR_LEG_SETBACK_PX = 18
+const REAR_LEG_STANCE_FACTOR = 1.7
+const ONE_FOOT_STANCE_FACTOR = 0.15
+const CLUB_FOOT_LEAD_FACTOR = 0.35
+const CLUB_FOOT_SWING_FACTOR = 2.2
+const TREMOR_JITTER_MUL = 9
+const TREMOR_SHIMMY_CHANCE = 0.9
+const NARCOLEPSY_CHANCE = 0.25
+const NARCOLEPSY_MIN_S = 5
+const NARCOLEPSY_RANGE_S = 3
+const TWITCH_GLANCE_FACTOR = 0.12
+const FEARLESS_STOP_DIST_PX = 26
+
 const SPEED_SLOW = 16
 const SPEED_FAST = 58
 const GAIT_ACCEL = 2.5
@@ -132,7 +184,7 @@ const FORWARD_OFFSET = (88.73463688342117 * Math.PI) / 180
 const FOOT_SCALE = FOOT_WIDTH_PX / 79
 
 interface Foot {
-  side: number
+  side: number // -1 left, 1 right, 0 = mutant center leg (unmirrored, no toe-out)
   x: number
   y: number
   heading: number
@@ -142,9 +194,86 @@ interface Foot {
   liftStart: number
   liftDur: number
   landAt: number
+  missing: boolean // 'oneFoot': never painted; the real foot pogo-hops instead
+  backwards: boolean // 'backwardsFoot': painted rotated 180°
+  scaleMul: number // 'mismatchedFeet': paint scale for this foot
 }
 
 type Gait = 'stop' | 'slow' | 'fast'
+
+// Every way a duck can come out wrong. Rolled at birth (at most MAX_TRAITS
+// per duck), sometimes inherited straight from a parent. Traits that
+// contradict each other declare excludes; fusedTwins is dramatic enough to
+// fill both slots on its own.
+type TraitId =
+  | 'extraLeg' | 'oneFoot' | 'fourLegs' | 'clubFoot' | 'backwardsFoot' | 'mismatchedFeet'
+  | 'extraHead' | 'doubleBeak' | 'swollenHead' | 'vestigialHead' | 'owlNeck' | 'twitchyHead' | 'longNeck' | 'noNeck'
+  | 'lumpy' | 'dwarfGiant' | 'fusedTwins' | 'tailHeavy' | 'asymmetric'
+  | 'circler' | 'reverseWalker' | 'tremor' | 'fearless' | 'narcoleptic' | 'speedExtreme'
+
+interface TraitDef {
+  id: TraitId
+  weight: number
+  minGen?: number
+  solo?: boolean
+  excludes?: TraitId[]
+}
+
+const TRAIT_DEFS: TraitDef[] = [
+  { id: 'extraLeg', weight: 1, excludes: ['oneFoot', 'fourLegs'] },
+  { id: 'oneFoot', weight: 1, excludes: ['extraLeg', 'fourLegs', 'clubFoot', 'backwardsFoot', 'mismatchedFeet'] },
+  { id: 'fourLegs', weight: 0.8, minGen: 3, excludes: ['extraLeg', 'oneFoot'] },
+  { id: 'clubFoot', weight: 1 },
+  { id: 'backwardsFoot', weight: 1 },
+  { id: 'mismatchedFeet', weight: 1 },
+  { id: 'extraHead', weight: 1 },
+  { id: 'doubleBeak', weight: 1 },
+  { id: 'swollenHead', weight: 1 },
+  { id: 'vestigialHead', weight: 0.8 },
+  { id: 'owlNeck', weight: 0.8 },
+  { id: 'twitchyHead', weight: 1 },
+  { id: 'longNeck', weight: 1, excludes: ['noNeck'] },
+  { id: 'noNeck', weight: 1, excludes: ['longNeck'] },
+  { id: 'lumpy', weight: 1 },
+  { id: 'dwarfGiant', weight: 1 },
+  { id: 'fusedTwins', weight: 0.35, minGen: 4, solo: true },
+  { id: 'tailHeavy', weight: 1 },
+  { id: 'asymmetric', weight: 1 },
+  { id: 'circler', weight: 1 },
+  { id: 'reverseWalker', weight: 0.8 },
+  { id: 'tremor', weight: 1 },
+  { id: 'fearless', weight: 1 },
+  { id: 'narcoleptic', weight: 1 },
+  { id: 'speedExtreme', weight: 1 }
+]
+
+interface Mutations {
+  seed: number // drives the deterministic silhouette bake
+  traits: TraitId[]
+  lumpiness: number // 0..1 ('lumpy'), deforms the body silhouette
+  sizeScale: number // adult body size multiplier ('dwarfGiant'; feet unaffected)
+  headYawMax: number // head swing range ('owlNeck' widens it)
+  turnBias: number // rad/s steering bias ('circler')
+  oddFootSide: number // -1 | 1: foot hit by oneFoot/clubFoot/backwardsFoot/mismatchedFeet
+  oddFootScale: number // paint scale of that foot ('mismatchedFeet')
+  speedMul: number // 0 = normal random multiplier; 'speedExtreme' overrides
+}
+
+function hasTrait(m: Mutations | null, t: TraitId): boolean {
+  return m !== null && m.traits.includes(t)
+}
+
+interface GrowthSpurt {
+  at: number // seconds after birth
+  dur: number
+  from: number
+  to: number
+}
+
+interface Growth {
+  spurts: GrowthSpurt[]
+  adultScale: number
+}
 
 interface Duck {
   x: number
@@ -174,13 +303,36 @@ interface Duck {
   headTimer: number
   shimmyStart: number
   birth: number
-  feet: [Foot, Foot]
+  generation: number
+  bodyScale: number // current body scale; grows toward mutations?.sizeScale ?? 1
+  growth: Growth | null // null once adult
+  breedReadyAt: number
+  mate: Duck | null
+  courtUntil: number
+  departing: boolean
+  mutations: Mutations | null // null = normal duck (shares the common sprite set)
+  headYawMax: number // per-duck head swing range ('owlNeck')
+  turnBias: number // rad/s steering bias ('circler')
+  thirdFootIn: number // main-cycle steps until the mutant center leg replants
+  feet: Foot[] // [left, right], then optional mutant feet (center leg or rear pair)
 }
 
 interface ThemeFade {
   from: [number, number, number]
   to: [number, number, number]
   start: number
+}
+
+// Deterministic PRNG: a mutant's silhouette must re-bake identically after a
+// theme change, so its deformities are derived from a per-duck seed.
+function mulberry32(seed: number) {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
 }
 
 function normalizeAngle(a: number) {
@@ -326,11 +478,11 @@ function handleThemeChange() {
   const target = parseColor(next)
   themeColor = next
   // Old sprites are kept and cross-faded out; new ones bake lazily in draw().
-  oldBodySprites = bodySprites
-  bodySprites = []
+  oldSpriteCache = spriteCache
+  spriteCache = new Map()
   if (!target) {
     themeFade = null
-    oldBodySprites = []
+    oldSpriteCache = new Map()
     drawColor = next
     return
   }
@@ -380,6 +532,12 @@ function handlePointerEnd(e: PointerEvent) {
 }
 
 function pickGait(d: Duck) {
+  // 'narcoleptic': a fair chance to simply shut down for a long beat.
+  if (hasTrait(d.mutations, 'narcoleptic') && Math.random() < NARCOLEPSY_CHANCE) {
+    d.gait = 'stop'
+    d.gaitTimer = NARCOLEPSY_MIN_S + Math.random() * NARCOLEPSY_RANGE_S
+    return
+  }
   if (d.gait === 'stop') {
     d.gait = Math.random() < GAIT_RESUME_SLOW_CHANCE ? 'slow' : 'fast'
   } else {
@@ -393,10 +551,18 @@ function pickGait(d: Duck) {
 
 function plantStep(d: Duck, now: number, stride: number) {
   d.distSinceStep -= stride
-  const foot = d.feet[d.side > 0 ? 1 : 0]
+  let foot = d.feet[d.side > 0 ? 1 : 0]!
+  // 'oneFoot': the absent side's step lands on the only real foot instead,
+  // so the duck pogo-hops on it at every half-cycle.
+  if (foot.missing) foot = d.feet[foot.side > 0 ? 0 : 1]!
 
-  const stance = STANCE_WIDTH * (1 - STANCE_JITTER / 2 + Math.random() * STANCE_JITTER)
-  const lead = stride * STEP_LEAD_FACTOR * (0.9 + Math.random() * 0.2)
+  const stance =
+    STANCE_WIDTH *
+    (hasTrait(d.mutations, 'oneFoot') ? ONE_FOOT_STANCE_FACTOR : 1) *
+    d.bodyScale *
+    (1 - STANCE_JITTER / 2 + Math.random() * STANCE_JITTER)
+  const club = hasTrait(d.mutations, 'clubFoot') && foot.side === d.mutations!.oddFootSide
+  const lead = stride * STEP_LEAD_FACTOR * (0.9 + Math.random() * 0.2) * (club ? CLUB_FOOT_LEAD_FACTOR : 1)
   // Feet point slightly into the upcoming turn instead of along the current
   // heading, so direction changes read as intentional rather than sliding.
   const turn = normalizeAngle(d.wanderTarget - d.heading)
@@ -413,12 +579,52 @@ function plantStep(d: Duck, now: number, stride: number) {
   // Swing takes ~65% of the step interval, keeping each foot planted for
   // most of the cycle like a real gait.
   foot.liftDur = Math.max(LIFT_DUR_MIN_MS, Math.min(LIFT_DUR_MAX_MS, (stride / Math.max(d.speed, 1)) * 650))
+  // 'clubFoot': the bad side swings slow and short — an unmistakable limp.
+  if (club) foot.liftDur *= CLUB_FOOT_SWING_FACTOR
   d.side *= -1
   d.stepParity *= -1
+
+  // 'fourLegs': the rear pair steps half a cycle out of phase with the front
+  // (front-left plants together with rear-right) for an insectoid scuttle.
+  if (hasTrait(d.mutations, 'fourLegs')) {
+    const rear = d.feet[foot.side > 0 ? 2 : 3]
+    if (rear) {
+      rear.fromX = rear.x
+      rear.fromY = rear.y
+      rear.fromHeading = rear.heading
+      rear.x =
+        d.x +
+        Math.cos(d.heading + Math.PI / 2) * stance * REAR_LEG_STANCE_FACTOR * rear.side -
+        Math.cos(d.heading) * (REAR_LEG_SETBACK_PX * d.bodyScale - lead * 0.5)
+      rear.y =
+        d.y +
+        Math.sin(d.heading + Math.PI / 2) * stance * REAR_LEG_STANCE_FACTOR * rear.side -
+        Math.sin(d.heading) * (REAR_LEG_SETBACK_PX * d.bodyScale - lead * 0.5)
+      rear.heading = d.heading + (Math.random() * 2 - 1) * FOOTFALL_JITTER * 2
+      rear.liftStart = now
+      rear.liftDur = foot.liftDur
+    }
+  }
+
+  // Mutant third leg: not part of the L/R alternation — it drags behind the
+  // center-rear and hops forward every couple of main steps, a hitching gait.
+  const third = hasTrait(d.mutations, 'extraLeg') ? d.feet[2] : undefined
+  if (third && --d.thirdFootIn <= 0) {
+    d.thirdFootIn = 2 + Math.floor(Math.random() * 2)
+    third.fromX = third.x
+    third.fromY = third.y
+    third.fromHeading = third.heading
+    third.x = d.x - Math.cos(d.heading) * THIRD_FOOT_SETBACK_PX * d.bodyScale + (Math.random() * 2 - 1) * THIRD_FOOT_JITTER_PX
+    third.y = d.y - Math.sin(d.heading) * THIRD_FOOT_SETBACK_PX * d.bodyScale + (Math.random() * 2 - 1) * THIRD_FOOT_JITTER_PX
+    third.heading = d.heading + (Math.random() * 2 - 1) * FOOTFALL_JITTER * 3
+    third.liftStart = now
+    third.liftDur = LIFT_DUR_MIN_MS + Math.random() * 80
+  }
 }
 
 function shuffleFoot(d: Duck, now: number) {
-  const foot = d.feet[d.restSide > 0 ? 0 : 1]
+  let foot = d.feet[d.restSide > 0 ? 0 : 1]!
+  if (foot.missing) foot = d.feet[foot.side > 0 ? 0 : 1]!
   foot.fromX = foot.x
   foot.fromY = foot.y
   foot.fromHeading = foot.heading
@@ -476,10 +682,181 @@ function footPose(foot: Foot, now: number) {
 
 type FootPose = ReturnType<typeof footPose>
 
+// Feet never scale, but a small body walks on a narrower stance with shorter
+// steps so the gait still reads right.
+function duckStride(d: Duck) {
+  return strideFor(d.speed) * Math.max(0.6, Math.min(1.25, 0.55 + 0.45 * d.bodyScale))
+}
+
+function traitAllowed(t: TraitId, existing: TraitId[], generation: number): boolean {
+  const def = TRAIT_DEFS.find((d) => d.id === t)
+  if (!def) return false
+  if (existing.includes(t)) return false
+  if (def.minGen && generation < def.minGen) return false
+  if (def.solo && existing.length > 0) return false
+  if (existing.some((e) => TRAIT_DEFS.find((d) => d.id === e)?.solo)) return false
+  if (def.excludes?.some((e) => existing.includes(e))) return false
+  if (existing.some((e) => TRAIT_DEFS.find((d) => d.id === e)?.excludes?.includes(t))) return false
+  return true
+}
+
+function pickTrait(existing: TraitId[], generation: number): TraitId | null {
+  const candidates = TRAIT_DEFS.filter((d) => traitAllowed(d.id, existing, generation))
+  const total = candidates.reduce((sum, d) => sum + d.weight, 0)
+  if (!total) return null
+  let r = Math.random() * total
+  for (const d of candidates) {
+    r -= d.weight
+    if (r <= 0) return d.id
+  }
+  return candidates[candidates.length - 1]!.id
+}
+
+function rollMutations(generation: number, pa: Mutations | null = null, pb: Mutations | null = null): Mutations | null {
+  const traits: TraitId[] = []
+  // Hereditary decay: each parent deformity may pass straight down before
+  // any fresh roll happens, so malformations compound along a bloodline.
+  for (const parent of [pa, pb]) {
+    for (const t of parent?.traits ?? []) {
+      if (traits.length >= MAX_TRAITS) break
+      if (Math.random() < TRAIT_INHERIT_CHANCE && traitAllowed(t, traits, generation)) traits.push(t)
+    }
+  }
+  const chance = Math.min(MUTATION_MAX_CHANCE, (generation - 1) * MUTATION_CHANCE_PER_GEN)
+  if (!traits.length && Math.random() >= chance) return null
+  const wantTwo =
+    Math.random() < Math.min(SECOND_TRAIT_CHANCE_MAX, Math.max(0, generation - 2) * SECOND_TRAIT_CHANCE_PER_GEN)
+  const target = Math.min(MAX_TRAITS, Math.max(traits.length, wantTwo ? 2 : 1))
+  while (traits.length < target) {
+    const t = pickTrait(traits, generation)
+    if (!t) break
+    traits.push(t)
+  }
+  if (!traits.length) return null
+
+  const severity = Math.min(1, generation / 6)
+  const m: Mutations = {
+    seed: (Math.random() * 0xffffffff) >>> 0,
+    traits,
+    lumpiness: 0,
+    sizeScale: 1,
+    headYawMax: HEAD_YAW_MAX,
+    turnBias: 0,
+    oddFootSide: Math.random() < 0.5 ? -1 : 1,
+    oddFootScale: 1,
+    speedMul: 0
+  }
+  if (traits.includes('lumpy')) m.lumpiness = Math.min(1, 0.35 + Math.random() * 0.65 * (0.5 + severity))
+  if (traits.includes('dwarfGiant')) {
+    const spread = 0.15 + Math.random() * (0.1 + 0.25 * severity)
+    m.sizeScale = Math.max(0.6, Math.min(1.45, Math.random() < 0.5 ? 1 - spread : 1 + spread * 1.4))
+  }
+  if (traits.includes('owlNeck')) m.headYawMax = HEAD_YAW_MAX * (1.9 + Math.random() * 0.4)
+  if (traits.includes('circler')) m.turnBias = (Math.random() < 0.5 ? -1 : 1) * (0.25 + Math.random() * 0.35)
+  if (traits.includes('mismatchedFeet'))
+    m.oddFootScale = Math.random() < 0.5 ? 1.5 + Math.random() * 0.4 : 0.5 + Math.random() * 0.15
+  if (traits.includes('speedExtreme'))
+    m.speedMul = Math.random() < 0.5 ? 0.3 + Math.random() * 0.15 : 1.8 + Math.random() * 0.4
+  return m
+}
+
+// Heavily malformed ducks (both trait slots used) are sterile hybrids — a
+// natural brake on late-generation chaos.
+function isSterile(d: Duck): boolean {
+  return d.mutations !== null && (d.mutations.traits.length >= MAX_TRAITS || hasTrait(d.mutations, 'fusedTwins'))
+}
+
+// Growth happens in a few discrete spurts at random moments: the body holds
+// its size, swells over a few seconds, holds again — instead of a linear
+// tween from baby to adult.
+function makeGrowth(adultScale: number): Growth {
+  const total = GROW_TOTAL_MIN_S + Math.random() * GROW_TOTAL_RANGE_S
+  const count = GROW_SPURTS_MIN + Math.floor(Math.random() * (GROW_SPURTS_MAX - GROW_SPURTS_MIN + 1))
+  const start = BABY_BODY_SCALE * adultScale
+  const onsets = Array.from({ length: count }, () => total * (0.05 + Math.random() * 0.9)).sort((a, b) => a - b)
+  const weights = Array.from({ length: count }, () => 0.4 + Math.random())
+  const weightSum = weights.reduce((sum, v) => sum + v, 0)
+  const spurts: GrowthSpurt[] = []
+  let from = start
+  let minAt = 0
+  for (let i = 0; i < count; i++) {
+    const dur = GROW_SPURT_DUR_MIN_S + Math.random() * GROW_SPURT_DUR_RANGE_S
+    // Nudge overlapping onsets apart so the piecewise evaluation stays simple.
+    const at = Math.max(onsets[i]!, minAt)
+    const to = i === count - 1 ? adultScale : from + (adultScale - start) * (weights[i]! / weightSum)
+    spurts.push({ at, dur, from, to })
+    from = to
+    minAt = at + dur + 0.5
+  }
+  return { spurts, adultScale }
+}
+
+function updateGrowth(d: Duck, now: number) {
+  const g = d.growth!
+  const age = (now - d.birth) / 1000
+  const last = g.spurts[g.spurts.length - 1]!
+  if (age >= last.at + last.dur) {
+    d.bodyScale = g.adultScale
+    d.growth = null
+    // Freshly matured adults wait out a full cooldown before breeding.
+    d.breedReadyAt = now + (BREED_COOLDOWN_MIN_S + Math.random() * BREED_COOLDOWN_RANGE_S) * 1000
+    return
+  }
+  let scale = g.spurts[0]!.from
+  for (const s of g.spurts) {
+    if (age >= s.at + s.dur) {
+      scale = s.to
+      continue
+    }
+    if (age > s.at) scale = s.from + (s.to - s.from) * smoothstep((age - s.at) / s.dur)
+    break
+  }
+  d.bodyScale = scale
+}
+
+function cancelCourtship(d: Duck, now: number) {
+  const partner = d.mate
+  d.mate = null
+  d.courtUntil = 0
+  // Short re-check delay so a broken-off pair doesn't instantly re-pair.
+  d.breedReadyAt = Math.max(d.breedReadyAt, now + 2500)
+  if (partner) {
+    partner.mate = null
+    partner.courtUntil = 0
+    partner.breedReadyAt = Math.max(partner.breedReadyAt, now + 2500)
+  }
+}
+
 function step(d: Duck, dt: number, now: number, W: number, H: number) {
   const dxm = d.x - mouse.x
   const dym = d.y - mouse.y
   const distm = Math.hypot(dxm, dym)
+
+  if (d.growth) updateGrowth(d, now)
+
+  if (d.departing) {
+    // Elders leave: march straight for the nearest edge, deaf to the mouse,
+    // wander whims and the edge-avoidance that would turn them back.
+    const exit =
+      Math.min(d.x, W - d.x) < Math.min(d.y, H - d.y)
+        ? d.x < W - d.x ? Math.PI : 0
+        : d.y < H - d.y ? -Math.PI / 2 : Math.PI / 2
+    d.wanderTarget = exit
+    d.wanderTimer = 1
+    d.gait = 'fast'
+    d.gaitTimer = 1
+  } else if (d.mate) {
+    // Courtship: sidle up to the partner, stop close, face and watch them.
+    const toMate = Math.atan2(d.mate.y - d.y, d.mate.x - d.x)
+    const mateDist = Math.hypot(d.mate.x - d.x, d.mate.y - d.y)
+    d.gait = mateDist > COURT_STOP_DIST ? 'slow' : 'stop'
+    d.gaitTimer = 0.5
+    d.wanderTarget = toMate
+    d.wanderTimer = 1
+    d.heading += normalizeAngle(toMate - d.heading) * Math.min(1, COURT_TURN_RATE * dt)
+    d.headTarget = Math.max(-HEAD_YAW_MAX, Math.min(HEAD_YAW_MAX, normalizeAngle(toMate - d.heading)))
+    d.headTimer = 0.8
+  }
 
   d.gaitTimer -= dt
   if (d.gaitTimer <= 0) pickGait(d)
@@ -497,12 +874,24 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
       d.wanderTarget = d.heading + turn
       d.wanderTimer = WANDER_MIN_INTERVAL_S + Math.random() * WANDER_INTERVAL_RANGE_S
     }
+    // 'circler': a permanent steering bias — this duck can only really turn
+    // one way and lives its life in loops.
+    if (d.turnBias) d.wanderTarget += d.turnBias * dt
     const wanderDiff = normalizeAngle(d.wanderTarget - d.heading)
     d.heading += wanderDiff * Math.min(1, WANDER_TURN_EASE * dt)
-    d.heading += (Math.random() - 0.5) * WANDER_JITTER * dt
+    d.heading +=
+      (Math.random() - 0.5) * WANDER_JITTER * (hasTrait(d.mutations, 'tremor') ? TREMOR_JITTER_MUL : 1) * dt
   }
 
-  if (distm < FLEE_RADIUS) {
+  // 'fearless': the flee reflex is inverted — the cursor is fascinating,
+  // walk right up to it and stop just short.
+  if (hasTrait(d.mutations, 'fearless')) {
+    if (!d.departing && !d.mate && distm < CURIOUS_RADIUS && distm > FEARLESS_STOP_DIST_PX) {
+      d.wanderTarget = Math.atan2(-dym, -dxm)
+      d.wanderTimer = 0.5
+    }
+  } else if (!d.departing && distm < FLEE_RADIUS) {
+    if (d.mate) cancelCourtship(d, now)
     const desired = Math.atan2(dym, dxm)
     const strength = 1 - distm / FLEE_RADIUS
     const diff = normalizeAngle(desired - d.heading)
@@ -517,7 +906,7 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   }
 
   const distToEdge = Math.min(d.x, W - d.x, d.y, H - d.y)
-  if (distToEdge < edgeMargin.value) {
+  if (!d.departing && distToEdge < edgeMargin.value) {
     const toCenter = Math.atan2(H / 2 - d.y, W / 2 - d.x)
     const strength2 = 1 - Math.max(0, distToEdge) / edgeMargin.value
     const diff2 = normalizeAngle(toCenter - d.heading)
@@ -533,7 +922,7 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   d.heading = normalizeAngle(d.heading)
   d.wanderTarget = d.heading + normalizeAngle(d.wanderTarget - d.heading)
 
-  const stride = strideFor(d.speed)
+  const stride = duckStride(d)
 
   // Waddle: the path weaves side to side in sync with the step cycle, fading
   // out as the duck slows so it never wobbles in place.
@@ -543,8 +932,10 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
       : 0
   d.x += Math.cos(d.heading + waddle) * d.speed * dt
   d.y += Math.sin(d.heading + waddle) * d.speed * dt
-  d.x = Math.max(8, Math.min(W - 8, d.x))
-  d.y = Math.max(8, Math.min(H - 8, d.y))
+  if (!d.departing) {
+    d.x = Math.max(8, Math.min(W - 8, d.x))
+    d.y = Math.max(8, Math.min(H - 8, d.y))
+  }
 
   d.distSinceStep += d.speed * dt
   if (d.distSinceStep >= stride) plantStep(d, now, stride)
@@ -562,7 +953,7 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
       d.restSide *= -1
       d.idleTimer = IDLE_SHIFT_MIN_S + Math.random() * IDLE_SHIFT_RANGE_S
       if (Math.random() < IDLE_SHUFFLE_CHANCE) shuffleFoot(d, now)
-      if (Math.random() < SHIMMY_CHANCE) d.shimmyStart = now
+      if (Math.random() < (hasTrait(d.mutations, 'tremor') ? TREMOR_SHIMMY_CHANCE : SHIMMY_CHANCE)) d.shimmyStart = now
     }
   } else {
     d.restSide = -d.side
@@ -582,12 +973,15 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   d.headTimer -= dt
   if (d.headTimer <= 0) {
     d.headTarget =
-      Math.random() < HEAD_GLANCE_CENTER_CHANCE ? 0 : (Math.random() * 2 - 1) * HEAD_YAW_MAX * 0.9
-    d.headTimer = HEAD_GLANCE_MIN_S + Math.random() * HEAD_GLANCE_RANGE_S
+      Math.random() < HEAD_GLANCE_CENTER_CHANCE ? 0 : (Math.random() * 2 - 1) * d.headYawMax * 0.9
+    // 'twitchyHead': glances land at a paranoid, near-constant rate.
+    d.headTimer =
+      (HEAD_GLANCE_MIN_S + Math.random() * HEAD_GLANCE_RANGE_S) *
+      (hasTrait(d.mutations, 'twitchyHead') ? TWITCH_GLANCE_FACTOR : 1)
   }
   const headGoal = Math.max(
-    -HEAD_YAW_MAX,
-    Math.min(HEAD_YAW_MAX, d.headTarget + d.lean * HEAD_LEAN_FACTOR)
+    -d.headYawMax,
+    Math.min(d.headYawMax, d.headTarget + d.lean * HEAD_LEAN_FACTOR)
   )
   d.headAngle += (headGoal - d.headAngle) * Math.min(1, HEAD_TURN_RATE * dt)
 }
@@ -622,10 +1016,12 @@ function paintFoot(
   }
   // Mirroring the shape (scale.x = -1) for the opposite foot also reflects
   // its own "forward" direction, so each side needs a different base rotation
-  // to still point along heading.
-  const base = side > 0 ? heading + FORWARD_OFFSET : heading - Math.PI - FORWARD_OFFSET
-  c.rotate(base + (side > 0 ? TOE_OUT_ANGLE : -TOE_OUT_ANGLE))
-  c.scale(scale * (side > 0 ? 1 : -1), scale)
+  // to still point along heading. A mutant center leg (side 0) uses the
+  // unmirrored shape pointing straight ahead, with no toe-out.
+  const mirrored = side < 0
+  const base = mirrored ? heading - Math.PI - FORWARD_OFFSET : heading + FORWARD_OFFSET
+  c.rotate(base + (side === 0 ? 0 : mirrored ? -TOE_OUT_ANGLE : TOE_OUT_ANGLE))
+  c.scale(scale * (mirrored ? -1 : 1), scale)
   c.translate(-PIVOT_X, -PIVOT_Y)
   c.transform(FOOT_ROT_A, FOOT_ROT_B, FOOT_ROT_C, FOOT_ROT_D, 0, 0)
   c.fill(footPath!)
@@ -635,24 +1031,97 @@ function paintFoot(
 // The duck's body shadow, seen through the glass, is pre-rendered into
 // sprites: flat opaque silhouettes blurred once at bake time — frosted
 // edges without any per-frame blur cost. One sprite per head pose; draw()
-// cross-fades between adjacent poses to animate the head. During a theme
-// fade the previous set is kept and cross-faded out.
-let bodySprites: HTMLCanvasElement[] = []
-let oldBodySprites: HTMLCanvasElement[] = []
-let shadowSpriteColor = ''
+// cross-fades between adjacent poses to animate the head. Normal ducks all
+// share one set (key ''); each mutant bakes its own deformed set, keyed by
+// its seed. During a theme fade the previous cache is kept and cross-faded
+// out while the new one bakes lazily in draw().
+let spriteCache = new Map<string, HTMLCanvasElement[]>()
+let oldSpriteCache = new Map<string, HTMLCanvasElement[]>()
 
-function renderShadowSprites(color: string) {
-  if (shadowSpriteColor === color && bodySprites.length) return
-  shadowSpriteColor = color
+function spriteKey(m: Mutations | null) {
+  return m ? String(m.seed) : ''
+}
+
+function getSpriteSet(d: Duck): HTMLCanvasElement[] {
+  const key = spriteKey(d.mutations)
+  let set = spriteCache.get(key)
+  if (!set) {
+    set = bakeSpriteSet(themeColor, d.mutations)
+    spriteCache.set(key, set)
+  }
+  return set
+}
+
+function releaseSpriteSet(d: Duck) {
+  if (!d.mutations) return
+  const key = spriteKey(d.mutations)
+  spriteCache.delete(key)
+  oldSpriteCache.delete(key)
+}
+
+function bakeSpriteSet(color: string, m: Mutations | null): HTMLCanvasElement[] {
   const S = SHADOW_SPRITE_SCALE
   const L = BODY_LENGTH_PX
   const Wd = BODY_WIDTH_PX
+  // Mutant deformities come from a PRNG seeded per duck, sampled once up
+  // front so every head pose shares the same misshapen body and the set
+  // re-bakes identically after a theme change.
+  const rand = mulberry32(m ? m.seed : 1)
+  const lump = m?.lumpiness ?? 0
+  const fused = hasTrait(m, 'fusedTwins')
+  const longNeck = hasTrait(m, 'longNeck')
+  const noNeck = hasTrait(m, 'noNeck')
   // Padding keeps the blur from clipping at the sprite edges; it is
   // symmetric, so the belly stays at the canvas centre (the draw anchor).
-  const pad = BODY_BLUR_PX * 2 * S
-  const w = Math.ceil(1.7 * L * S) + pad * 2
-  const h = Math.ceil(Wd * S) + pad * 2
+  // Mutants get extra room for beaks, lumps, stretched necks and twins.
+  const pad = BODY_BLUR_PX * 2 * S + (m ? Math.ceil(0.22 * L * S) : 0)
+  const w = Math.ceil((longNeck ? 2.1 : 1.7) * L * S) + pad * 2
+  const h = Math.ceil(Wd * S * (fused ? 1.8 : 1)) + pad * 2
   const sprites: HTMLCanvasElement[] = []
+
+  // Body blobs as [x/L, y/Wd, rx/L, ry/Wd]: broad at the breast, tapering to
+  // a pointed tail. Lumpiness jitters centres and radii and can graft an
+  // extra blob or two onto the flank.
+  const bodySpec: [number, number, number, number][] = (
+    [
+      [0, 0, 0.32, 0.44],
+      [0.18, 0, 0.27, 0.38],
+      [-0.2, 0, 0.25, 0.34],
+      [-0.42, 0, 0.1, 0.16],
+      [-0.5, 0, 0.05, 0.08]
+    ] as [number, number, number, number][]
+  ).map(([x, y, rx, ry]) => [
+    x + (rand() * 2 - 1) * 0.06 * lump,
+    y + (rand() * 2 - 1) * 0.14 * lump,
+    rx * (1 + (rand() * 2 - 1) * 0.35 * lump),
+    ry * (1 + (rand() * 2 - 1) * 0.35 * lump)
+  ])
+  const lumpCount = lump > 0 ? 1 + Math.round(rand() * (1 + lump)) : 0
+  for (let i = 0; i < lumpCount; i++) {
+    const r = 0.06 + rand() * 0.09
+    bodySpec.push([-0.4 + rand() * 0.7, (rand() * 2 - 1) * 0.35, r, r * (L / Wd)])
+  }
+  // 'tailHeavy': the pointed taper is swallowed by a bulbous second rump.
+  if (hasTrait(m, 'tailHeavy')) {
+    bodySpec.push([-0.42, 0, 0.16, 0.16 * (L / Wd)], [-0.56, 0, 0.11, 0.11 * (L / Wd)])
+  }
+  // 'asymmetric': the whole silhouette drifts to one flank, a permanent lean.
+  if (hasTrait(m, 'asymmetric')) {
+    const shift = (rand() < 0.5 ? -1 : 1) * (0.12 + rand() * 0.1)
+    for (const blob of bodySpec) blob[1] += shift
+  }
+  // A twin head branches from the same neck root at a fixed yaw skew and
+  // swings (damped) with the same pose animation as the main head.
+  const head2Skew = hasTrait(m, 'extraHead') ? (rand() < 0.5 ? -1 : 1) * (0.35 + rand() * 0.3) : 0
+  // 'longNeck' periscopes the head far ahead; 'noNeck' sinks it into the
+  // breast; 'swollenHead' balloons it; 'vestigialHead' grows a small fixed
+  // bud that never joins the pose swing.
+  const headDist = longNeck ? 0.55 : noNeck ? 0.12 : 0.34
+  const headRFactor = hasTrait(m, 'swollenHead') ? 1.6 + rand() * 0.4 : 1
+  const budYaw = hasTrait(m, 'vestigialHead') ? (rand() < 0.5 ? -1 : 1) * (0.5 + rand() * 0.35) : 0
+  const yawMaxLocal = m?.headYawMax ?? HEAD_YAW_MAX
+  // 'fusedTwins': two full bodies sharing the tail, offset to either flank.
+  const twinOffs = fused ? [-0.42, 0.42] : [0]
 
   // One continuous silhouette — tail taper, body, neck bridge, round head —
   // filled at a single flat alpha per tier, then blurred once. Flat
@@ -662,7 +1131,7 @@ function renderShadowSprites(color: string) {
   // tiers merge behind each other via 'destination-over', so nothing stacks.
   // The neck and head sit higher off the glass, hence the fainter tiers.
   for (let i = 0; i < HEAD_POSES; i++) {
-    const headYaw = ((i / (HEAD_POSES - 1)) * 2 - 1) * HEAD_YAW_MAX
+    const headYaw = ((i / (HEAD_POSES - 1)) * 2 - 1) * yawMaxLocal
 
     const solid = document.createElement('canvas')
     solid.width = w
@@ -676,28 +1145,47 @@ function renderShadowSprites(color: string) {
       path.ellipse(cx + x, cy + y, rx, ry, rot, 0, Math.PI * 2)
     }
 
-    // body: broad at the breast, tapering to a pointed tail
     const body = new Path2D()
-    ell(body, 0, 0, 0.32 * L * S, 0.44 * Wd * S)
-    ell(body, 0.18 * L * S, 0, 0.27 * L * S, 0.38 * Wd * S)
-    ell(body, -0.2 * L * S, 0, 0.25 * L * S, 0.34 * Wd * S)
-    ell(body, -0.42 * L * S, 0, 0.1 * L * S, 0.16 * Wd * S)
-    ell(body, -0.5 * L * S, 0, 0.05 * L * S, 0.08 * Wd * S)
-
-    // Neck and head swing together around the neck root at the breast; the
-    // root barely moves between poses, so cross-fading adjacent sprites
-    // only ever ghosts the fast-moving head, not the seam.
-    const rootX = 0.34 * L * S
-    const cos = Math.cos(headYaw)
-    const sin = Math.sin(headYaw)
-    // head: small and round (equal radii in px, not proportional to the body)
     const head = new Path2D()
-    const headR = 0.13 * L * S
-    ell(head, rootX + cos * 0.34 * L * S, sin * 0.34 * L * S, headR, headR)
-    // neck: thin and faint, bridging breast to head
     const neck = new Path2D()
-    ell(neck, rootX + cos * 0.08 * L * S, sin * 0.08 * L * S, 0.09 * L * S, 0.13 * Wd * S, headYaw)
-    ell(neck, rootX + cos * 0.19 * L * S, sin * 0.19 * L * S, 0.08 * L * S, 0.11 * Wd * S, headYaw)
+    for (const off of twinOffs) {
+      const oy = off * Wd * S
+      for (const [bx, by, brx, bry] of bodySpec) ell(body, bx * L * S, by * Wd * S + oy, brx * L * S, bry * Wd * S)
+
+      // Neck and head swing together around the neck root at the breast; the
+      // root barely moves between poses, so cross-fading adjacent sprites
+      // only ever ghosts the fast-moving head, not the seam.
+      const rootX = 0.34 * L * S
+      // head: small and round (equal radii in px, not proportional to the body)
+      const headR = 0.13 * L * S * headRFactor
+      const yaws = hasTrait(m, 'extraHead') ? [headYaw, headYaw * 0.75 + head2Skew] : [headYaw]
+      for (const yaw of yaws) {
+        const cos = Math.cos(yaw)
+        const sin = Math.sin(yaw)
+        const hx = rootX + cos * headDist * L * S
+        const hy = sin * headDist * L * S + oy
+        ell(head, hx, hy, headR, headR)
+        // neck: thin and faint, bridging breast to head ('noNeck' has none —
+        // the head sits sunk into the breast)
+        if (!noNeck) {
+          ell(neck, rootX + cos * headDist * 0.24 * L * S, sin * headDist * 0.24 * L * S + oy, 0.09 * L * S, 0.13 * Wd * S, yaw)
+          ell(neck, rootX + cos * headDist * 0.56 * L * S, sin * headDist * 0.56 * L * S + oy, 0.08 * L * S, 0.11 * Wd * S, yaw)
+          if (longNeck) ell(neck, rootX + cos * headDist * 0.8 * L * S, sin * headDist * 0.8 * L * S + oy, 0.075 * L * S, 0.1 * Wd * S, yaw)
+        }
+        // Beak wedges make "two beaks" legible on mutants; normal ducks keep
+        // their plain round head.
+        if (hasTrait(m, 'doubleBeak') || hasTrait(m, 'extraHead')) {
+          const beakSkews = hasTrait(m, 'doubleBeak') ? [-0.45, 0.45] : [0]
+          for (const skew of beakSkews) {
+            const ba = yaw + skew
+            ell(head, hx + Math.cos(ba) * headR * 1.25, hy + Math.sin(ba) * headR * 1.25, headR * 0.7, headR * 0.38, ba)
+          }
+        }
+      }
+      if (budYaw) {
+        ell(head, rootX + Math.cos(budYaw) * 0.22 * L * S, Math.sin(budYaw) * 0.22 * L * S + oy, 0.055 * L * S, 0.055 * L * S)
+      }
+    }
 
     sctx.globalAlpha = 0.95
     sctx.fill(body)
@@ -719,7 +1207,7 @@ function renderShadowSprites(color: string) {
     bctx.drawImage(solid, w, 0)
     sprites.push(sprite)
   }
-  bodySprites = sprites
+  return sprites
 }
 
 function paintSprite(sprite: HTMLCanvasElement, x: number, y: number, rot: number, alpha: number, scale: number) {
@@ -758,22 +1246,24 @@ function paintSprite(sprite: HTMLCanvasElement, x: number, y: number, rot: numbe
 }
 
 function paintFootPose(duck: Duck, foot: Foot, pose: FootPose, spawnFade: number) {
+  if (foot.missing) return
   const weightOn = 0.5 + 0.5 * duck.weight * foot.side
   const plantedAlpha = PLANT_ALPHA_MIN + (1 - PLANT_ALPHA_MIN) * weightOn
   const alpha = (plantedAlpha + (LIFT_MIN_ALPHA - plantedAlpha) * pose.fade) * spawnFade
   const scale =
-    FOOT_SCALE * (1 + PRESS_SCALE * weightOn + LAND_PULSE * pose.settle) * (1 - LIFT_SCALE_DROP * pose.fade)
+    FOOT_SCALE * foot.scaleMul * (1 + PRESS_SCALE * weightOn + LAND_PULSE * pose.settle) * (1 - LIFT_SCALE_DROP * pose.fade)
   const blur = pose.fade > 0 ? LIFT_BLUR_PX * pose.fade : 0
+  const heading = pose.heading + (foot.backwards ? Math.PI : 0)
   // Crossfade the on-glass and behind-glass looks across the mask edge
   // rather than switching between them.
   const behind = maskFactor(pose.x, pose.y)
   if (behind > 0) {
     // Feet under the content read as prints on frosted glass: fainter, and
     // always at least the glass blur (a lifted foot keeps its extra blur).
-    paintFoot(pose.x, pose.y, pose.heading, foot.side, alpha * MASK_OPACITY_FACTOR * behind, scale, Math.max(MASK_BLUR_PX, blur))
+    paintFoot(pose.x, pose.y, heading, foot.side, alpha * MASK_OPACITY_FACTOR * behind, scale, Math.max(MASK_BLUR_PX, blur))
   }
   if (behind < 1) {
-    paintFoot(pose.x, pose.y, pose.heading, foot.side, alpha * (1 - behind), scale, blur)
+    paintFoot(pose.x, pose.y, heading, foot.side, alpha * (1 - behind), scale, blur)
   }
 }
 
@@ -794,27 +1284,31 @@ function draw(now: number, dt: number) {
     drawColor = `rgb(${drawRgb[0]}, ${drawRgb[1]}, ${drawRgb[2]})`
     if (t >= 1) {
       themeFade = null
-      oldBodySprites = []
+      oldSpriteCache = new Map()
       drawColor = themeColor
       spriteFade = 1
     }
   }
-  renderShadowSprites(themeColor)
 
   for (const duck of ducks) {
     const spawnFade = Math.min(1, (now - duck.birth) / SPAWN_FADE_MS)
     const shadowAlpha = BODY_ALPHA * spawnFade
-    const poseA = footPose(duck.feet[0], now)
-    const poseB = footPose(duck.feet[1], now)
+    // 'oneFoot': the missing side mirrors the real foot's pose so the body
+    // anchors over the single leg (and its hop drives the bob).
+    let poseA = footPose(duck.feet[0]!, now)
+    let poseB = footPose(duck.feet[1]!, now)
+    if (duck.feet[0]!.missing) poseA = poseB
+    else if (duck.feet[1]!.missing) poseB = poseA
 
     // The body is a heavy mass on an underdamped spring chasing the feet
     // (anchored over them, swaying toward the weighted side): it lags turns,
     // overshoots stops with a small jiggle, and lets the feet visibly lead.
-    const sway = duck.weight * STANCE_WIDTH * BODY_SWAY_FACTOR
+    const sway = duck.weight * STANCE_WIDTH * duck.bodyScale * BODY_SWAY_FACTOR
+    const setback = BODY_SETBACK_PX * duck.bodyScale
     const tx =
-      (poseA.x + poseB.x) / 2 + Math.cos(duck.heading) * BODY_SETBACK_PX + Math.cos(duck.heading + Math.PI / 2) * sway
+      (poseA.x + poseB.x) / 2 + Math.cos(duck.heading) * setback + Math.cos(duck.heading + Math.PI / 2) * sway
     const ty =
-      (poseA.y + poseB.y) / 2 + Math.sin(duck.heading) * BODY_SETBACK_PX + Math.sin(duck.heading + Math.PI / 2) * sway
+      (poseA.y + poseB.y) / 2 + Math.sin(duck.heading) * setback + Math.sin(duck.heading + Math.PI / 2) * sway
     duck.bodyVX += (BODY_SPRING_K * (tx - duck.bodyX) - BODY_SPRING_DAMP * duck.bodyVX) * dt
     duck.bodyVY += (BODY_SPRING_K * (ty - duck.bodyY) - BODY_SPRING_DAMP * duck.bodyVY) * dt
     duck.bodyX += duck.bodyVX * dt
@@ -830,7 +1324,7 @@ function draw(now: number, dt: number) {
       BODY_WOBBLE_YAW *
       slowGain *
       (1.2 - 0.8 * Math.min(1, duck.speed / SPEED_FAST)) *
-      Math.sin((duck.distSinceStep / strideFor(duck.speed)) * Math.PI) *
+      Math.sin((duck.distSinceStep / duckStride(duck)) * Math.PI) *
       duck.stepParity
 
     // Tail shimmy: a brief decaying yaw oscillation, like ruffling feathers.
@@ -843,50 +1337,86 @@ function draw(now: number, dt: number) {
     const arcMax = Math.max(poseA.arc, poseB.arc)
     const settleMax = Math.max(poseA.settle, poseB.settle)
     const breathe = BREATH_SCALE * (1 - slowGain) * Math.sin((now / 1000) * Math.PI * 2 * BREATH_HZ)
-    const bodyScale = 1 + BODY_SQUASH_SCALE * settleMax - BODY_BOB_SCALE * arcMax + breathe
+    // Bob/squash/breath modulate around the duck's own size — a growing baby
+    // stays small, a mutant dwarf/giant keeps its odd proportions.
+    const bodyScale = (1 + BODY_SQUASH_SCALE * settleMax - BODY_BOB_SCALE * arcMax + breathe) * duck.bodyScale
 
     // Head pose: cross-fade the two nearest baked silhouettes. At this
     // shadow alpha the double-draw compositing error is ~α²/4, invisible.
     // A touch of stabilization counters the body's yaw swing, so the head
     // appears to hold its line while the body waddles under it.
     const headRel = Math.max(
-      -HEAD_YAW_MAX,
-      Math.min(HEAD_YAW_MAX, duck.headAngle - duck.bodyYawV * HEAD_STABILIZE)
+      -duck.headYawMax,
+      Math.min(duck.headYawMax, duck.headAngle - duck.bodyYawV * HEAD_STABILIZE)
     )
-    const poseIdx = (headRel / HEAD_YAW_MAX + 1) * 0.5 * (HEAD_POSES - 1)
+    const poseIdx = (headRel / duck.headYawMax + 1) * 0.5 * (HEAD_POSES - 1)
     const i0 = Math.floor(poseIdx)
     const i1 = Math.min(HEAD_POSES - 1, i0 + 1)
     const f = poseIdx - i0
-    const bodyRot = duck.bodyYaw + wobble + shimmy + duck.lean
+    // 'reverseWalker': the body rides rotated 180° — it walks tail-first.
+    const bodyRot =
+      duck.bodyYaw + wobble + shimmy + duck.lean + (hasTrait(duck.mutations, 'reverseWalker') ? Math.PI : 0)
     const newAlpha = shadowAlpha * spriteFade
-    if (f < 1) paintSprite(bodySprites[i0]!, duck.bodyX, duck.bodyY, bodyRot, newAlpha * (1 - f), bodyScale)
-    if (f > 0) paintSprite(bodySprites[i1]!, duck.bodyX, duck.bodyY, bodyRot, newAlpha * f, bodyScale)
-    if (spriteFade < 1 && oldBodySprites.length) {
-      const oldAlpha = shadowAlpha * (1 - spriteFade)
-      if (f < 1) paintSprite(oldBodySprites[i0]!, duck.bodyX, duck.bodyY, bodyRot, oldAlpha * (1 - f), bodyScale)
-      if (f > 0) paintSprite(oldBodySprites[i1]!, duck.bodyX, duck.bodyY, bodyRot, oldAlpha * f, bodyScale)
+    const sprites = getSpriteSet(duck)
+    if (f < 1) paintSprite(sprites[i0]!, duck.bodyX, duck.bodyY, bodyRot, newAlpha * (1 - f), bodyScale)
+    if (f > 0) paintSprite(sprites[i1]!, duck.bodyX, duck.bodyY, bodyRot, newAlpha * f, bodyScale)
+    if (spriteFade < 1) {
+      // A duck born mid-fade has no old-theme sprites; it just fades in new.
+      const old = oldSpriteCache.get(spriteKey(duck.mutations))
+      if (old) {
+        const oldAlpha = shadowAlpha * (1 - spriteFade)
+        if (f < 1) paintSprite(old[i0]!, duck.bodyX, duck.bodyY, bodyRot, oldAlpha * (1 - f), bodyScale)
+        if (f > 0) paintSprite(old[i1]!, duck.bodyX, duck.bodyY, bodyRot, oldAlpha * f, bodyScale)
+      }
     }
 
-    paintFootPose(duck, duck.feet[0], poseA, spawnFade)
-    paintFootPose(duck, duck.feet[1], poseB, spawnFade)
+    paintFootPose(duck, duck.feet[0]!, poseA, spawnFade)
+    paintFootPose(duck, duck.feet[1]!, poseB, spawnFade)
+    for (let k = 2; k < duck.feet.length; k++) {
+      const extra = duck.feet[k]!
+      paintFootPose(duck, extra, footPose(extra, now), spawnFade)
+    }
   }
 }
 
-function createDuck(x: number, y: number): Duck {
+function createDuck(x: number, y: number, generation = 0, mutations: Mutations | null = null, baby = false): Duck {
   const heading = Math.random() * Math.PI * 2
+  const adultScale = mutations?.sizeScale ?? 1
+  const bodyScale = baby ? BABY_BODY_SCALE * adultScale : adultScale
   const makeFoot = (side: number): Foot => ({
     side,
-    x: x + Math.cos(heading + Math.PI / 2) * STANCE_WIDTH * side + (side > 0 ? Math.cos(heading) * STEP_LENGTH_MIN * 0.5 : 0),
-    y: y + Math.sin(heading + Math.PI / 2) * STANCE_WIDTH * side + (side > 0 ? Math.sin(heading) * STEP_LENGTH_MIN * 0.5 : 0),
+    x: x + Math.cos(heading + Math.PI / 2) * STANCE_WIDTH * bodyScale * side + (side > 0 ? Math.cos(heading) * STEP_LENGTH_MIN * 0.5 : 0),
+    y: y + Math.sin(heading + Math.PI / 2) * STANCE_WIDTH * bodyScale * side + (side > 0 ? Math.sin(heading) * STEP_LENGTH_MIN * 0.5 : 0),
     heading,
     fromX: 0,
     fromY: 0,
     fromHeading: heading,
     liftStart: 0,
     liftDur: 0,
-    landAt: 0
+    landAt: 0,
+    missing: false,
+    backwards: false,
+    scaleMul: 1
   })
-  const feet: [Foot, Foot] = [makeFoot(-1), makeFoot(1)]
+  const feet: Foot[] = [makeFoot(-1), makeFoot(1)]
+  const oddIdx = mutations && mutations.oddFootSide > 0 ? 1 : 0
+  if (hasTrait(mutations, 'oneFoot')) feet[oddIdx]!.missing = true
+  if (hasTrait(mutations, 'backwardsFoot')) feet[oddIdx]!.backwards = true
+  if (hasTrait(mutations, 'mismatchedFeet')) feet[oddIdx]!.scaleMul = mutations!.oddFootScale
+  if (hasTrait(mutations, 'extraLeg')) {
+    const third = makeFoot(0)
+    third.x = x - Math.cos(heading) * THIRD_FOOT_SETBACK_PX * bodyScale
+    third.y = y - Math.sin(heading) * THIRD_FOOT_SETBACK_PX * bodyScale
+    feet.push(third)
+  }
+  if (hasTrait(mutations, 'fourLegs')) {
+    for (const side of [-1, 1]) {
+      const rear = makeFoot(side)
+      rear.x -= Math.cos(heading) * REAR_LEG_SETBACK_PX * bodyScale
+      rear.y -= Math.sin(heading) * REAR_LEG_SETBACK_PX * bodyScale
+      feet.push(rear)
+    }
+  }
   return {
     x,
     y,
@@ -896,7 +1426,10 @@ function createDuck(x: number, y: number): Duck {
     gait: 'slow',
     gaitTimer: 0.8 + Math.random() * 1.5,
     speed: 0,
-    speedMultiplier: DUCK_SPEED_MULTIPLIER_MIN + Math.random() * (DUCK_SPEED_MULTIPLIER_MAX - DUCK_SPEED_MULTIPLIER_MIN),
+    speedMultiplier:
+      mutations && mutations.speedMul > 0
+        ? mutations.speedMul
+        : DUCK_SPEED_MULTIPLIER_MIN + Math.random() * (DUCK_SPEED_MULTIPLIER_MAX - DUCK_SPEED_MULTIPLIER_MIN),
     distSinceStep: 0,
     side: -1,
     stepParity: 1,
@@ -915,7 +1448,101 @@ function createDuck(x: number, y: number): Duck {
     headTimer: 0.5 + Math.random() * 2,
     shimmyStart: 0,
     birth: performance.now(),
+    generation,
+    bodyScale,
+    growth: baby ? makeGrowth(adultScale) : null,
+    breedReadyAt: performance.now() + (FIRST_BREED_DELAY_MIN_S + Math.random() * FIRST_BREED_DELAY_RANGE_S) * 1000,
+    mate: null,
+    courtUntil: 0,
+    departing: false,
+    mutations,
+    headYawMax: mutations?.headYawMax ?? HEAD_YAW_MAX,
+    turnBias: mutations?.turnBias ?? 0,
+    thirdFootIn: 2,
     feet
+  }
+}
+
+function breedEligible(d: Duck, now: number) {
+  return (
+    !d.growth &&
+    !d.departing &&
+    !d.mate &&
+    !isSterile(d) &&
+    now >= d.breedReadyAt &&
+    Math.hypot(d.x - mouse.x, d.y - mouse.y) > FLEE_RADIUS
+  )
+}
+
+function spawnBaby(p1: Duck, p2: Duck, now: number) {
+  const generation = Math.max(p1.generation, p2.generation) + 1
+  const x = (p1.x + p2.x) / 2 + (Math.random() * 2 - 1) * 12
+  const y = (p1.y + p2.y) / 2 + (Math.random() * 2 - 1) * 12
+  ducks.push(createDuck(x, y, generation, rollMutations(generation, p1.mutations, p2.mutations), true))
+
+  // Over the cap, someone wanders off-screen to make room: the most
+  // malformed bystander first (mutants are short-lived), oldest breaking
+  // ties — never the new parents or a growing baby.
+  if (ducks.length > POP_CAP) {
+    let elder: Duck | null = null
+    for (const d of ducks) {
+      if (d.departing || d === p1 || d === p2 || d.growth) continue
+      if (!elder) {
+        elder = d
+        continue
+      }
+      const dTraits = d.mutations?.traits.length ?? 0
+      const eTraits = elder.mutations?.traits.length ?? 0
+      if (dTraits > eTraits || (dTraits === eTraits && d.birth < elder.birth)) elder = d
+    }
+    if (elder) {
+      if (elder.mate) cancelCourtship(elder, now)
+      elder.departing = true
+    }
+  }
+}
+
+// O(n²) pairing over a flock capped at ~POP_CAP ducks.
+function updateBreeding(now: number) {
+  // Resolve active courtships: break off if the pair drifted apart, birth if
+  // the lingering timer ran out.
+  for (let i = 0; i < ducks.length; i++) {
+    const a = ducks[i]!
+    const b = a.mate
+    if (!b || ducks.indexOf(b) < i) continue
+    if (Math.hypot(a.x - b.x, a.y - b.y) > BREED_BREAK_RADIUS) {
+      cancelCourtship(a, now)
+      continue
+    }
+    if (now >= a.courtUntil) {
+      spawnBaby(a, b, now)
+      a.breedReadyAt = now + (BREED_COOLDOWN_MIN_S + Math.random() * BREED_COOLDOWN_RANGE_S) * 1000
+      b.breedReadyAt = now + (BREED_COOLDOWN_MIN_S + Math.random() * BREED_COOLDOWN_RANGE_S) * 1000
+      a.mate = null
+      b.mate = null
+      a.courtUntil = 0
+      b.courtUntil = 0
+      // A celebratory tail shimmy for both parents.
+      a.shimmyStart = now
+      b.shimmyStart = now
+    }
+  }
+
+  // Breeding continues at the cap (a birth sends an elder off-screen); only
+  // pause new pairings while a departure is still in progress.
+  if (ducks.length > POP_CAP) return
+  for (let i = 0; i < ducks.length; i++) {
+    const a = ducks[i]!
+    if (!breedEligible(a, now)) continue
+    for (let j = i + 1; j < ducks.length; j++) {
+      const b = ducks[j]!
+      if (!breedEligible(b, now)) continue
+      if (Math.hypot(a.x - b.x, a.y - b.y) > BREED_RADIUS) continue
+      a.mate = b
+      b.mate = a
+      a.courtUntil = b.courtUntil = now + (COURT_MIN_S + Math.random() * COURT_RANGE_S) * 1000
+      break
+    }
   }
 }
 
@@ -929,6 +1556,21 @@ function tick(now: number) {
   }
 
   for (const d of ducks) step(d, dt, now, cssW, cssH)
+  updateBreeding(now)
+
+  // Departing elders are removed once fully out of view (margin covers the
+  // spring-lagged body trailing the feet).
+  for (let i = ducks.length - 1; i >= 0; i--) {
+    const d = ducks[i]!
+    if (
+      d.departing &&
+      (d.x < -DESPAWN_MARGIN_PX || d.x > cssW + DESPAWN_MARGIN_PX || d.y < -DESPAWN_MARGIN_PX || d.y > cssH + DESPAWN_MARGIN_PX)
+    ) {
+      releaseSpriteSet(d)
+      ducks.splice(i, 1)
+    }
+  }
+
   draw(now, dt)
   raf = requestAnimationFrame(tick)
 }
