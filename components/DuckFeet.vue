@@ -172,6 +172,80 @@ const SHADOW_SHIFT_MARGIN_PX = 100
 // duration and curve as the site-wide CSS color transition.
 const THEME_TRANSITION_MS = 500
 
+// Sleepy mode: while the dark theme is active the flock ambles slower, stops
+// more, tucks its heads and drifts a faint "Zzz". Idle doze: after a spell
+// with no pointer/scroll/key input the flock gathers into a loose ring and
+// beds down; the first interaction wakes it.
+const SLEEPY_SPEED_FACTOR = 0.55
+const SLEEPY_STOP_CHANCE = 0.6 // replaces GAIT_STOP_CHANCE when sleepy
+const SLEEPY_SLOW_CHANCE = 0.35 // replaces GAIT_SLOW_CHANCE when sleepy
+const SLEEPY_STOP_DUR_MUL = 2.5 // stops linger longer when sleepy
+const TUCK_HEAD_DIST = 0.12 // head sunk into the breast (same as the noNeck look)
+const TUCK_RATE = 1.5 // per-second ease of a duck's tuck toward its target
+const TUCK_SPRITE_INDEX = HEAD_POSES // tucked frame appended after the pose frames
+const DOZE_IDLE_MS = 30000
+const GATHER_ARRIVE_DIST = 16 // to the duck's own rally slot, not the centroid
+const GATHER_TIMEOUT_MS = 15000 // circlers/limpers may never arrive; force doze
+const GATHER_RING_R_MIN = 18 // rally slots ring outward so ducks don't stack
+const GATHER_RING_R_STEP = 10
+const ZZZ_MAX = 12
+const ZZZ_SPAWN_MIN_S = 2
+const ZZZ_SPAWN_RANGE_S = 1.5
+const ZZZ_LIFE_MS = 2200
+const ZZZ_RISE_PX = 26
+const ZZZ_SWAY_PX = 4
+const ZZZ_ALPHA = 0.28
+const ZZZ_FONT = '11px "DM Mono", monospace'
+
+// "quack" stampede: a hidden key sequence sends a transient herd thundering
+// across the viewport, the resident flock scattering in brief panic.
+const STAMPEDE_WORD = 'quack'
+const STAMPEDE_COUNT_MIN = 12
+const STAMPEDE_COUNT_RANGE = 4
+const STAMPEDE_SPEED_MUL = 2.75
+// Panic reads mechanical if the herd moves as one: each runner gets its own
+// pace around the base multiplier, its own step phase, and a personal weave
+// around its line (phase-offset sinusoid) so nobody strides in lockstep.
+const STAMPEDE_SPEED_JITTER = 0.4
+const STAMPEDE_LANE_JITTER_RAD = 0.12
+const STAMPEDE_WEAVE_RAD = 0.09
+const STAMPEDE_WEAVE_HZ = 0.7
+const STAMPEDE_SPACING_PX = 42
+const STAMPEDE_PANIC_S = 2
+
+// Seasonal micro-touches. The season is sampled once at mount (sessions are
+// short), so nothing pays a per-frame date cost.
+const HAT_LENGTH_PX = 15
+const HAT_BASE_PX = 11
+const HAT_ALPHA_MAX = 0.45
+const HAT_ALPHA_MUL = 3.5
+const HAT_STRIPES = 2
+// Hat geometry in unit-length space (scaled to HAT_LENGTH_PX at paint time).
+const HAT_UNIT_HALF = HAT_BASE_PX / HAT_LENGTH_PX / 2
+const SNOW_COUNT_DESKTOP = 40
+const SNOW_COUNT_MOBILE = 24
+const SNOW_SPEED_MIN = 12
+const SNOW_SPEED_RANGE = 18
+const SNOW_SWAY_PX = 14
+const SNOW_SWAY_HZ = 0.15
+const SNOW_R_MIN = 1
+const SNOW_R_RANGE = 1.2
+const SNOW_ALPHA = 0.18
+const TRAIL_MAX = 130
+const TRAIL_LIFE_MS = 6000
+const TRAIL_ALPHA = 0.1
+const LEAF_COUNT_MIN = 5
+const LEAF_COUNT_RANGE = 4
+const LEAF_ALPHA = 0.16
+const LEAF_STUMBLE_DIST = 12
+const LEAF_COOLDOWN_MS = 6000
+const LEAF_KICK_YAW = 1.6
+const LEAF_NUDGE_PX = 6
+// A small leaf blade (two curved sides meeting at a point) plus a stub stem,
+// hand-authored like FOOT_D; ~24 units tall, scaled down at paint time.
+const LEAF_D = 'M12,0 C18,6 18,16 12,24 C6,16 6,6 12,0 Z M12,10 L12,24'
+const LEAF_SCALE = 0.6
+
 const FOOT_D = 'M90.679,71.643C79.394,82.192 56.347,85.525 38.506,86.549C17.906,87.731 16.237,84.277 17.186,79.497C19.251,69.096 37.891,3.879 51.134,15.897C53.904,18.41 53.019,30.949 70.511,30.584C75.567,30.478 80.629,27.48 83.756,31.358C87.618,36.146 69.931,51.999 88.261,62.942C94.481,66.655 92.82,69.641 90.679,71.643Z'
 const FOOT_ROT_A = 0.638524
 const FOOT_ROT_B = -0.769602
@@ -310,6 +384,13 @@ interface Duck {
   mate: Duck | null
   courtUntil: number
   departing: boolean
+  stampeding: boolean // part of a "quack" herd: runs its line off-screen
+  stampedeHeading: number // the runner's base line; it weaves around this
+  stampedePhase: number // personal phase so no two runners weave in step
+  tuck: number // 0..1 eased head-tuck; crossfades pose sprites → tucked sprite
+  zzzAt: number // next Zzz emission time while dozing
+  gatherX: number // per-duck rally slot so a dozing flock beds down in a ring
+  gatherY: number
   mutations: Mutations | null // null = normal duck (shares the common sprite set)
   headYawMax: number // per-duck head swing range ('owlNeck')
   turnBias: number // rad/s steering bias ('circler')
@@ -409,7 +490,13 @@ function updateMaskRect() {
 // The mask element scrolls with the page while the canvas stays fixed, so
 // its viewport rect must be refreshed on scroll (batched to one per frame,
 // and not at all while reduced motion keeps the canvas blank).
-watchScroll(updateMaskRect, { defer: true, enabled: computed(() => !isReducedMotion.value) })
+watchScroll(
+  () => {
+    updateMaskRect()
+    noteInteraction()
+  },
+  { defer: true, enabled: computed(() => !isReducedMotion.value) }
+)
 
 // Smooth 0..1 "how behind the glass" amount instead of a hard in/out test, so
 // callers can crossfade a duck's look as it crosses the mask edge rather than
@@ -424,12 +511,71 @@ function maskFactor(x: number, y: number): number {
   return smoothstep((d + MASK_FADE_MARGIN_PX) / (MASK_FADE_MARGIN_PX * 2))
 }
 
+// Alpha multiplier for small props (leaves, hats, Zzz) that just dim behind
+// the glass with a single draw, instead of the bodies' two-pass frosted look.
+function maskDim(x: number, y: number): number {
+  return 1 - maskFactor(x, y) * (1 - MASK_OPACITY_FACTOR)
+}
+
 let ctx: CanvasRenderingContext2D | null = null
 let footPath: Path2D | null = null
 const ducks: Duck[] = []
 let raf = 0
 let lastTime = 0
 const mouse = { x: -9999, y: -9999 }
+
+// Sleepy/doze state. isSleepyTheme mirrors the dark theme; flockMode drives the
+// idle gather→doze→wake cycle; lastInteractionAt is refreshed by any pointer,
+// scroll or key input.
+let isSleepyTheme = false
+type FlockMode = 'active' | 'gathering' | 'dozing'
+let flockMode: FlockMode = 'active'
+let gatherStartedAt = 0
+let lastInteractionAt = 0
+interface Zzz {
+  x: number
+  y: number
+  born: number
+  phase: number
+}
+const zzzs: Zzz[] = []
+
+// "quack" stampede state. A stampede is active while stampederCount > 0.
+let keyBuffer = ''
+let stampederCount = 0
+
+// Seasonal flags, sampled once at mount.
+let seasonParty = false // Aug 1: party hats
+let seasonSnow = false // December: snowfall + frosted footprint trails
+let seasonAutumn = false // Sep–Nov: fallen leaves ducks trip over
+interface Flake {
+  x: number
+  y: number
+  speed: number
+  r: number
+  phase: number
+}
+const flakes: Flake[] = []
+interface TrailPrint {
+  x: number
+  y: number
+  heading: number
+  side: number
+  scaleMul: number
+  backwards: boolean
+  at: number
+}
+const trail: TrailPrint[] = []
+interface Leaf {
+  x: number
+  y: number
+  rot: number
+  cooldownUntil: number
+}
+const leaves: Leaf[] = []
+let leafPath: Path2D | null = null
+let hatConePath: Path2D | null = null
+let hatStripesPath: Path2D | null = null
 
 // Viewport size and device-pixel ratio are cached on resize so the frame
 // loop never touches window.* or triggers style/layout reads.
@@ -503,6 +649,18 @@ function resize() {
   canvas.width = w
   canvas.height = h
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+  // Seasonal props were scattered for the old viewport; re-scatter so leaves
+  // don't sit off-canvas (unreachable by clamped ducks) or clustered in one
+  // corner, and snow covers the new area at the right density.
+  if (flakes.length) {
+    flakes.length = 0
+    spawnFlakes()
+  }
+  if (leaves.length) {
+    leaves.length = 0
+    spawnLeaves()
+  }
 }
 
 function handleResize() {
@@ -514,7 +672,25 @@ function handleResize() {
   })
 }
 
+// Any pointer/scroll/key input refreshes the doze timer, and wakes a dozing
+// flock on the spot.
+function noteInteraction() {
+  lastInteractionAt = performance.now()
+  if (flockMode !== 'active') wake(performance.now())
+}
+
+function wake(now: number) {
+  if (flockMode === 'active') return
+  flockMode = 'active'
+  for (const d of ducks) {
+    if (d.departing || d.stampeding) continue
+    d.shimmyStart = now // a brief ruffle on waking
+    d.gaitTimer = 0 // re-pick a gait immediately
+  }
+}
+
 function handlePointerMove(e: PointerEvent) {
+  noteInteraction()
   mouse.x = e.clientX
   mouse.y = e.clientY
 }
@@ -528,7 +704,22 @@ function handlePointerLeave() {
 // e.g. the scroll takes over), clear the pointer so the ducks stop fleeing
 // a phantom touch point.
 function handlePointerEnd(e: PointerEvent) {
+  noteInteraction()
   if (e.pointerType !== 'mouse') handlePointerLeave()
+}
+
+// Rolling buffer over single-character keys; typing the secret word sends a
+// herd stampeding. Ignores typing into form fields.
+function handleKeydown(e: KeyboardEvent) {
+  noteInteraction()
+  const t = e.target as HTMLElement | null
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+  if (e.key.length !== 1) return
+  keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-STAMPEDE_WORD.length)
+  if (keyBuffer === STAMPEDE_WORD) {
+    keyBuffer = ''
+    triggerStampede()
+  }
 }
 
 function pickGait(d: Duck) {
@@ -538,13 +729,16 @@ function pickGait(d: Duck) {
     d.gaitTimer = NARCOLEPSY_MIN_S + Math.random() * NARCOLEPSY_RANGE_S
     return
   }
+  // Sleepy dark-theme ducks stop more and dawdle longer between moves.
+  const stopChance = isSleepyTheme ? SLEEPY_STOP_CHANCE : GAIT_STOP_CHANCE
+  const slowChance = isSleepyTheme ? SLEEPY_SLOW_CHANCE : GAIT_SLOW_CHANCE
   if (d.gait === 'stop') {
     d.gait = Math.random() < GAIT_RESUME_SLOW_CHANCE ? 'slow' : 'fast'
   } else {
     const r = Math.random()
-    d.gait = r < GAIT_STOP_CHANCE ? 'stop' : r < GAIT_STOP_CHANCE + GAIT_SLOW_CHANCE ? 'slow' : 'fast'
+    d.gait = r < stopChance ? 'stop' : r < stopChance + slowChance ? 'slow' : 'fast'
   }
-  if (d.gait === 'stop') d.gaitTimer = STOP_MIN_S + Math.random() * STOP_RANGE_S
+  if (d.gait === 'stop') d.gaitTimer = (STOP_MIN_S + Math.random() * STOP_RANGE_S) * (isSleepyTheme ? SLEEPY_STOP_DUR_MUL : 1)
   else if (d.gait === 'slow') d.gaitTimer = SLOW_MIN_S + Math.random() * SLOW_RANGE_S
   else d.gaitTimer = FAST_MIN_S + Math.random() * FAST_RANGE_S
 }
@@ -572,6 +766,12 @@ function plantStep(d: Duck, now: number, stride: number) {
   foot.fromX = foot.x
   foot.fromY = foot.y
   foot.fromHeading = foot.heading
+  // December: leave a frosted print at the spot the foot just lifted from, to
+  // slowly fade behind the flock. Main pair only, to bound the draw cost.
+  if (seasonSnow) {
+    if (trail.length >= TRAIL_MAX) trail.shift()
+    trail.push({ x: foot.fromX, y: foot.fromY, heading: foot.fromHeading, side: foot.side, scaleMul: foot.scaleMul, backwards: foot.backwards, at: now })
+  }
   foot.x = d.x + Math.cos(d.heading + Math.PI / 2) * stance * foot.side + Math.cos(d.heading) * lead
   foot.y = d.y + Math.sin(d.heading + Math.PI / 2) * stance * foot.side + Math.sin(d.heading) * lead
   foot.heading = d.heading + anticipation + (Math.random() * 2 - 1) * FOOTFALL_JITTER
@@ -834,7 +1034,17 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
 
   if (d.growth) updateGrowth(d, now)
 
-  if (d.departing) {
+  if (d.stampeding) {
+    // Stampeders own their steering every frame, so flee, wander, edges, the
+    // sleepy bias and leaf stumbles can never turn them back mid-screen. They
+    // aren't rails though: each weaves around its base line on its own phase
+    // (the existing wander-ease smooths the turns into it).
+    d.gait = 'fast'
+    d.gaitTimer = 1
+    const t = now / 1000 + d.stampedePhase
+    d.wanderTarget = d.stampedeHeading + Math.sin(t * Math.PI * 2 * STAMPEDE_WEAVE_HZ) * STAMPEDE_WEAVE_RAD
+    d.wanderTimer = 1
+  } else if (d.departing) {
     // Elders leave: march straight for the nearest edge, deaf to the mouse,
     // wander whims and the edge-avoidance that would turn them back.
     const exit =
@@ -845,6 +1055,16 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
     d.wanderTimer = 1
     d.gait = 'fast'
     d.gaitTimer = 1
+  } else if (flockMode !== 'active') {
+    // Idle doze: amble to the assigned rally slot and bed down there.
+    const toSlot = Math.atan2(d.gatherY - d.y, d.gatherX - d.x)
+    const slotDist = Math.hypot(d.gatherX - d.x, d.gatherY - d.y)
+    const arrived = slotDist < GATHER_ARRIVE_DIST || flockMode === 'dozing'
+    d.gait = arrived ? 'stop' : 'slow'
+    d.gaitTimer = 0.5
+    d.wanderTarget = arrived ? d.heading : toSlot
+    d.wanderTimer = 1
+    if (!arrived) d.heading += normalizeAngle(toSlot - d.heading) * Math.min(1, COURT_TURN_RATE * dt)
   } else if (d.mate) {
     // Courtship: sidle up to the partner, stop close, face and watch them.
     const toMate = Math.atan2(d.mate.y - d.y, d.mate.x - d.x)
@@ -860,7 +1080,10 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
 
   d.gaitTimer -= dt
   if (d.gaitTimer <= 0) pickGait(d)
-  const targetSpeed = d.gait === 'stop' ? 0 : (d.gait === 'slow' ? SPEED_SLOW : SPEED_FAST) * d.speedMultiplier
+  // Sleepy dark-theme ambling is slower, but a startled flee (which sets speed
+  // directly below) and stampeders are never slowed.
+  const sleepyMul = isSleepyTheme && !d.departing && !d.stampeding ? SLEEPY_SPEED_FACTOR : 1
+  const targetSpeed = d.gait === 'stop' ? 0 : (d.gait === 'slow' ? SPEED_SLOW : SPEED_FAST) * d.speedMultiplier * sleepyMul
   d.speed += (targetSpeed - d.speed) * Math.min(1, GAIT_ACCEL * dt)
   if (targetSpeed === 0 && d.speed < 1.5) d.speed = 0
 
@@ -879,18 +1102,24 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
     if (d.turnBias) d.wanderTarget += d.turnBias * dt
     const wanderDiff = normalizeAngle(d.wanderTarget - d.heading)
     d.heading += wanderDiff * Math.min(1, WANDER_TURN_EASE * dt)
-    d.heading +=
-      (Math.random() - 0.5) * WANDER_JITTER * (hasTrait(d.mutations, 'tremor') ? TREMOR_JITTER_MUL : 1) * dt
+    // Stampeders keep a dead-straight panic line; everyone else gets jitter.
+    if (!d.stampeding) {
+      d.heading +=
+        (Math.random() - 0.5) * WANDER_JITTER * (hasTrait(d.mutations, 'tremor') ? TREMOR_JITTER_MUL : 1) * dt
+    }
   }
 
+  // Flee/curiosity only while awake — a stale cursor position from before the
+  // flock dozed must not spook a sleeping duck. Stampeders ignore the cursor.
+  const canReactToMouse = flockMode === 'active' && !d.departing && !d.stampeding
   // 'fearless': the flee reflex is inverted — the cursor is fascinating,
   // walk right up to it and stop just short.
   if (hasTrait(d.mutations, 'fearless')) {
-    if (!d.departing && !d.mate && distm < CURIOUS_RADIUS && distm > FEARLESS_STOP_DIST_PX) {
+    if (canReactToMouse && !d.mate && distm < CURIOUS_RADIUS && distm > FEARLESS_STOP_DIST_PX) {
       d.wanderTarget = Math.atan2(-dym, -dxm)
       d.wanderTimer = 0.5
     }
-  } else if (!d.departing && distm < FLEE_RADIUS) {
+  } else if (canReactToMouse && distm < FLEE_RADIUS) {
     if (d.mate) cancelCourtship(d, now)
     const desired = Math.atan2(dym, dxm)
     const strength = 1 - distm / FLEE_RADIUS
@@ -906,7 +1135,7 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   }
 
   const distToEdge = Math.min(d.x, W - d.x, d.y, H - d.y)
-  if (!d.departing && distToEdge < edgeMargin.value) {
+  if (!d.departing && !d.stampeding && distToEdge < edgeMargin.value) {
     const toCenter = Math.atan2(H / 2 - d.y, W / 2 - d.x)
     const strength2 = 1 - Math.max(0, distToEdge) / edgeMargin.value
     const diff2 = normalizeAngle(toCenter - d.heading)
@@ -932,7 +1161,8 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
       : 0
   d.x += Math.cos(d.heading + waddle) * d.speed * dt
   d.y += Math.sin(d.heading + waddle) * d.speed * dt
-  if (!d.departing) {
+  // Departing elders and stampeders must be free to walk off the edge.
+  if (!d.departing && !d.stampeding) {
     d.x = Math.max(8, Math.min(W - 8, d.x))
     d.y = Math.max(8, Math.min(H - 8, d.y))
   }
@@ -961,9 +1191,10 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   }
 
   // Curious lean: a stopped duck notices a cursor hovering nearby — outside
-  // flee range — and tilts its body a few degrees toward it.
+  // flee range — and tilts its body a few degrees toward it. Gated like flee
+  // so a duck dozing near a parked cursor doesn't twist toward it in its sleep.
   const leanTarget =
-    d.speed === 0 && distm > FLEE_RADIUS && distm < CURIOUS_RADIUS
+    canReactToMouse && d.speed === 0 && distm > FLEE_RADIUS && distm < CURIOUS_RADIUS
       ? Math.max(-CURIOUS_LEAN_MAX, Math.min(CURIOUS_LEAN_MAX, normalizeAngle(Math.atan2(-dym, -dxm) - d.heading)))
       : 0
   d.lean += (leanTarget - d.lean) * Math.min(1, CURIOUS_EASE * dt)
@@ -984,6 +1215,33 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
     Math.min(d.headYawMax, d.headTarget + d.lean * HEAD_LEAN_FACTOR)
   )
   d.headAngle += (headGoal - d.headAngle) * Math.min(1, HEAD_TURN_RATE * dt)
+
+  // Head tuck: full when dozing, partial when standing still in the dark
+  // theme. Eased so it settles in and out over the theme fade rather than
+  // snapping.
+  const wantsTuck =
+    (flockMode !== 'active' && d.gait === 'stop') ||
+    (isSleepyTheme && d.speed === 0 && !d.mate && !d.departing && !d.stampeding)
+  d.tuck += ((wantsTuck ? 1 : 0) - d.tuck) * Math.min(1, TUCK_RATE * dt)
+
+  // Autumn: a duck at a decent clip that clips a fallen leaf trips — a forced
+  // stop, a ruffle, and a yaw kick the underdamped body spring turns into a
+  // stumble. Per-leaf cooldown keeps it from looping on the same leaf.
+  if (seasonAutumn && !d.departing && !d.stampeding && d.speed > SPEED_SLOW * 0.5) {
+    for (const leaf of leaves) {
+      if (now < leaf.cooldownUntil) continue
+      if (Math.hypot(d.x - leaf.x, d.y - leaf.y) > LEAF_STUMBLE_DIST) continue
+      d.gait = 'stop'
+      d.gaitTimer = 0.5 + Math.random() * 0.5
+      d.shimmyStart = now
+      d.bodyYawV += (Math.random() < 0.5 ? -1 : 1) * LEAF_KICK_YAW
+      leaf.x += Math.cos(d.heading) * LEAF_NUDGE_PX
+      leaf.y += Math.sin(d.heading) * LEAF_NUDGE_PX
+      leaf.rot += (Math.random() - 0.5) * 1.2
+      leaf.cooldownUntil = now + LEAF_COOLDOWN_MS
+      break
+    }
+  }
 }
 
 // All blur in this component uses the canvas shadow API instead of
@@ -1130,8 +1388,12 @@ function bakeSpriteSet(color: string, m: Mutations | null): HTMLCanvasElement[] 
   // as a separate oval. Each tier is one path (self-overlaps fill once) and
   // tiers merge behind each other via 'destination-over', so nothing stacks.
   // The neck and head sit higher off the glass, hence the fainter tiers.
-  for (let i = 0; i < HEAD_POSES; i++) {
-    const headYaw = ((i / (HEAD_POSES - 1)) * 2 - 1) * yawMaxLocal
+  // One extra frame past the poses (index TUCK_SPRITE_INDEX): the head sunk
+  // into the breast for a sleeping duck. draw() crossfades to it by tuck.
+  for (let i = 0; i <= HEAD_POSES; i++) {
+    const tucked = i === HEAD_POSES
+    const headYaw = tucked ? 0 : ((i / (HEAD_POSES - 1)) * 2 - 1) * yawMaxLocal
+    const dist = tucked ? TUCK_HEAD_DIST : headDist
 
     const solid = document.createElement('canvas')
     solid.width = w
@@ -1162,15 +1424,15 @@ function bakeSpriteSet(color: string, m: Mutations | null): HTMLCanvasElement[] 
       for (const yaw of yaws) {
         const cos = Math.cos(yaw)
         const sin = Math.sin(yaw)
-        const hx = rootX + cos * headDist * L * S
-        const hy = sin * headDist * L * S + oy
+        const hx = rootX + cos * dist * L * S
+        const hy = sin * dist * L * S + oy
         ell(head, hx, hy, headR, headR)
-        // neck: thin and faint, bridging breast to head ('noNeck' has none —
-        // the head sits sunk into the breast)
-        if (!noNeck) {
-          ell(neck, rootX + cos * headDist * 0.24 * L * S, sin * headDist * 0.24 * L * S + oy, 0.09 * L * S, 0.13 * Wd * S, yaw)
-          ell(neck, rootX + cos * headDist * 0.56 * L * S, sin * headDist * 0.56 * L * S + oy, 0.08 * L * S, 0.11 * Wd * S, yaw)
-          if (longNeck) ell(neck, rootX + cos * headDist * 0.8 * L * S, sin * headDist * 0.8 * L * S + oy, 0.075 * L * S, 0.1 * Wd * S, yaw)
+        // neck: thin and faint, bridging breast to head ('noNeck' has none, and
+        // a tucked head sits sunk into the breast with no visible neck either)
+        if (!noNeck && !tucked) {
+          ell(neck, rootX + cos * dist * 0.24 * L * S, sin * dist * 0.24 * L * S + oy, 0.09 * L * S, 0.13 * Wd * S, yaw)
+          ell(neck, rootX + cos * dist * 0.56 * L * S, sin * dist * 0.56 * L * S + oy, 0.08 * L * S, 0.11 * Wd * S, yaw)
+          if (longNeck) ell(neck, rootX + cos * dist * 0.8 * L * S, sin * dist * 0.8 * L * S + oy, 0.075 * L * S, 0.1 * Wd * S, yaw)
         }
         // Beak wedges make "two beaks" legible on mutants; normal ducks keep
         // their plain round head.
@@ -1267,9 +1529,72 @@ function paintFootPose(duck: Duck, foot: Foot, pose: FootPose, spawnFade: number
   }
 }
 
+// Ground/atmosphere layer painted before the ducks: fallen leaves and fading
+// frost trails sit under the flock; snow falls behind everything.
+function drawSeasonBackground(now: number, dt: number) {
+  const c = ctx!
+
+  if (seasonAutumn && leafPath) {
+    for (const leaf of leaves) {
+      c.save()
+      c.globalAlpha = LEAF_ALPHA * maskDim(leaf.x, leaf.y)
+      c.fillStyle = drawColor
+      c.translate(leaf.x, leaf.y)
+      c.rotate(leaf.rot)
+      c.scale(LEAF_SCALE, LEAF_SCALE)
+      c.fill(leafPath)
+      c.restore()
+    }
+  }
+
+  if (seasonSnow && trail.length) {
+    // Prints are pushed in time order, so expired ones are a contiguous prefix.
+    let expired = 0
+    while (expired < trail.length && now - trail[expired]!.at >= TRAIL_LIFE_MS) expired++
+    if (expired) trail.splice(0, expired)
+    for (const p of trail) {
+      const age = (now - p.at) / TRAIL_LIFE_MS
+      const behind = maskFactor(p.x, p.y)
+      const alpha = TRAIL_ALPHA * (1 - age) * (1 - behind * (1 - MASK_OPACITY_FACTOR))
+      // Prints under the glass keep the frosted blur the live foot had there,
+      // so a plant doesn't snap sharp the instant the foot lifts off it.
+      paintFoot(p.x, p.y, p.heading + (p.backwards ? Math.PI : 0), p.side, alpha, FOOT_SCALE * p.scaleMul, MASK_BLUR_PX * behind)
+    }
+  }
+
+  if (seasonSnow && flakes.length) {
+    // Two batched fills (front / behind the glass) rather than a save+fill per
+    // flake; the hard bucket edge is invisible for 1-2px dots at α 0.18.
+    c.fillStyle = drawColor
+    const sway = Math.sin(now / 1000 * Math.PI * 2 * SNOW_SWAY_HZ)
+    for (let pass = 0; pass < 2; pass++) {
+      c.globalAlpha = pass === 0 ? SNOW_ALPHA : SNOW_ALPHA * MASK_OPACITY_FACTOR
+      c.beginPath()
+      for (const flake of flakes) {
+        if (pass === 0) {
+          flake.y += flake.speed * dt
+          if (flake.y > cssH + 4) {
+            flake.y = -4
+            flake.x = Math.random() * cssW
+          }
+        }
+        const fx = flake.x + Math.sin(sway + flake.phase) * SNOW_SWAY_PX
+        const behind = maskFactor(fx, flake.y)
+        if ((behind > 0.5) === (pass === 1)) {
+          c.moveTo(fx + flake.r, flake.y)
+          c.arc(fx, flake.y, flake.r, 0, Math.PI * 2)
+        }
+      }
+      c.fill()
+    }
+    c.globalAlpha = 1
+  }
+}
+
 function draw(now: number, dt: number) {
   if (!ctx || !footPath) return
   ctx.clearRect(0, 0, cssW, cssH)
+  drawSeasonBackground(now, dt)
 
   // Theme fade: lerp the paint color along the site's transition curve and
   // cross-fade the old sprite set into the freshly baked one.
@@ -1358,15 +1683,16 @@ function draw(now: number, dt: number) {
       duck.bodyYaw + wobble + shimmy + duck.lean + (hasTrait(duck.mutations, 'reverseWalker') ? Math.PI : 0)
     const newAlpha = shadowAlpha * spriteFade
     const sprites = getSpriteSet(duck)
-    if (f < 1) paintSprite(sprites[i0]!, duck.bodyX, duck.bodyY, bodyRot, newAlpha * (1 - f), bodyScale)
-    if (f > 0) paintSprite(sprites[i1]!, duck.bodyX, duck.bodyY, bodyRot, newAlpha * f, bodyScale)
+    // Crossfade the animated head poses (weighted 1-tuck) against the tucked
+    // sprite (weighted tuck), so a duck lowers its head as it dozes off.
+    const tuck = duck.tuck
+    paintPosePair(sprites, i0, i1, f, duck.bodyX, duck.bodyY, bodyRot, newAlpha, bodyScale, tuck)
     if (spriteFade < 1) {
       // A duck born mid-fade has no old-theme sprites; it just fades in new.
       const old = oldSpriteCache.get(spriteKey(duck.mutations))
       if (old) {
         const oldAlpha = shadowAlpha * (1 - spriteFade)
-        if (f < 1) paintSprite(old[i0]!, duck.bodyX, duck.bodyY, bodyRot, oldAlpha * (1 - f), bodyScale)
-        if (f > 0) paintSprite(old[i1]!, duck.bodyX, duck.bodyY, bodyRot, oldAlpha * f, bodyScale)
+        paintPosePair(old, i0, i1, f, duck.bodyX, duck.bodyY, bodyRot, oldAlpha, bodyScale, tuck)
       }
     }
 
@@ -1376,7 +1702,113 @@ function draw(now: number, dt: number) {
       const extra = duck.feet[k]!
       paintFootPose(duck, extra, footPose(extra, now), spawnFade)
     }
+
+    // Head world position, needed by hats and Zzz only — skipped the rest of
+    // the year so the hot loop pays no extra trig. Neck root 0.34·L forward of
+    // the body centre, head another `dist` along the head yaw, sinking toward
+    // the breast as the duck tucks. The yaw blends to 0 with tuck because the
+    // tucked sprite is baked facing straight ahead — a hat that kept the pose
+    // yaw would drift off the drawn head.
+    const wantsZzz = tuck > 0.7 && duck.speed === 0
+    if (seasonParty || wantsZzz) {
+      const traitDist = hasTrait(duck.mutations, 'longNeck') ? 0.55 : hasTrait(duck.mutations, 'noNeck') ? 0.12 : 0.34
+      const dist = traitDist + (TUCK_HEAD_DIST - traitDist) * tuck
+      const headRot = bodyRot + headRel * (1 - tuck)
+      const hx = duck.bodyX + Math.cos(bodyRot) * 0.34 * BODY_LENGTH_PX * duck.bodyScale + Math.cos(headRot) * dist * BODY_LENGTH_PX * duck.bodyScale
+      const hy = duck.bodyY + Math.sin(bodyRot) * 0.34 * BODY_LENGTH_PX * duck.bodyScale + Math.sin(headRot) * dist * BODY_LENGTH_PX * duck.bodyScale
+
+      if (seasonParty) {
+        const hatAlpha = Math.min(HAT_ALPHA_MAX, shadowAlpha * HAT_ALPHA_MUL) * spriteFade
+        paintHat(hx, hy, headRot, hatAlpha, duck.bodyScale)
+      }
+
+      // Emit a drifting "z" above a soundly-tucked, motionless duck.
+      if (wantsZzz && now >= duck.zzzAt) {
+        // A zzzAt left over from before this doze (or the initial 0) would
+        // make every duck emit on the same frame; a duck that just fell
+        // asleep only gets scheduled, so each sleeper finds its own phase.
+        const justFellAsleep = now - duck.zzzAt > 500
+        duck.zzzAt = now + (ZZZ_SPAWN_MIN_S + Math.random() * ZZZ_SPAWN_RANGE_S) * 1000
+        if (!justFellAsleep && zzzs.length < ZZZ_MAX) {
+          zzzs.push({ x: hx, y: hy - 6, born: now, phase: Math.random() * Math.PI * 2 })
+        }
+      }
+    }
   }
+
+  drawZzz(now)
+}
+
+// Paints the pose-pair crossfade plus the tucked-head sprite for one duck, from
+// a given sprite set (live or the outgoing theme's). Kept in one place so the
+// theme-fade branch and the normal branch can't drift apart.
+function paintPosePair(
+  set: HTMLCanvasElement[],
+  i0: number,
+  i1: number,
+  f: number,
+  x: number,
+  y: number,
+  rot: number,
+  alpha: number,
+  scale: number,
+  tuck: number
+) {
+  const poseAlpha = alpha * (1 - tuck)
+  if (tuck < 1) {
+    if (f < 1) paintSprite(set[i0]!, x, y, rot, poseAlpha * (1 - f), scale)
+    if (f > 0) paintSprite(set[i1]!, x, y, rot, poseAlpha * f, scale)
+  }
+  if (tuck > 0) paintSprite(set[TUCK_SPRITE_INDEX]!, x, y, rot, alpha * tuck, scale)
+}
+
+// A jaunty little party hat on the head, drawn as a monochrome cone (a triangle
+// with a couple of alpha-stacked stripes) plus a pompom. No second colour, so
+// it obeys the site's single-ink palette.
+function paintHat(x: number, y: number, rot: number, alpha: number, scale: number) {
+  if (alpha <= 0 || !hatConePath) return
+  const c = ctx!
+  const a = alpha * maskDim(x, y)
+  c.save()
+  c.globalAlpha = a
+  c.fillStyle = drawColor
+  c.translate(x, y)
+  c.rotate(rot)
+  c.scale(HAT_LENGTH_PX * scale, HAT_LENGTH_PX * scale)
+  c.fill(hatConePath)
+  // Stripes refill over the cone at the same alpha; the stacking is what
+  // makes them read darker without a second ink.
+  c.fill(hatStripesPath!)
+  c.globalAlpha = Math.min(1, a * 1.4)
+  c.beginPath()
+  c.arc(1, 0, HAT_UNIT_HALF * 0.35, 0, Math.PI * 2)
+  c.fill()
+  c.restore()
+}
+
+// Drifting "Zzz" glyphs above dozing ducks: rise, sway, and fade over their
+// life. One fillText per glyph with the mask dim premixed into the alpha — no
+// blurred behind-pass, which would double text cost for an invisible gain.
+function drawZzz(now: number) {
+  if (!zzzs.length || !ctx) return
+  const c = ctx
+  c.save()
+  c.font = ZZZ_FONT
+  c.fillStyle = drawColor
+  c.textAlign = 'center'
+  for (let i = zzzs.length - 1; i >= 0; i--) {
+    const z = zzzs[i]!
+    const t = (now - z.born) / ZZZ_LIFE_MS
+    if (t >= 1) {
+      zzzs.splice(i, 1)
+      continue
+    }
+    const x = z.x + Math.sin(t * Math.PI * 2 + z.phase) * ZZZ_SWAY_PX
+    const y = z.y - t * ZZZ_RISE_PX
+    c.globalAlpha = ZZZ_ALPHA * Math.sin(t * Math.PI) * maskDim(x, y)
+    c.fillText('z', x, y)
+  }
+  c.restore()
 }
 
 function createDuck(x: number, y: number, generation = 0, mutations: Mutations | null = null, baby = false): Duck {
@@ -1455,6 +1887,13 @@ function createDuck(x: number, y: number, generation = 0, mutations: Mutations |
     mate: null,
     courtUntil: 0,
     departing: false,
+    stampeding: false,
+    stampedeHeading: 0,
+    stampedePhase: 0,
+    tuck: 0,
+    zzzAt: 0,
+    gatherX: 0,
+    gatherY: 0,
     mutations,
     headYawMax: mutations?.headYawMax ?? HEAD_YAW_MAX,
     turnBias: mutations?.turnBias ?? 0,
@@ -1467,6 +1906,7 @@ function breedEligible(d: Duck, now: number) {
   return (
     !d.growth &&
     !d.departing &&
+    !d.stampeding &&
     !d.mate &&
     !isSterile(d) &&
     now >= d.breedReadyAt &&
@@ -1486,7 +1926,9 @@ function spawnBaby(p1: Duck, p2: Duck, now: number) {
   if (ducks.length > POP_CAP) {
     let elder: Duck | null = null
     for (const d of ducks) {
-      if (d.departing || d === p1 || d === p2 || d.growth) continue
+      // Never send a stampeder off as the elder — it owns the departing/despawn
+      // state already, and marking it departing would collide with that.
+      if (d.departing || d.stampeding || d === p1 || d === p2 || d.growth) continue
       if (!elder) {
         elder = d
         continue
@@ -1528,6 +1970,9 @@ function updateBreeding(now: number) {
     }
   }
 
+  // No new pairings while the flock is dozing or a stampede has inflated the
+  // headcount past the cap. (Active courtships above still resolve/break.)
+  if (flockMode !== 'active' || stampederCount > 0) return
   // Breeding continues at the cap (a birth sends an elder off-screen); only
   // pause new pairings while a departure is still in progress.
   if (ducks.length > POP_CAP) return
@@ -1546,26 +1991,87 @@ function updateBreeding(now: number) {
   }
 }
 
+// The flock has been idle long enough to bed down: pick a rally point (the
+// clamped flock centroid) and hand each duck a slot on a loose ring around it.
+function enterGathering(now: number) {
+  flockMode = 'gathering'
+  gatherStartedAt = now
+  const settlers = ducks.filter((d) => !d.departing && !d.stampeding)
+  if (!settlers.length) return
+  let cx = 0
+  let cy = 0
+  for (const d of settlers) {
+    cx += d.x
+    cy += d.y
+  }
+  cx /= settlers.length
+  cy /= settlers.length
+  // Don't rally the flock onto a parked cursor: sleeping inside flee range
+  // would make the whole pile bolt in unison at the first pixel of movement.
+  const toCursor = Math.hypot(cx - mouse.x, cy - mouse.y)
+  if (toCursor < FLEE_RADIUS) {
+    const away = Math.atan2(cy - mouse.y, cx - mouse.x)
+    cx = mouse.x + Math.cos(away) * (FLEE_RADIUS + GATHER_RING_R_MIN * 2)
+    cy = mouse.y + Math.sin(away) * (FLEE_RADIUS + GATHER_RING_R_MIN * 2)
+  }
+  const margin = edgeMargin.value
+  cx = Math.max(margin, Math.min(cssW - margin, cx))
+  cy = Math.max(margin, Math.min(cssH - margin, cy))
+  settlers.forEach((d, i) => {
+    if (d.mate) cancelCourtship(d, now)
+    const angle = (i / settlers.length) * Math.PI * 2
+    const r = GATHER_RING_R_MIN + (i % 3) * GATHER_RING_R_STEP
+    d.gatherX = cx + Math.cos(angle) * r
+    d.gatherY = cy + Math.sin(angle) * r
+  })
+}
+
 function tick(now: number) {
-  const dt = Math.min((now - lastTime) / 1000, 0.05)
+  const gap = now - lastTime
+  const dt = Math.min(gap / 1000, 0.05)
   lastTime = now
+
+  // A long rAF gap means the tab was hidden — that time wasn't idling on the
+  // page, so don't let it bed the flock down the instant the user returns.
+  if (gap > 2000) lastInteractionAt = now
 
   if (now - maskRectCheckedAt > MASK_RECT_REFRESH_MS) {
     maskRectCheckedAt = now
     updateMaskRect()
   }
 
+  // Idle doze cycle: gather after a quiet spell, promote to dozing once
+  // everyone has arrived (or a timeout for ducks that can't settle).
+  if (flockMode === 'active') {
+    if (!stampederCount && ducks.length && now - lastInteractionAt > DOZE_IDLE_MS) enterGathering(now)
+  } else if (flockMode === 'gathering') {
+    let allArrived = true
+    for (const d of ducks) {
+      if (d.departing || d.stampeding) continue
+      if (Math.hypot(d.gatherX - d.x, d.gatherY - d.y) >= GATHER_ARRIVE_DIST) {
+        allArrived = false
+        break
+      }
+    }
+    if (allArrived || now - gatherStartedAt > GATHER_TIMEOUT_MS) flockMode = 'dozing'
+  }
+
   for (const d of ducks) step(d, dt, now, cssW, cssH)
   updateBreeding(now)
 
-  // Departing elders are removed once fully out of view (margin covers the
-  // spring-lagged body trailing the feet).
+  // Remove ducks once fully out of view: departing elders past any edge, and
+  // stampeders past the far edge they're running toward (a symmetric test
+  // would instantly cull the entry queue waiting off the near edge).
   for (let i = ducks.length - 1; i >= 0; i--) {
     const d = ducks[i]!
-    if (
-      d.departing &&
+    const gone = d.stampeding
+      ? Math.cos(d.stampedeHeading) > 0
+        ? d.x > cssW + DESPAWN_MARGIN_PX
+        : d.x < -DESPAWN_MARGIN_PX
+      : d.departing &&
       (d.x < -DESPAWN_MARGIN_PX || d.x > cssW + DESPAWN_MARGIN_PX || d.y < -DESPAWN_MARGIN_PX || d.y > cssH + DESPAWN_MARGIN_PX)
-    ) {
+    if (gone) {
+      if (d.stampeding) stampederCount = Math.max(0, stampederCount - 1)
       releaseSpriteSet(d)
       ducks.splice(i, 1)
     }
@@ -1586,14 +2092,109 @@ function spawnDucks() {
   }
 }
 
+// The "quack" payoff: a transient herd enters from one edge in a staggered
+// queue and thunders straight across, the resident flock scattering in panic.
+// The herd despawns off the far edge, restoring the normal population.
+function triggerStampede() {
+  if (stampederCount > 0 || isReducedMotion.value || !raf || !ctx) return
+  const now = performance.now()
+  wake(now)
+
+  const fromLeft = Math.random() < 0.5
+  const heading = fromLeft ? 0 : Math.PI
+  const edge = fromLeft ? -40 : cssW + 40
+  const margin = edgeMargin.value
+  const count = STAMPEDE_COUNT_MIN + Math.floor(Math.random() * (STAMPEDE_COUNT_RANGE + 1))
+  for (let i = 0; i < count; i++) {
+    // Spatial stagger (queued off the entry edge) rather than timed spawns, so
+    // there are no timers to clean up on unmount.
+    const back = 30 + i * STAMPEDE_SPACING_PX * (0.7 + Math.random() * 0.6)
+    const x = fromLeft ? edge - back : edge + back
+    const y = margin + Math.random() * (cssH - margin * 2)
+    const d = createDuck(x, y)
+    d.stampeding = true
+    // Every runner is an individual: its own lane angle, pace, weave phase,
+    // entry speed and step-cycle offset — a herd of clones striding in sync
+    // is what makes a stampede read mechanical.
+    d.stampedeHeading = heading + (Math.random() - 0.5) * STAMPEDE_LANE_JITTER_RAD
+    d.stampedePhase = Math.random() * 10
+    d.heading = d.stampedeHeading
+    d.wanderTarget = d.heading
+    d.bodyYaw = d.heading
+    d.speedMultiplier = STAMPEDE_SPEED_MUL * (1 - STAMPEDE_SPEED_JITTER / 2 + Math.random() * STAMPEDE_SPEED_JITTER)
+    d.gait = 'fast'
+    d.speed = SPEED_FAST * (0.5 + Math.random()) // ragged, not uniform, entry pace
+    d.side = Math.random() < 0.5 ? -1 : 1
+    d.stepParity = Math.random() < 0.5 ? -1 : 1
+    d.distSinceStep = Math.random() * STEP_LENGTH_MAX
+    // createDuck laid the feet and body along its own random heading; realign
+    // them to the stampede line so the first on-screen steps read straight.
+    for (const foot of d.feet) {
+      foot.x = x + Math.cos(d.heading + Math.PI / 2) * STANCE_WIDTH * foot.side + (foot.side > 0 ? Math.cos(d.heading) * STEP_LENGTH_MIN * 0.5 : 0)
+      foot.y = y + Math.sin(d.heading + Math.PI / 2) * STANCE_WIDTH * foot.side + (foot.side > 0 ? Math.sin(d.heading) * STEP_LENGTH_MIN * 0.5 : 0)
+      foot.heading = d.heading
+      foot.fromHeading = d.heading
+    }
+    d.bodyX = x + Math.cos(d.heading) * BODY_SETBACK_PX
+    d.bodyY = y + Math.sin(d.heading) * BODY_SETBACK_PX
+    ducks.push(d)
+    stampederCount++
+  }
+
+  // Residents bolt in a brief panic, then settle back to normal life.
+  for (const d of ducks) {
+    if (d.stampeding || d.departing) continue
+    if (d.mate) cancelCourtship(d, now)
+    d.gait = 'fast'
+    d.gaitTimer = STAMPEDE_PANIC_S
+    d.wanderTarget = d.heading + (Math.random() - 0.5) * Math.PI
+    d.wanderTimer = STAMPEDE_PANIC_S
+    d.shimmyStart = now
+  }
+
+  trackEvent('quack_stampede')
+}
+
 // Ducks spawn on their own once the browser goes idle after landing, so
 // initial render and hydration never compete with the animation loop.
 let idleCallbackId = 0
 let idleTimeoutId: ReturnType<typeof setTimeout> | undefined
 
+function spawnFlakes() {
+  const count = isMobile.value ? SNOW_COUNT_MOBILE : SNOW_COUNT_DESKTOP
+  for (let i = 0; i < count; i++) {
+    flakes.push({
+      x: Math.random() * cssW,
+      y: Math.random() * cssH,
+      speed: SNOW_SPEED_MIN + Math.random() * SNOW_SPEED_RANGE,
+      r: SNOW_R_MIN + Math.random() * SNOW_R_RANGE,
+      phase: Math.random() * Math.PI * 2
+    })
+  }
+}
+
+function spawnLeaves() {
+  const margin = edgeMargin.value
+  const count = LEAF_COUNT_MIN + Math.floor(Math.random() * (LEAF_COUNT_RANGE + 1))
+  for (let i = 0; i < count; i++) {
+    leaves.push({
+      x: margin + Math.random() * (cssW - margin * 2),
+      y: margin + Math.random() * (cssH - margin * 2),
+      rot: Math.random() * Math.PI * 2,
+      cooldownUntil: 0
+    })
+  }
+}
+
 function startMotion() {
   if (!ctx) return
   if (!ducks.length) spawnDucks()
+  if (seasonSnow && !flakes.length) spawnFlakes()
+  if (seasonAutumn && !leaves.length) spawnLeaves()
+  // Reset the doze cycle so a resume (reduced-motion toggle) never restarts
+  // asleep off a stale timestamp or a stale gathering/dozing mode.
+  lastInteractionAt = performance.now()
+  flockMode = 'active'
   if (!raf) {
     lastTime = performance.now()
     raf = requestAnimationFrame(tick)
@@ -1609,6 +2210,7 @@ function stopMotion() {
   idleCallbackId = 0
   if (idleTimeoutId) clearTimeout(idleTimeoutId)
   idleTimeoutId = undefined
+  zzzs.length = 0 // don't pop stale glyphs on resume
   ctx?.clearRect(0, 0, cssW, cssH)
 }
 
@@ -1646,8 +2248,39 @@ onMounted(() => {
   themeColor = readColor()
   drawColor = themeColor
   drawRgb = parseColor(themeColor) ?? drawRgb
+  isSleepyTheme = document.documentElement.getAttribute('data-theme') === 'dark'
 
-  themeObserver = new MutationObserver(handleThemeChange)
+  const m = new Date()
+  seasonParty = m.getMonth() === 7 && m.getDate() === 1
+  seasonSnow = m.getMonth() === 11
+  seasonAutumn = m.getMonth() >= 8 && m.getMonth() <= 10
+
+  leafPath = new Path2D(LEAF_D)
+
+  // Hat geometry is static; bake the cone and its stripes once at unit length
+  // (scaled at paint time) instead of allocating Path2Ds per duck per frame.
+  hatConePath = new Path2D()
+  hatConePath.moveTo(1, 0)
+  hatConePath.lineTo(0, -HAT_UNIT_HALF)
+  hatConePath.lineTo(0, HAT_UNIT_HALF)
+  hatConePath.closePath()
+  hatStripesPath = new Path2D()
+  for (let s = 1; s <= HAT_STRIPES; s++) {
+    const t = s / (HAT_STRIPES + 1)
+    const bh = HAT_UNIT_HALF * (1 - t)
+    hatStripesPath.moveTo(t, -bh)
+    hatStripesPath.lineTo(t + 0.14, -bh * 0.6)
+    hatStripesPath.lineTo(t + 0.14, bh * 0.6)
+    hatStripesPath.lineTo(t, bh)
+    hatStripesPath.closePath()
+  }
+
+  // The flag is refreshed in the observer wrapper rather than in
+  // handleThemeChange, whose next===themeColor early-return would skip it.
+  themeObserver = new MutationObserver(() => {
+    isSleepyTheme = document.documentElement.getAttribute('data-theme') === 'dark'
+    handleThemeChange()
+  })
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
   window.addEventListener('resize', handleResize, { passive: true })
@@ -1655,6 +2288,7 @@ onMounted(() => {
   window.addEventListener('pointerleave', handlePointerLeave, { passive: true })
   window.addEventListener('pointerup', handlePointerEnd, { passive: true })
   window.addEventListener('pointercancel', handlePointerEnd, { passive: true })
+  window.addEventListener('keydown', handleKeydown, { passive: true })
 
   if (!isReducedMotion.value) scheduleIdleSpawn()
 })
@@ -1668,6 +2302,7 @@ onUnmounted(() => {
   window.removeEventListener('pointerleave', handlePointerLeave)
   window.removeEventListener('pointerup', handlePointerEnd)
   window.removeEventListener('pointercancel', handlePointerEnd)
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
 

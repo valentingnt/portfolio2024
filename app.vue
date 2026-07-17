@@ -14,6 +14,7 @@ onMounted(async () => {
 onUnmounted(() => lenis?.destroy())
 
 useAnalytics()
+useConsoleEgg()
 </script>
 
 <template>
