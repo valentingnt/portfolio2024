@@ -84,6 +84,12 @@ useHead(() => meta.value)
         <AboutFooter :content="content" :mail="mailLabel" @mail-click="handleMailClick" />
       </main>
     </div>
+
+    <!-- Mobile-only duck playground: open space below the content where the
+         flock lives and reacts to touch. Invisible by design; DuckFeet.vue
+         finds it via [data-duck-zone] and switches to an in-document,
+         touch-interactive canvas over this area. -->
+    <div class="duck-zone" data-duck-zone aria-hidden="true" />
   </div>
 </template>
 
@@ -96,6 +102,26 @@ useHead(() => meta.value)
   justify-content: center;
   text-wrap: pretty;
   color: var(--color-primary);
+
+  // Hidden on desktop; the ducks roam the full fixed viewport there.
+  .duck-zone {
+    display: none;
+  }
+
+  // On mobile the ducks get a dedicated pen below the content. Stacking the
+  // page column and the pen vertically means the flex axis flips, so re-centre
+  // the column horizontally. svh (not dvh) keeps the pen a stable height as the
+  // URL bar shows/hides, avoiding layout churn under the scrolling canvas.
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: center;
+
+    .duck-zone {
+      display: block;
+      width: 100%;
+      height: 70svh;
+    }
+  }
 
   .container {
     align-self: auto;

@@ -3,6 +3,19 @@ const isReducedMotion = useReducedMotion()
 
 const MOBILE_BREAKPOINT = 640
 const DUCK_COUNT = 2
+// Mobile "duck zone" variants (see the zone-mode block lower down): the pen is
+// a fraction of the desktop viewport area, so the flee/curiosity radii, the
+// population cap and the starting count are all scaled down to suit it.
+const DUCK_COUNT_ZONE = 3
+const POP_CAP_ZONE = 8
+const FLEE_RADIUS_ZONE = 90
+const CURIOUS_RADIUS_ZONE = 150
+// The zone canvas extends this far above the visible pen (into the empty margin
+// gap above it) and the drawing is translated down into that band, so a duck
+// whose lagging body overhangs the top of the pen draws into off-screen padding
+// instead of being hard-clipped at the canvas edge. Kept under the content's
+// bottom margin so it never covers interactive footer content.
+const ZONE_PAD_TOP = 64
 const IDLE_SPAWN_TIMEOUT_MS = 3000
 const IDLE_SPAWN_FALLBACK_MS = 1500
 const DUCK_SPEED_MULTIPLIER_MIN = 0.75
@@ -184,6 +197,10 @@ const TUCK_HEAD_DIST = 0.12 // head sunk into the breast (same as the noNeck loo
 const TUCK_RATE = 1.5 // per-second ease of a duck's tuck toward its target
 const TUCK_SPRITE_INDEX = HEAD_POSES // tucked frame appended after the pose frames
 const DOZE_IDLE_MS = 30000
+// Mobile has no continuous pointer movement to keep resetting the idle timer,
+// so the pen would bed down every 30s of just watching. Give zone mode a much
+// longer fuse.
+const DOZE_IDLE_MS_ZONE = 120000
 const GATHER_ARRIVE_DIST = 16 // to the duck's own rally slot, not the centroid
 const GATHER_TIMEOUT_MS = 15000 // circlers/limpers may never arrive; force doze
 const GATHER_RING_R_MIN = 18 // rally slots ring outward so ducks don't stack
@@ -487,12 +504,125 @@ function updateMaskRect() {
   maskRect = maskEl ? maskEl.getBoundingClientRect() : null
 }
 
+// --- Mobile "duck zone" -----------------------------------------------------
+// On mobile the flock lives in a dedicated pen below the page content
+// ([data-duck-zone]) instead of the whole fixed viewport. The canvas becomes
+// an in-document, absolutely-positioned, touch-interactive layer over that
+// pen, so it scrolls with the page on the compositor (no per-frame repaint).
+// Discovered lazily like the mask element: this component mounts before the
+// page and survives route swaps, and pages without a zone (e.g. error.vue)
+// simply keep the fixed full-viewport behavior.
+let zoneEl: HTMLElement | null = null
+let zoneRect: DOMRect | null = null
+let zoneMode = false
+let lastZoneTop = Number.NaN
+let touchDragging = false
+// Off-screen top overdraw band (ZONE_PAD_TOP in zone mode, 0 otherwise). World
+// coordinates stay [0, cssW] × [0, cssH]; the context is translated down by this
+// amount so the band sits above the pen without shifting the simulation.
+let worldPadTop = 0
+
+// Tuning mirrors swapped by applyModeTuning() on a mode change: the small pen
+// needs tighter radii and a lower cap than the desktop viewport.
+let fleeRadius = FLEE_RADIUS
+let curiousRadius = CURIOUS_RADIUS
+let popCap = POP_CAP
+
+function applyModeTuning() {
+  fleeRadius = zoneMode ? FLEE_RADIUS_ZONE : FLEE_RADIUS
+  curiousRadius = zoneMode ? CURIOUS_RADIUS_ZONE : CURIOUS_RADIUS
+  popCap = zoneMode ? POP_CAP_ZONE : POP_CAP
+}
+
+// Places (zone mode) or clears (fixed mode) the canvas's inline styles. In
+// zone mode the canvas is absolutely positioned within <main> (its parent and
+// containing block) over the pen; clearing the inline styles restores the
+// scoped fixed styles. offsetParent is null exactly when the zone is
+// display:none (desktop widths), which is our single "is this mobile" signal.
+function positionZoneCanvas() {
+  const canvas = canvasEl.value
+  if (!canvas) return
+  const s = canvas.style
+  if (zoneMode && zoneRect) {
+    const parent = canvas.parentElement
+    const parentTop = parent ? parent.getBoundingClientRect().top : 0
+    // Lift the canvas by the overdraw band so the visible pen still aligns with
+    // the zone element; the band sits above it over the empty margin gap.
+    const top = zoneRect.top - parentTop - ZONE_PAD_TOP
+    if (top !== lastZoneTop) {
+      s.top = `${top}px`
+      lastZoneTop = top
+    }
+    s.position = 'absolute'
+    s.left = '0px'
+    s.width = `${zoneRect.width}px`
+    s.height = `${zoneRect.height + ZONE_PAD_TOP}px`
+    s.pointerEvents = 'auto'
+    s.touchAction = 'pan-y'
+    s.userSelect = 'none'
+  } else {
+    lastZoneTop = Number.NaN
+    s.position = ''
+    s.top = ''
+    s.left = ''
+    s.width = ''
+    s.height = ''
+    s.pointerEvents = ''
+    s.touchAction = ''
+    s.userSelect = ''
+  }
+}
+
+// After a world-size change, pull settled ducks back inside the new bounds so
+// none are stranded outside a shrunken pen (departing/stampeding ducks are
+// meant to be leaving, so leave them be).
+function clampDucksToWorld() {
+  for (const d of ducks) {
+    if (d.departing || d.stampeding) continue
+    d.x = Math.max(8, Math.min(cssW - 8, d.x))
+    d.y = Math.max(8, Math.min(cssH - 8, d.y))
+  }
+}
+
+// Full refresh: re-query the zone element if it left the DOM, recompute
+// whether zone mode is active, and on a mode change swap tuning, reposition
+// the canvas, rebuild the backing store and re-clamp the flock. Called on
+// resize, the slow poll and initial spawn — not per scroll frame.
+function updateZoneRect() {
+  if (!zoneEl || !zoneEl.isConnected) {
+    zoneEl = document.querySelector<HTMLElement>('[data-duck-zone]')
+  }
+  const active = !!zoneEl && zoneEl.offsetParent !== null
+  zoneRect = active && zoneEl ? zoneEl.getBoundingClientRect() : null
+  const changed = active !== zoneMode
+  zoneMode = active
+  if (changed) applyModeTuning()
+  positionZoneCanvas()
+  resize()
+  if (changed) {
+    clampDucksToWorld()
+    if (!active) {
+      touchDragging = false
+      mouse.x = -9999
+      mouse.y = -9999
+    }
+  }
+}
+
+// Lightweight per-scroll-frame refresh: only the viewport rect (for touch and
+// pointer coordinate conversion) changes as the page scrolls; the canvas's
+// document-space position is fixed within <main>, so no repositioning needed.
+function refreshZoneRect() {
+  if (zoneMode && zoneEl && zoneEl.isConnected) zoneRect = zoneEl.getBoundingClientRect()
+}
+
 // The mask element scrolls with the page while the canvas stays fixed, so
 // its viewport rect must be refreshed on scroll (batched to one per frame,
 // and not at all while reduced motion keeps the canvas blank).
 watchScroll(
   () => {
     updateMaskRect()
+    refreshZoneRect()
     noteInteraction()
   },
   { defer: true, enabled: computed(() => !isReducedMotion.value) }
@@ -504,6 +634,9 @@ watchScroll(
 // is measured to the nearest edge of the mask rect (negative once outside),
 // smoothstepped over a band MASK_FADE_MARGIN_PX wide centered on that edge.
 function maskFactor(x: number, y: number): number {
+  // The zone pen never overlaps the content column, so there is no glass to
+  // pass behind — ducks always paint at full strength.
+  if (zoneMode) return 0
   if (!maskRect) return 0
   const dx = Math.min(x - maskRect.left, maskRect.right - x)
   const dy = Math.min(y - maskRect.top, maskRect.bottom - y)
@@ -639,16 +772,29 @@ function resize() {
   const canvas = canvasEl.value
   if (!canvas || !ctx) return
   dpr = Math.min(window.devicePixelRatio || 1, 2)
-  cssW = window.innerWidth
-  cssH = window.innerHeight
+  // In zone mode cssW/cssH mean the canvas (pen) box, not the viewport, so the
+  // whole simulation — spawn, edges, despawn, clamp, clearRect, the off-screen
+  // shadow shift — operates in pen-local coordinates unchanged.
+  if (zoneMode && zoneRect) {
+    cssW = zoneRect.width
+    cssH = zoneRect.height
+  } else {
+    cssW = window.innerWidth
+    cssH = window.innerHeight
+  }
+  worldPadTop = zoneMode ? ZONE_PAD_TOP : 0
   const w = Math.floor(cssW * dpr)
-  const h = Math.floor(cssH * dpr)
+  // The backing store is taller than the pen by the overdraw band; the pen
+  // itself stays cssH tall (world coords unchanged).
+  const h = Math.floor((cssH + worldPadTop) * dpr)
   if (w === lastCanvasW && h === lastCanvasH) return
   lastCanvasW = w
   lastCanvasH = h
   canvas.width = w
   canvas.height = h
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  // Translate the drawing down by the band so world y=0 lands at the pen's top
+  // edge, leaving the band above it for body overhang.
+  ctx.setTransform(dpr, 0, 0, dpr, 0, worldPadTop * dpr)
 
   // Seasonal props were scattered for the old viewport; re-scatter so leaves
   // don't sit off-canvas (unreachable by clamped ducks) or clustered in one
@@ -667,7 +813,7 @@ function handleResize() {
   if (resizeRaf) return
   resizeRaf = requestAnimationFrame(() => {
     resizeRaf = 0
-    resize()
+    updateZoneRect() // recomputes zone mode, repositions the canvas and resizes
     updateMaskRect()
   })
 }
@@ -691,8 +837,16 @@ function wake(now: number) {
 
 function handlePointerMove(e: PointerEvent) {
   noteInteraction()
-  mouse.x = e.clientX
-  mouse.y = e.clientY
+  // The touch handlers own the pointer during a drag (with a fresh rect); skip
+  // the window pointermove to avoid double-writing slightly different coords.
+  if (touchDragging) return
+  if (zoneMode && zoneRect) {
+    mouse.x = e.clientX - zoneRect.left
+    mouse.y = e.clientY - zoneRect.top
+  } else {
+    mouse.x = e.clientX
+    mouse.y = e.clientY
+  }
 }
 
 function handlePointerLeave() {
@@ -706,6 +860,57 @@ function handlePointerLeave() {
 function handlePointerEnd(e: PointerEvent) {
   noteInteraction()
   if (e.pointerType !== 'mouse') handlePointerLeave()
+}
+
+// --- Zone touch gestures ----------------------------------------------------
+// Touching a duck locks page scroll for the gesture and turns the finger into
+// a live cursor the flock flees; touching empty pen space lets the page scroll
+// normally. The scroll decision depends on a hit-test that can only run once
+// the gesture starts, which touch-action CSS can't express — hence non-passive
+// touch listeners on the canvas (the one exception to the passive convention).
+const TOUCH_HIT_RADIUS = 48
+
+function duckNearPoint(x: number, y: number): boolean {
+  for (const d of ducks) {
+    if (d.departing || d.stampeding) continue
+    if (Math.hypot(d.x - x, d.y - y) <= TOUCH_HIT_RADIUS) return true
+  }
+  return false
+}
+
+function handleTouchStart(e: TouchEvent) {
+  if (!zoneMode || isReducedMotion.value) return
+  const t = e.touches[0]
+  if (!t || !zoneEl) return
+  noteInteraction()
+  // Fresh rect: the scroll-cached zoneRect can be a frame stale during
+  // momentum scrolling, enough to miss the hit circle.
+  const r = zoneEl.getBoundingClientRect()
+  const x = t.clientX - r.left
+  const y = t.clientY - r.top
+  if (!duckNearPoint(x, y)) return // miss: let the page scroll
+  e.preventDefault() // hit: lock scroll for this gesture
+  touchDragging = true
+  mouse.x = x
+  mouse.y = y
+}
+
+function handleTouchMove(e: TouchEvent) {
+  if (!touchDragging) return
+  const t = e.touches[0]
+  if (!t) return
+  e.preventDefault()
+  if (zoneRect) {
+    mouse.x = t.clientX - zoneRect.left
+    mouse.y = t.clientY - zoneRect.top
+  }
+}
+
+function handleTouchEnd() {
+  if (!touchDragging) return
+  touchDragging = false
+  mouse.x = -9999
+  mouse.y = -9999
 }
 
 // Rolling buffer over single-character keys; typing the secret word sends a
@@ -1115,14 +1320,14 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   // 'fearless': the flee reflex is inverted — the cursor is fascinating,
   // walk right up to it and stop just short.
   if (hasTrait(d.mutations, 'fearless')) {
-    if (canReactToMouse && !d.mate && distm < CURIOUS_RADIUS && distm > FEARLESS_STOP_DIST_PX) {
+    if (canReactToMouse && !d.mate && distm < curiousRadius && distm > FEARLESS_STOP_DIST_PX) {
       d.wanderTarget = Math.atan2(-dym, -dxm)
       d.wanderTimer = 0.5
     }
-  } else if (canReactToMouse && distm < FLEE_RADIUS) {
+  } else if (canReactToMouse && distm < fleeRadius) {
     if (d.mate) cancelCourtship(d, now)
     const desired = Math.atan2(dym, dxm)
-    const strength = 1 - distm / FLEE_RADIUS
+    const strength = 1 - distm / fleeRadius
     const diff = normalizeAngle(desired - d.heading)
     d.heading += diff * Math.min(1, strength * 6 * dt)
     d.speed = Math.max(d.speed, SPEED_FAST * d.speedMultiplier + (FLEE_MAX_SPEED - SPEED_FAST) * strength)
@@ -1194,7 +1399,7 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   // flee range — and tilts its body a few degrees toward it. Gated like flee
   // so a duck dozing near a parked cursor doesn't twist toward it in its sleep.
   const leanTarget =
-    canReactToMouse && d.speed === 0 && distm > FLEE_RADIUS && distm < CURIOUS_RADIUS
+    canReactToMouse && d.speed === 0 && distm > fleeRadius && distm < curiousRadius
       ? Math.max(-CURIOUS_LEAN_MAX, Math.min(CURIOUS_LEAN_MAX, normalizeAngle(Math.atan2(-dym, -dxm) - d.heading)))
       : 0
   d.lean += (leanTarget - d.lean) * Math.min(1, CURIOUS_EASE * dt)
@@ -1593,7 +1798,7 @@ function drawSeasonBackground(now: number, dt: number) {
 
 function draw(now: number, dt: number) {
   if (!ctx || !footPath) return
-  ctx.clearRect(0, 0, cssW, cssH)
+  ctx.clearRect(0, -worldPadTop, cssW, cssH + worldPadTop)
   drawSeasonBackground(now, dt)
 
   // Theme fade: lerp the paint color along the site's transition curve and
@@ -1910,7 +2115,7 @@ function breedEligible(d: Duck, now: number) {
     !d.mate &&
     !isSterile(d) &&
     now >= d.breedReadyAt &&
-    Math.hypot(d.x - mouse.x, d.y - mouse.y) > FLEE_RADIUS
+    Math.hypot(d.x - mouse.x, d.y - mouse.y) > fleeRadius
   )
 }
 
@@ -1923,7 +2128,7 @@ function spawnBaby(p1: Duck, p2: Duck, now: number) {
   // Over the cap, someone wanders off-screen to make room: the most
   // malformed bystander first (mutants are short-lived), oldest breaking
   // ties — never the new parents or a growing baby.
-  if (ducks.length > POP_CAP) {
+  if (ducks.length > popCap) {
     let elder: Duck | null = null
     for (const d of ducks) {
       // Never send a stampeder off as the elder — it owns the departing/despawn
@@ -1975,7 +2180,7 @@ function updateBreeding(now: number) {
   if (flockMode !== 'active' || stampederCount > 0) return
   // Breeding continues at the cap (a birth sends an elder off-screen); only
   // pause new pairings while a departure is still in progress.
-  if (ducks.length > POP_CAP) return
+  if (ducks.length > popCap) return
   for (let i = 0; i < ducks.length; i++) {
     const a = ducks[i]!
     if (!breedEligible(a, now)) continue
@@ -2009,10 +2214,10 @@ function enterGathering(now: number) {
   // Don't rally the flock onto a parked cursor: sleeping inside flee range
   // would make the whole pile bolt in unison at the first pixel of movement.
   const toCursor = Math.hypot(cx - mouse.x, cy - mouse.y)
-  if (toCursor < FLEE_RADIUS) {
+  if (toCursor < fleeRadius) {
     const away = Math.atan2(cy - mouse.y, cx - mouse.x)
-    cx = mouse.x + Math.cos(away) * (FLEE_RADIUS + GATHER_RING_R_MIN * 2)
-    cy = mouse.y + Math.sin(away) * (FLEE_RADIUS + GATHER_RING_R_MIN * 2)
+    cx = mouse.x + Math.cos(away) * (fleeRadius + GATHER_RING_R_MIN * 2)
+    cy = mouse.y + Math.sin(away) * (fleeRadius + GATHER_RING_R_MIN * 2)
   }
   const margin = edgeMargin.value
   cx = Math.max(margin, Math.min(cssW - margin, cx))
@@ -2038,12 +2243,16 @@ function tick(now: number) {
   if (now - maskRectCheckedAt > MASK_RECT_REFRESH_MS) {
     maskRectCheckedAt = now
     updateMaskRect()
+    // Catches the zone appearing on a route change and any content-height shift
+    // (font/image load) that moves the pen's document-space top.
+    updateZoneRect()
   }
 
   // Idle doze cycle: gather after a quiet spell, promote to dozing once
   // everyone has arrived (or a timeout for ducks that can't settle).
   if (flockMode === 'active') {
-    if (!stampederCount && ducks.length && now - lastInteractionAt > DOZE_IDLE_MS) enterGathering(now)
+    const dozeIdleMs = zoneMode ? DOZE_IDLE_MS_ZONE : DOZE_IDLE_MS
+    if (!stampederCount && ducks.length && now - lastInteractionAt > dozeIdleMs) enterGathering(now)
   } else if (flockMode === 'gathering') {
     let allArrived = true
     for (const d of ducks) {
@@ -2084,8 +2293,9 @@ function tick(now: number) {
 function spawnDucks() {
   const margin = edgeMargin.value
   // One duck per horizontal half so the pair never fades in overlapping.
-  const halfW = (cssW - margin * 2) / DUCK_COUNT
-  for (let i = 0; i < DUCK_COUNT; i++) {
+  const count = zoneMode ? DUCK_COUNT_ZONE : DUCK_COUNT
+  const halfW = (cssW - margin * 2) / count
+  for (let i = 0; i < count; i++) {
     const x = margin + halfW * i + Math.random() * halfW
     const y = margin + Math.random() * (cssH - margin * 2)
     ducks.push(createDuck(x, y))
@@ -2211,11 +2421,12 @@ function stopMotion() {
   if (idleTimeoutId) clearTimeout(idleTimeoutId)
   idleTimeoutId = undefined
   zzzs.length = 0 // don't pop stale glyphs on resume
-  ctx?.clearRect(0, 0, cssW, cssH)
+  touchDragging = false
+  ctx?.clearRect(0, -worldPadTop, cssW, cssH + worldPadTop)
 }
 
 function scheduleIdleSpawn() {
-  resize()
+  updateZoneRect() // decides zone mode + sizes the canvas before the first spawn
   updateMaskRect()
   if (ducks.length) {
     startMotion()
@@ -2290,6 +2501,14 @@ onMounted(() => {
   window.addEventListener('pointercancel', handlePointerEnd, { passive: true })
   window.addEventListener('keydown', handleKeydown, { passive: true })
 
+  // Zone touch gestures live on the canvas itself (only ever hit in zone mode,
+  // where the canvas has pointer-events:auto). Non-passive so a duck hit can
+  // preventDefault the page scroll.
+  canvasEl.value.addEventListener('touchstart', handleTouchStart, { passive: false })
+  canvasEl.value.addEventListener('touchmove', handleTouchMove, { passive: false })
+  canvasEl.value.addEventListener('touchend', handleTouchEnd, { passive: true })
+  canvasEl.value.addEventListener('touchcancel', handleTouchEnd, { passive: true })
+
   if (!isReducedMotion.value) scheduleIdleSpawn()
 })
 
@@ -2303,6 +2522,10 @@ onUnmounted(() => {
   window.removeEventListener('pointerup', handlePointerEnd)
   window.removeEventListener('pointercancel', handlePointerEnd)
   window.removeEventListener('keydown', handleKeydown)
+  canvasEl.value?.removeEventListener('touchstart', handleTouchStart)
+  canvasEl.value?.removeEventListener('touchmove', handleTouchMove)
+  canvasEl.value?.removeEventListener('touchend', handleTouchEnd)
+  canvasEl.value?.removeEventListener('touchcancel', handleTouchEnd)
 })
 </script>
 
