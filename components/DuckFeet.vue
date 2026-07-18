@@ -219,16 +219,30 @@ const ZZZ_FONT = '11px "DM Mono", monospace'
 const STAMPEDE_WORD = 'quack'
 const STAMPEDE_COUNT_MIN = 12
 const STAMPEDE_COUNT_RANGE = 4
-const STAMPEDE_SPEED_MUL = 2.75
-// Panic reads mechanical if the herd moves as one: each runner gets its own
-// pace around the base multiplier, its own step phase, and a personal weave
-// around its line (phase-offset sinusoid) so nobody strides in lockstep.
+const STAMPEDE_SPEED_MUL = 4.5
+// Panic reads mechanical if the herd moves as one: each duck gets its own pace
+// around the superspeed multiplier and a personal evasive weave.
 const STAMPEDE_SPEED_JITTER = 0.4
-const STAMPEDE_LANE_JITTER_RAD = 0.12
-const STAMPEDE_WEAVE_RAD = 0.09
+const STAMPEDE_WEAVE_RAD = 0.32
 const STAMPEDE_WEAVE_HZ = 0.7
+const STAMPEDE_TURN_RATE = 3.2
 const STAMPEDE_SPACING_PX = 42
-const STAMPEDE_PANIC_S = 2
+const STAMPEDE_THREAT_GAP_PX = 240
+const PANIC_WALL_BOUNCE_PX = 12
+const PANIC_WALL_BOUNCE_MS = 800
+const PANIC_WALL_MIN_INWARD_COMPONENT = 0.45
+const SUPER_STAMPEDE_CENTER_RADIUS_PX = 180
+const SUPER_STAMPEDE_CENTER_ARRIVE_PX = 48
+const SUPER_STAMPEDE_CENTER_TIMEOUT_MS = 12000
+
+// "super quack" keeps the normal panic behaviour, adding only rainbow colours
+// and simultaneous arrivals from two edges.
+const SUPER_STAMPEDE_WORD = 'superquack'
+const SUPER_QUACK_DURATION_MS = 15000
+const SUPER_QUACK_RAMP_IN_MS = 500
+const SUPER_QUACK_RAMP_OUT_MS = 1800
+const SUPER_QUACK_HUE_SPEED = 150 // deg/sec the rainbow rotates
+const SUPER_QUACK_TINT = 0.82 // how fully the ducks take the rainbow
 
 // Seasonal micro-touches. The season is sampled once at mount (sessions are
 // short), so nothing pays a per-frame date cost.
@@ -401,9 +415,20 @@ interface Duck {
   mate: Duck | null
   courtUntil: number
   departing: boolean
-  stampeding: boolean // part of a "quack" herd: runs its line off-screen
-  stampedeHeading: number // the runner's base line; it weaves around this
-  stampedePhase: number // personal phase so no two runners weave in step
+  stampeding: boolean // part of a "quack" herd: flees its threat off-screen
+  stampedeThreatX: number
+  stampedeThreatY: number
+  stampedeCenterX: number
+  stampedeCenterY: number
+  stampedeMustCrossCenter: boolean
+  stampedeCenterUntil: number
+  stampedeHorizontalArrival: boolean
+  stampedeEnteredViewport: boolean
+  superStampeding: boolean
+  panicEscapeHeading: number
+  panicSpeedMultiplier: number
+  panicPhase: number
+  panicBounceUntil: number
   tuck: number // 0..1 eased head-tuck; crossfades pose sprites → tucked sprite
   zzzAt: number // next Zzz emission time while dozing
   gatherX: number // per-duck rally slot so a dozing flock beds down in a ring
@@ -677,6 +702,10 @@ const zzzs: Zzz[] = []
 let keyBuffer = ''
 let stampederCount = 0
 
+// "super quack" colour state, extended by each fresh trigger.
+let superQuackUntil = 0
+let superQuackStartedAt = 0
+
 // Seasonal flags, sampled once at mount.
 let seasonParty = false // Aug 1: party hats
 let seasonSnow = false // December: snowfall + frosted footprint trails
@@ -768,9 +797,39 @@ function handleThemeChange() {
   themeFade = { from: [drawRgb[0], drawRgb[1], drawRgb[2]], to: target, start: performance.now() }
 }
 
+// Active herds can span far beyond the canvas while queued. Keeping every
+// world-space point in the same relative position across a resize prevents a
+// stale waypoint or threat from stranding a runner off-screen.
+function remapStampedeWorld(previousW: number, previousH: number) {
+  if (previousW <= 0 || previousH <= 0 || previousW === cssW && previousH === cssH) return
+  const scaleX = cssW / previousW
+  const scaleY = cssH / previousH
+  for (const d of ducks) {
+    if (!d.stampeding) continue
+    d.x *= scaleX
+    d.y *= scaleY
+    d.bodyX *= scaleX
+    d.bodyY *= scaleY
+    d.bodyVX *= scaleX
+    d.bodyVY *= scaleY
+    d.stampedeThreatX *= scaleX
+    d.stampedeThreatY *= scaleY
+    d.stampedeCenterX *= scaleX
+    d.stampedeCenterY *= scaleY
+    for (const foot of d.feet) {
+      foot.x *= scaleX
+      foot.y *= scaleY
+      foot.fromX *= scaleX
+      foot.fromY *= scaleY
+    }
+  }
+}
+
 function resize() {
   const canvas = canvasEl.value
   if (!canvas || !ctx) return
+  const previousW = cssW
+  const previousH = cssH
   dpr = Math.min(window.devicePixelRatio || 1, 2)
   // In zone mode cssW/cssH mean the canvas (pen) box, not the viewport, so the
   // whole simulation — spawn, edges, despawn, clamp, clearRect, the off-screen
@@ -782,6 +841,7 @@ function resize() {
     cssW = window.innerWidth
     cssH = window.innerHeight
   }
+  remapStampedeWorld(previousW, previousH)
   worldPadTop = zoneMode ? ZONE_PAD_TOP : 0
   const w = Math.floor(cssW * dpr)
   // The backing store is taller than the pen by the overdraw band; the pen
@@ -914,14 +974,22 @@ function handleTouchEnd() {
 }
 
 // Rolling buffer over single-character keys; typing the secret word sends a
-// herd stampeding. Ignores typing into form fields.
+// herd stampeding, and "superquack" tips the scene into a frenzy. Ignores typing
+// into form fields.
 function handleKeydown(e: KeyboardEvent) {
   noteInteraction()
   const t = e.target as HTMLElement | null
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
   if (e.key.length !== 1) return
-  keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-STAMPEDE_WORD.length)
-  if (keyBuffer === STAMPEDE_WORD) {
+  keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-SUPER_STAMPEDE_WORD.length)
+  // Check the longer word first: it ends in "quack", so a plain-quack match
+  // would fire too if we didn't short-circuit here.
+  if (keyBuffer.endsWith(SUPER_STAMPEDE_WORD)) {
+    keyBuffer = ''
+    triggerSuperQuack()
+    return
+  }
+  if (keyBuffer.endsWith(STAMPEDE_WORD)) {
     keyBuffer = ''
     triggerStampede()
   }
@@ -1236,19 +1304,73 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   const dxm = d.x - mouse.x
   const dym = d.y - mouse.y
   const distm = Math.hypot(dxm, dym)
+  const panicResident = stampederCount > 0 && !d.departing && !d.stampeding
 
   if (d.growth) updateGrowth(d, now)
 
   if (d.stampeding) {
-    // Stampeders own their steering every frame, so flee, wander, edges, the
-    // sleepy bias and leaf stumbles can never turn them back mid-screen. They
-    // aren't rails though: each weaves around its base line on its own phase
-    // (the existing wander-ease smooths the turns into it).
+    // Super-quack runners first converge on individual points in the central
+    // area, guaranteeing they become visible. After that, every runner steers
+    // away from the threat behind its arrival edge instead of following a rail.
+    const centerDistance = Math.hypot(d.stampedeCenterX - d.x, d.stampedeCenterY - d.y)
+    if (
+      d.stampedeMustCrossCenter &&
+      (centerDistance < SUPER_STAMPEDE_CENTER_ARRIVE_PX || now >= d.stampedeCenterUntil)
+    ) {
+      d.stampedeMustCrossCenter = false
+    }
+    const desired = d.stampedeMustCrossCenter
+      ? Math.atan2(d.stampedeCenterY - d.y, d.stampedeCenterX - d.x)
+      : Math.atan2(d.y - d.stampedeThreatY, d.x - d.stampedeThreatX)
+    // A lateral weave while pursuing a point at full speed can settle into an
+    // orbit whose radius never crosses the arrival threshold. Run straight to
+    // the broad centre target, then resume evasive weaving once it is cleared.
+    const weave = d.stampedeMustCrossCenter
+      ? 0
+      : Math.sin((now / 1000 + d.panicPhase) * Math.PI * 2 * STAMPEDE_WEAVE_HZ) * STAMPEDE_WEAVE_RAD
     d.gait = 'fast'
     d.gaitTimer = 1
-    const t = now / 1000 + d.stampedePhase
-    d.wanderTarget = d.stampedeHeading + Math.sin(t * Math.PI * 2 * STAMPEDE_WEAVE_HZ) * STAMPEDE_WEAVE_RAD
+    d.wanderTarget = desired + weave
     d.wanderTimer = 1
+    d.heading += normalizeAngle(d.wanderTarget - d.heading) * Math.min(1, STAMPEDE_TURN_RATE * dt)
+  } else if (panicResident) {
+    // The unseen threat keeps chasing from behind, represented by a persistent
+    // escape heading. A fixed world-space threat would pull a bounced duck back
+    // toward the same wall and trap it in a loop.
+    if (now >= d.panicBounceUntil) {
+      let velocityX = Math.cos(d.heading)
+      let velocityY = Math.sin(d.heading)
+      let bounced = false
+      if (
+        (d.x <= PANIC_WALL_BOUNCE_PX && velocityX < 0) ||
+        (d.x >= W - PANIC_WALL_BOUNCE_PX && velocityX > 0)
+      ) {
+        velocityX = d.x <= PANIC_WALL_BOUNCE_PX
+          ? Math.max(Math.abs(velocityX), PANIC_WALL_MIN_INWARD_COMPONENT)
+          : -Math.max(Math.abs(velocityX), PANIC_WALL_MIN_INWARD_COMPONENT)
+        bounced = true
+      }
+      if (
+        (d.y <= PANIC_WALL_BOUNCE_PX && velocityY < 0) ||
+        (d.y >= H - PANIC_WALL_BOUNCE_PX && velocityY > 0)
+      ) {
+        velocityY = d.y <= PANIC_WALL_BOUNCE_PX
+          ? Math.max(Math.abs(velocityY), PANIC_WALL_MIN_INWARD_COMPONENT)
+          : -Math.max(Math.abs(velocityY), PANIC_WALL_MIN_INWARD_COMPONENT)
+        bounced = true
+      }
+      if (bounced) {
+        d.panicEscapeHeading = Math.atan2(velocityY, velocityX)
+        d.panicBounceUntil = now + PANIC_WALL_BOUNCE_MS
+      }
+    }
+    const desired = d.panicEscapeHeading
+    const weave = Math.sin((now / 1000 + d.panicPhase) * Math.PI * 2 * STAMPEDE_WEAVE_HZ) * STAMPEDE_WEAVE_RAD
+    d.gait = 'fast'
+    d.gaitTimer = Math.max(d.gaitTimer, 0.25)
+    d.wanderTarget = desired + weave
+    d.wanderTimer = 1
+    d.heading += normalizeAngle(d.wanderTarget - d.heading) * Math.min(1, STAMPEDE_TURN_RATE * dt)
   } else if (d.departing) {
     // Elders leave: march straight for the nearest edge, deaf to the mouse,
     // wander whims and the edge-avoidance that would turn them back.
@@ -1287,8 +1409,9 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   if (d.gaitTimer <= 0) pickGait(d)
   // Sleepy dark-theme ambling is slower, but a startled flee (which sets speed
   // directly below) and stampeders are never slowed.
-  const sleepyMul = isSleepyTheme && !d.departing && !d.stampeding ? SLEEPY_SPEED_FACTOR : 1
-  const targetSpeed = d.gait === 'stop' ? 0 : (d.gait === 'slow' ? SPEED_SLOW : SPEED_FAST) * d.speedMultiplier * sleepyMul
+  const sleepyMul = isSleepyTheme && !d.departing && !d.stampeding && !panicResident ? SLEEPY_SPEED_FACTOR : 1
+  const panicMul = d.stampeding || panicResident ? d.panicSpeedMultiplier : 1
+  const targetSpeed = d.gait === 'stop' ? 0 : (d.gait === 'slow' ? SPEED_SLOW : SPEED_FAST) * d.speedMultiplier * sleepyMul * panicMul
   d.speed += (targetSpeed - d.speed) * Math.min(1, GAIT_ACCEL * dt)
   if (targetSpeed === 0 && d.speed < 1.5) d.speed = 0
 
@@ -1316,7 +1439,7 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
 
   // Flee/curiosity only while awake — a stale cursor position from before the
   // flock dozed must not spook a sleeping duck. Stampeders ignore the cursor.
-  const canReactToMouse = flockMode === 'active' && !d.departing && !d.stampeding
+  const canReactToMouse = flockMode === 'active' && !d.departing && !d.stampeding && !panicResident
   // 'fearless': the flee reflex is inverted — the cursor is fascinating,
   // walk right up to it and stop just short.
   if (hasTrait(d.mutations, 'fearless')) {
@@ -1340,7 +1463,7 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   }
 
   const distToEdge = Math.min(d.x, W - d.x, d.y, H - d.y)
-  if (!d.departing && !d.stampeding && distToEdge < edgeMargin.value) {
+  if (!d.departing && !d.stampeding && !panicResident && distToEdge < edgeMargin.value) {
     const toCenter = Math.atan2(H / 2 - d.y, W / 2 - d.x)
     const strength2 = 1 - Math.max(0, distToEdge) / edgeMargin.value
     const diff2 = normalizeAngle(toCenter - d.heading)
@@ -1432,7 +1555,7 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
   // Autumn: a duck at a decent clip that clips a fallen leaf trips — a forced
   // stop, a ruffle, and a yaw kick the underdamped body spring turns into a
   // stumble. Per-leaf cooldown keeps it from looping on the same leaf.
-  if (seasonAutumn && !d.departing && !d.stampeding && d.speed > SPEED_SLOW * 0.5) {
+  if (seasonAutumn && !d.departing && !d.stampeding && !panicResident && d.speed > SPEED_SLOW * 0.5) {
     for (const leaf of leaves) {
       if (now < leaf.cooldownUntil) continue
       if (Math.hypot(d.x - leaf.x, d.y - leaf.y) > LEAF_STUMBLE_DIST) continue
@@ -1469,7 +1592,11 @@ function paintFoot(
   c.globalAlpha = alpha
   c.fillStyle = drawColor
   if (blur > 0) {
-    const shift = cssW + SHADOW_SHIFT_MARGIN_PX
+    // Draw to a fixed anchor a full viewport off the right edge (subtracting a
+    // negative x keeps it there even for ducks queued far off the left, e.g. a
+    // stampede line), so the crisp shape never wraps back onto the canvas; only
+    // its shadow, offset back to the true x, shows.
+    const shift = cssW + SHADOW_SHIFT_MARGIN_PX - Math.min(0, x)
     c.shadowColor = drawColor
     c.shadowBlur = blur * 2 * dpr // shadowBlur ≈ 2σ; blur(σpx) equivalent
     c.shadowOffsetX = -shift * dpr
@@ -1700,7 +1827,10 @@ function paintSprite(sprite: HTMLCanvasElement, x: number, y: number, rot: numbe
     // fainter, extra blur, and recolored to the live theme color via the
     // shadow (only the sprite's alpha channel matters here).
     c.save()
-    const shift = cssW + w + SHADOW_SHIFT_MARGIN_PX
+    // Fixed off-right anchor (see paintFoot): subtracting a negative x keeps
+    // the sprite off-canvas for ducks positioned far off the left edge, so the
+    // crisp silhouette can't wrap back into view — only its shadow shows.
+    const shift = cssW + w + SHADOW_SHIFT_MARGIN_PX - Math.min(0, x)
     c.globalAlpha = alpha * MASK_OPACITY_FACTOR * behind
     c.shadowColor = drawColor
     c.shadowBlur = MASK_BLUR_PX * 2 * dpr
@@ -1798,6 +1928,8 @@ function drawSeasonBackground(now: number, dt: number) {
 
 function draw(now: number, dt: number) {
   if (!ctx || !footPath) return
+  const superAmt = superIntensity(now)
+
   ctx.clearRect(0, -worldPadTop, cssW, cssH + worldPadTop)
   drawSeasonBackground(now, dt)
 
@@ -1942,6 +2074,21 @@ function draw(now: number, dt: number) {
   }
 
   drawZzz(now)
+
+  if (superAmt > 0) {
+    // Recolour everything drawn this frame — ducks, feet, trails — to a rotating
+    // rainbow. source-atop keeps each pixel's alpha and only swaps its colour,
+    // so it tints existing content without flooding the whole canvas.
+    const hue = ((now * SUPER_QUACK_HUE_SPEED) / 1000) % 360
+    ctx.save()
+    ctx.globalCompositeOperation = 'source-atop'
+    ctx.globalAlpha = SUPER_QUACK_TINT * superAmt
+    const grad = ctx.createLinearGradient(0, 0, cssW, cssH)
+    for (let i = 0; i <= 6; i++) grad.addColorStop(i / 6, `hsl(${(hue + i * 60) % 360} 90% 55%)`)
+    ctx.fillStyle = grad
+    ctx.fillRect(0, -worldPadTop, cssW, cssH + worldPadTop)
+    ctx.restore()
+  }
 }
 
 // Paints the pose-pair crossfade plus the tucked-head sprite for one duck, from
@@ -2093,8 +2240,19 @@ function createDuck(x: number, y: number, generation = 0, mutations: Mutations |
     courtUntil: 0,
     departing: false,
     stampeding: false,
-    stampedeHeading: 0,
-    stampedePhase: 0,
+    stampedeThreatX: 0,
+    stampedeThreatY: 0,
+    stampedeCenterX: 0,
+    stampedeCenterY: 0,
+    stampedeMustCrossCenter: false,
+    stampedeCenterUntil: 0,
+    stampedeHorizontalArrival: true,
+    stampedeEnteredViewport: false,
+    superStampeding: false,
+    panicEscapeHeading: 0,
+    panicSpeedMultiplier: 1,
+    panicPhase: 0,
+    panicBounceUntil: 0,
     tuck: 0,
     zzzAt: 0,
     gatherX: 0,
@@ -2112,6 +2270,7 @@ function breedEligible(d: Duck, now: number) {
     !d.growth &&
     !d.departing &&
     !d.stampeding &&
+    stampederCount === 0 &&
     !d.mate &&
     !isSterile(d) &&
     now >= d.breedReadyAt &&
@@ -2125,22 +2284,15 @@ function spawnBaby(p1: Duck, p2: Duck, now: number) {
   const y = (p1.y + p2.y) / 2 + (Math.random() * 2 - 1) * 12
   ducks.push(createDuck(x, y, generation, rollMutations(generation, p1.mutations, p2.mutations), true))
 
-  // Over the cap, someone wanders off-screen to make room: the most
-  // malformed bystander first (mutants are short-lived), oldest breaking
-  // ties — never the new parents or a growing baby.
+  // Over the cap, the oldest bystander wanders off-screen to make room —
+  // never the new parents or a growing baby.
   if (ducks.length > popCap) {
     let elder: Duck | null = null
     for (const d of ducks) {
       // Never send a stampeder off as the elder — it owns the departing/despawn
       // state already, and marking it departing would collide with that.
       if (d.departing || d.stampeding || d === p1 || d === p2 || d.growth) continue
-      if (!elder) {
-        elder = d
-        continue
-      }
-      const dTraits = d.mutations?.traits.length ?? 0
-      const eTraits = elder.mutations?.traits.length ?? 0
-      if (dTraits > eTraits || (dTraits === eTraits && d.birth < elder.birth)) elder = d
+      if (!elder || d.birth < elder.birth) elder = d
     }
     if (elder) {
       if (elder.mate) cancelCourtship(elder, now)
@@ -2273,12 +2425,23 @@ function tick(now: number) {
   // would instantly cull the entry queue waiting off the near edge).
   for (let i = ducks.length - 1; i >= 0; i--) {
     const d = ducks[i]!
-    const gone = d.stampeding
-      ? Math.cos(d.stampedeHeading) > 0
-        ? d.x > cssW + DESPAWN_MARGIN_PX
-        : d.x < -DESPAWN_MARGIN_PX
-      : d.departing &&
-      (d.x < -DESPAWN_MARGIN_PX || d.x > cssW + DESPAWN_MARGIN_PX || d.y < -DESPAWN_MARGIN_PX || d.y > cssH + DESPAWN_MARGIN_PX)
+    let gone: boolean
+    if (d.stampeding) {
+      // Curved runners can cross the arrival edge beyond a corner. Count that
+      // as entering along their herd's axis so an off-screen lateral exit can
+      // still despawn them and release the resident flock from its frenzy.
+      if (
+        (d.stampedeHorizontalArrival && d.x >= 0 && d.x <= cssW) ||
+        (!d.stampedeHorizontalArrival && d.y >= 0 && d.y <= cssH)
+      ) {
+        d.stampedeEnteredViewport = true
+      }
+      gone = d.stampedeEnteredViewport &&
+        (d.x < -DESPAWN_MARGIN_PX || d.x > cssW + DESPAWN_MARGIN_PX || d.y < -DESPAWN_MARGIN_PX || d.y > cssH + DESPAWN_MARGIN_PX)
+    } else {
+      gone = d.departing &&
+        (d.x < -DESPAWN_MARGIN_PX || d.x > cssW + DESPAWN_MARGIN_PX || d.y < -DESPAWN_MARGIN_PX || d.y > cssH + DESPAWN_MARGIN_PX)
+    }
     if (gone) {
       if (d.stampeding) stampederCount = Math.max(0, stampederCount - 1)
       releaseSpriteSet(d)
@@ -2302,36 +2465,63 @@ function spawnDucks() {
   }
 }
 
-// The "quack" payoff: a transient herd enters from one edge in a staggered
-// queue and thunders straight across, the resident flock scattering in panic.
-// The herd despawns off the far edge, restoring the normal population.
-function triggerStampede() {
-  if (stampederCount > 0 || isReducedMotion.value || !raf || !ctx) return
-  const now = performance.now()
-  wake(now)
-
-  const fromLeft = Math.random() < 0.5
-  const heading = fromLeft ? 0 : Math.PI
-  const edge = fromLeft ? -40 : cssW + 40
+// Spawns one herd from an axis-aligned edge. The threat sits behind the full
+// queue, so every runner flees into view; super-quack runners route through a
+// personal point in the centre before continuing away from it.
+function spawnStampede(dirX: number, dirY: number, mustCrossCenter = false) {
   const margin = edgeMargin.value
+  const now = performance.now()
   const count = STAMPEDE_COUNT_MIN + Math.floor(Math.random() * (STAMPEDE_COUNT_RANGE + 1))
+  const queueDepth = 30 + count * STAMPEDE_SPACING_PX * 1.3
+  const centerRadiusLimit = Math.max(
+    0,
+    Math.min(SUPER_STAMPEDE_CENTER_RADIUS_PX, cssW / 2 - margin, cssH / 2 - margin)
+  )
+  const threatX = dirX > 0
+    ? -queueDepth - STAMPEDE_THREAT_GAP_PX
+    : dirX < 0
+      ? cssW + queueDepth + STAMPEDE_THREAT_GAP_PX
+      : cssW / 2
+  const threatY = dirY > 0
+    ? -queueDepth - STAMPEDE_THREAT_GAP_PX
+    : dirY < 0
+      ? cssH + queueDepth + STAMPEDE_THREAT_GAP_PX
+      : cssH / 2
   for (let i = 0; i < count; i++) {
     // Spatial stagger (queued off the entry edge) rather than timed spawns, so
     // there are no timers to clean up on unmount.
     const back = 30 + i * STAMPEDE_SPACING_PX * (0.7 + Math.random() * 0.6)
-    const x = fromLeft ? edge - back : edge + back
-    const y = margin + Math.random() * (cssH - margin * 2)
+    // Horizontal herds queue along x and spread across y; vertical herds do the
+    // opposite.
+    let x: number
+    let y: number
+    if (dirX !== 0) {
+      x = (dirX > 0 ? -40 : cssW + 40) - dirX * back
+      y = margin + Math.random() * (cssH - margin * 2)
+    } else {
+      y = (dirY > 0 ? -40 : cssH + 40) - dirY * back
+      x = margin + Math.random() * (cssW - margin * 2)
+    }
     const d = createDuck(x, y)
     d.stampeding = true
-    // Every runner is an individual: its own lane angle, pace, weave phase,
-    // entry speed and step-cycle offset — a herd of clones striding in sync
-    // is what makes a stampede read mechanical.
-    d.stampedeHeading = heading + (Math.random() - 0.5) * STAMPEDE_LANE_JITTER_RAD
-    d.stampedePhase = Math.random() * 10
-    d.heading = d.stampedeHeading
+    d.stampedeThreatX = threatX
+    d.stampedeThreatY = threatY
+    const centerAngle = Math.random() * Math.PI * 2
+    const centerRadius = Math.sqrt(Math.random()) * centerRadiusLimit
+    d.stampedeCenterX = cssW / 2 + Math.cos(centerAngle) * centerRadius
+    d.stampedeCenterY = cssH / 2 + Math.sin(centerAngle) * centerRadius
+    d.stampedeMustCrossCenter = mustCrossCenter
+    d.stampedeCenterUntil = mustCrossCenter ? now + SUPER_STAMPEDE_CENTER_TIMEOUT_MS : 0
+    d.stampedeHorizontalArrival = dirX !== 0
+    d.superStampeding = mustCrossCenter
+    d.panicSpeedMultiplier = STAMPEDE_SPEED_MUL *
+      (1 - STAMPEDE_SPEED_JITTER / 2 + Math.random() * STAMPEDE_SPEED_JITTER)
+    d.panicPhase = Math.random() * 10
+    d.heading = mustCrossCenter
+      ? Math.atan2(d.stampedeCenterY - y, d.stampedeCenterX - x)
+      : Math.atan2(y - threatY, x - threatX)
     d.wanderTarget = d.heading
     d.bodyYaw = d.heading
-    d.speedMultiplier = STAMPEDE_SPEED_MUL * (1 - STAMPEDE_SPEED_JITTER / 2 + Math.random() * STAMPEDE_SPEED_JITTER)
     d.gait = 'fast'
     d.speed = SPEED_FAST * (0.5 + Math.random()) // ragged, not uniform, entry pace
     d.side = Math.random() < 0.5 ? -1 : 1
@@ -2350,19 +2540,75 @@ function triggerStampede() {
     ducks.push(d)
     stampederCount++
   }
+}
 
-  // Residents bolt in a brief panic, then settle back to normal life.
+// Each resident gets an unseen threat just behind a random escape direction.
+// Decoupling those threats from the herd's arrival edge makes the flock scatter
+// instead of collectively migrating toward the herd's opposite edge.
+function stampedeResidentsPanic(now: number) {
   for (const d of ducks) {
     if (d.stampeding || d.departing) continue
     if (d.mate) cancelCourtship(d, now)
+    const escapeHeading = Math.random() * Math.PI * 2
     d.gait = 'fast'
-    d.gaitTimer = STAMPEDE_PANIC_S
-    d.wanderTarget = d.heading + (Math.random() - 0.5) * Math.PI
-    d.wanderTimer = STAMPEDE_PANIC_S
+    d.gaitTimer = 1
+    d.panicEscapeHeading = escapeHeading
+    d.panicSpeedMultiplier = STAMPEDE_SPEED_MUL *
+      (1 - STAMPEDE_SPEED_JITTER / 2 + Math.random() * STAMPEDE_SPEED_JITTER)
+    d.panicPhase = Math.random() * 10
+    d.panicBounceUntil = 0
+    d.wanderTarget = escapeHeading
+    d.wanderTimer = 1
     d.shimmyStart = now
   }
+}
 
+// The "quack" payoff: a single herd charges across from one side.
+function triggerStampede() {
+  if (stampederCount > 0 || isReducedMotion.value || !raf || !ctx) return
+  const now = performance.now()
+  wake(now)
+  const dirX = Math.random() < 0.5 ? 1 : -1
+  spawnStampede(dirX, 0)
+  stampedeResidentsPanic(now)
   trackEvent('quack_stampede')
+}
+
+// Super quack herds pour in from two perpendicular sides at once: one
+// horizontal (left or right) and one vertical (top or bottom).
+function triggerSuperStampede() {
+  // A super quack must be able to overtake an active normal quack: its two
+  // incoming herds and the resident panic are the upgrade, not a separate
+  // event that waits for the first herd to leave. Once upgraded, further
+  // triggers only extend the colour treatment until that super herd is gone.
+  if (isReducedMotion.value || !raf || !ctx) return
+  if (ducks.some(d => d.stampeding && d.superStampeding)) return
+  const now = performance.now()
+  const dirX = Math.random() < 0.5 ? 1 : -1
+  const dirY = Math.random() < 0.5 ? 1 : -1
+  spawnStampede(dirX, 0, true)
+  spawnStampede(0, dirY, true)
+  stampedeResidentsPanic(now)
+}
+
+// Enable the colour treatment and kick off one two-edge stampede.
+function triggerSuperQuack() {
+  if (isReducedMotion.value || !raf || !ctx) return
+  const now = performance.now()
+  wake(now)
+  if (now >= superQuackUntil) superQuackStartedAt = now // fresh bout, not an extension
+  superQuackUntil = now + SUPER_QUACK_DURATION_MS
+  triggerSuperStampede()
+  trackEvent('super_quack')
+}
+
+// 0..1 frenzy strength, eased in at the start and out at the end so the effect
+// arrives and departs smoothly rather than snapping.
+function superIntensity(now: number): number {
+  if (!superQuackUntil || now >= superQuackUntil) return 0
+  const inT = Math.min(1, (now - superQuackStartedAt) / SUPER_QUACK_RAMP_IN_MS)
+  const outT = Math.min(1, (superQuackUntil - now) / SUPER_QUACK_RAMP_OUT_MS)
+  return Math.max(0, Math.min(inT, outT))
 }
 
 // Ducks spawn on their own once the browser goes idle after landing, so
@@ -2422,6 +2668,7 @@ function stopMotion() {
   idleTimeoutId = undefined
   zzzs.length = 0 // don't pop stale glyphs on resume
   touchDragging = false
+  superQuackUntil = 0 // don't resume mid-frenzy
   ctx?.clearRect(0, -worldPadTop, cssW, cssH + worldPadTop)
 }
 
