@@ -3,16 +3,23 @@ interface UiTagProps {
   title: string
 }
 
-defineProps<UiTagProps>()
+const { title } = defineProps<UiTagProps>()
 
 const emit = defineEmits<{
   click: [title: string]
 }>()
+
+const NON_BREAKING_SPACE = '\u00A0'
+
+const characters = computed(() => [...title].map((char) => (char === ' ' ? NON_BREAKING_SPACE : char)))
 </script>
 
 <template>
-  <button type="button" class="Tag" @click.passive="emit('click', title)">
-    <span class="title">{{ title }}</span>
+  <button type="button" class="Tag" :aria-label="title" @click.passive="emit('click', title)">
+    <span class="dot" aria-hidden="true" data-marquee-item />
+    <span class="title" aria-hidden="true">
+      <span v-for="(char, index) in characters" :key="`${char}-${index}`" class="char" data-marquee-item>{{ char }}</span>
+    </span>
   </button>
 </template>
 
@@ -33,16 +40,23 @@ const emit = defineEmits<{
   white-space: nowrap;
   cursor: pointer;
 
-  &::before {
-    content: '';
+  .title {
+    display: inline-block;
+  }
+
+  .char {
+    display: inline-block;
+  }
+
+  // Centred with `top` rather than a translateY: the marquee bend owns `transform`
+  .dot {
     position: absolute;
     left: 0;
-    top: 50%;
+    top: calc(50% - 2px);
     width: 4px;
     height: 4px;
     background-color: var(--color-primary);
     border-radius: 50%;
-    transform: translateY(-50%);
     opacity: 0.5;
     margin-left: -12px;
   }
@@ -53,7 +67,7 @@ const emit = defineEmits<{
     &:hover {
       opacity: 1;
 
-      &::before {
+      .dot {
         opacity: 0.8;
       }
     }

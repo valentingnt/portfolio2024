@@ -3,9 +3,11 @@ interface MarqueeProps {
   enableAnimation?: boolean
   strength?: number
   speed?: number
+  /** Degrees of drum arc between centre and each edge. 0 disables the effect. */
+  bend?: number
 }
 
-const { enableAnimation = true, strength = 1.5, speed = 0.5 } = defineProps<MarqueeProps>()
+const { enableAnimation = true, strength = 1.5, speed = 0.5, bend = 0 } = defineProps<MarqueeProps>()
 
 const component = ref<HTMLElement | null>(null)
 const wrapper = ref<HTMLDivElement | null>(null)
@@ -55,6 +57,7 @@ function updateTransform() {
 
   if (dragState.isDragging) {
     transform.value = normalizeTransform(dragState.startTransform + (dragState.startX - dragState.lastX))
+    applyBend()
     return
   }
 
@@ -64,6 +67,74 @@ function updateTransform() {
   }
 
   transform.value = normalizeTransform(transform.value + currentSpeed * scrollState.direction + velocity.value * strength)
+  applyBend()
+}
+
+const BEND_ITEM_SELECTOR = '[data-marquee-item]'
+const BEND_FOCAL = 800
+const BEND_MIN_STEP = 0.5
+const BEND_MAX_ANGLE = Math.PI / 2
+
+interface BendItem {
+  el: HTMLElement
+  center: number
+  angle: number
+}
+
+let bendItems: BendItem[] = []
+let bendHalf = 0
+let bendRadius = 0
+let lastBendOffset = Number.NaN
+
+function measureBendItems() {
+  bendItems = []
+  lastBendOffset = Number.NaN
+
+  const root = component.value
+  if (!bend || !root) return
+
+  const items = root.querySelectorAll<HTMLElement>(BEND_ITEM_SELECTOR)
+  for (const el of items) el.style.transform = ''
+
+  bendHalf = root.clientWidth / 2
+  bendRadius = bendHalf / ((bend * Math.PI) / 180)
+  if (!bendHalf) return
+
+  const base = root.getBoundingClientRect().left
+  for (const el of items) {
+    const rect = el.getBoundingClientRect()
+    bendItems.push({ el, center: rect.left - base + transform.value + rect.width / 2, angle: Number.NaN })
+  }
+
+  applyBend(true)
+}
+
+function applyBend(force = false) {
+  if (!bendItems.length) return
+
+  const offsetBase = transform.value + bendHalf
+  if (!force && Math.abs(offsetBase - lastBendOffset) < BEND_MIN_STEP) return
+
+  lastBendOffset = offsetBase
+
+  for (const item of bendItems) {
+    const offset = item.center - offsetBase
+    const angle = clamp(offset / bendRadius, -BEND_MAX_ANGLE, BEND_MAX_ANGLE)
+
+    if (angle === item.angle) continue
+    item.angle = angle
+
+    if (!angle) {
+      item.el.style.transform = ''
+      continue
+    }
+
+    const squeeze = Math.cos(angle)
+    const scale = BEND_FOCAL / (BEND_FOCAL + bendRadius * (1 - squeeze))
+    const shift = bendRadius * Math.sin(angle) * scale - offset
+
+    item.el.style.transform = `translate(${shift.toFixed(2)}px,0) scale(${(scale * squeeze).toFixed(4)},${scale.toFixed(4)})`
+  }
 }
 
 function isSettled(): boolean {
@@ -105,13 +176,21 @@ function handleScroll(scrollValue: number) {
 function handleResize() {
   if (!wrapper.value) return
   wrapperWidth.value = wrapper.value.clientWidth || 1
+  measureBendItems()
+}
+
+function pointerX(event: MouseEvent | TouchEvent): number | undefined {
+  return 'touches' in event ? event.touches[0]?.clientX : event.clientX
 }
 
 function handleDragStart(event: MouseEvent | TouchEvent) {
+  const startX = pointerX(event)
+  if (startX === undefined) return
+
   dragState.isDragging = true
-  dragState.startX = 'touches' in event ? event.touches[0].clientX : event.clientX
+  dragState.startX = startX
   dragState.startTransform = transform.value
-  dragState.lastX = dragState.startX
+  dragState.lastX = startX
   dragState.lastTime = performance.now()
   stopAnimation()
 }
@@ -119,7 +198,9 @@ function handleDragStart(event: MouseEvent | TouchEvent) {
 function handleDragMove(event: MouseEvent | TouchEvent) {
   if (!dragState.isDragging) return
 
-  const currentX = 'touches' in event ? event.touches[0].clientX : event.clientX
+  const currentX = pointerX(event)
+  if (currentX === undefined) return
+
   const currentTime = performance.now()
   const deltaTime = currentTime - dragState.lastTime
 
@@ -131,6 +212,7 @@ function handleDragMove(event: MouseEvent | TouchEvent) {
   dragState.lastTime = currentTime
 
   transform.value = normalizeTransform(dragState.startTransform + (dragState.startX - currentX))
+  applyBend()
 }
 
 function handleDragEnd() {
@@ -153,6 +235,7 @@ function handleWheel(event: WheelEvent) {
   const scale = event.deltaMode === 1 ? 16 : 1
 
   transform.value = normalizeTransform(transform.value + event.deltaX * scale)
+  applyBend()
 }
 
 watchScroll(handleScroll, { enabled: shouldAnimate })
@@ -161,6 +244,10 @@ watchWindowResize(handleResize)
 // Wake the loop when speed comes back (e.g. hover ends) or motion preference changes
 watch(() => speed, () => startAnimation())
 watch(shouldAnimate, (value) => (value ? startAnimation() : stopAnimation()))
+
+watch([slotCount, wrapperWidth], () => nextTick(measureBendItems))
+
+defineExpose({ refreshBend: () => nextTick(measureBendItems) })
 
 onMounted(() => {
   resizeObserver = new ResizeObserver((entries) => {
@@ -178,7 +265,10 @@ onMounted(() => {
 
   // Pause the rAF loop while the marquee is scrolled off-screen
   intersectionObserver = new IntersectionObserver((entries) => {
-    isVisible = entries[0].isIntersecting
+    const entry = entries[0]
+    if (!entry) return
+
+    isVisible = entry.isIntersecting
     if (isVisible) {
       startAnimation()
     } else {
@@ -191,6 +281,7 @@ onMounted(() => {
     intersectionObserver.observe(component.value)
   }
 
+  nextTick(measureBendItems)
   startAnimation()
 })
 

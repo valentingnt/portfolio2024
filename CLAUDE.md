@@ -6,7 +6,7 @@ Guidance for Claude Code when working in this repository.
 
 Personal portfolio site of Valentin Genest (valentingenest.fr). A **single-page, bilingual (FR/EN) Nuxt 4 app** deployed on Vercel. There is only one real page (the "about" page) plus an error page. The site is SSR'd and the `/fr` and `/en` routes are prerendered at build time.
 
-Stack: **Nuxt 4 + Vue 3 + TypeScript + SCSS**. Package manager is **Yarn 1** (`yarn.lock` — never use npm or pnpm). No test suite exists. Analytics via Google Analytics (gtag) + Vercel Analytics/Speed Insights.
+Stack: **Nuxt 4 + Vue 3 + TypeScript + SCSS**. Package manager is **pnpm** (`pnpm-lock.yaml` + the `packageManager` field — never use npm or yarn). No test suite exists. Analytics via Google Analytics (gtag) + Vercel Analytics/Speed Insights.
 
 ## Commands
 
@@ -16,9 +16,10 @@ pnpm dev           # dev server on http://localhost:3000
 pnpm build         # production build (use this to verify changes compile)
 pnpm lint          # eslint check
 pnpm lint:fix      # eslint autofix
+pnpm typecheck     # vue-tsc --noEmit (checks .vue templates too, which eslint does not)
 ```
 
-There are no tests. Verify changes with `yarn lint` and `yarn build`.
+There are no tests. Verify changes with `pnpm lint`, `pnpm typecheck` and `pnpm build`.
 
 ## Directory map
 

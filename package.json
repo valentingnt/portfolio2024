@@ -10,7 +10,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "typecheck": "vue-tsc --noEmit"
   },
   "devDependencies": {
     "@nuxt/eslint-config": "^1.16.0",
@@ -19,7 +20,8 @@
     "nuxt": "^4.5.2",
     "sass": "^1.102.0",
     "typescript": "^6.0.3",
-    "vue": "^3.5.41"
+    "vue": "^3.5.41",
+    "vue-tsc": "^3.3.9"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

@@ -5,21 +5,25 @@ export interface SeoMeta {
   htmlAttrs: {
     lang: string
   }
-  meta: {
-    name?: string
-    property?: string
-    content: string
-  }[]
+  meta: SeoMetaTag[]
   script: {
-    type: string
-    children: string
+    type: 'application/ld+json'
+    innerHTML: string
   }[]
-  link: {
-    rel: string
-    href: string
-    hreflang?: string
-  }[]
+  link: SeoLink[]
 }
+
+// These mirror unhead's discriminated unions. Optional-everything shapes (`name?` and
+// `property?` on one object, or a widened `rel: string`) leave useHead() unable to pick
+// a variant, so each tag shape is spelled out separately.
+export type SeoMetaTag =
+  | { name: string, content: string }
+  | { property: string, content: string }
+
+export type SeoLink =
+  | { rel: 'canonical', href: string }
+  | { rel: 'me', href: string }
+  | { rel: 'alternate', href: string, hreflang: string }
 
 export interface UseSeoReturn {
   meta: ComputedRef<SeoMeta>

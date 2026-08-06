@@ -14,7 +14,8 @@ export function useScrollEffect() {
     if (!mediaRef.value) return
 
     const observer = new IntersectionObserver((entries) => {
-      isIntersecting.value = entries[0].isIntersecting
+      const entry = entries[0]
+      if (entry) isIntersecting.value = entry.isIntersecting
     })
 
     observer.observe(mediaRef.value)

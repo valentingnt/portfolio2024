@@ -4,8 +4,10 @@ import type { SkillsMultiLangContent, Skill } from '@/types/skills'
 
 const MARQUEE_SPEED = 0.2
 const MARQUEE_HOVER_SPEED = 0.05
+const MARQUEE_BEND = 35
 
 const speed = ref(MARQUEE_SPEED)
+const marquee = ref<{ refreshBend: () => void } | null>(null)
 const toast = ref<{ showToast: (title: string, description: string) => void } | null>(null)
 const { isEnglish } = useLanguage(useRoute().params.lang as string)
 
@@ -18,15 +20,25 @@ const shuffledSkills = ref<Skill[]>(skills.value)
 function shuffle(source: Skill[]): Skill[] {
   const out = [...source]
   for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]]
+    const j = Math.floor(Math.random() * (i + 1))
+    const current = out[i]
+    const target = out[j]
+    if (!current || !target) continue
+
+    out[i] = target
+    out[j] = current
   }
   return out
 }
 
-onMounted(() => (shuffledSkills.value = shuffle(skills.value)))
+function applyShuffle(source: Skill[]) {
+  shuffledSkills.value = shuffle(source)
+  marquee.value?.refreshBend()
+}
 
-watch(skills, (next) => (shuffledSkills.value = shuffle(next)))
+onMounted(() => applyShuffle(skills.value))
+
+watch(skills, applyShuffle)
 
 function handleTagClick(skill: Skill) {
   toast.value?.showToast(skill.name, skill.description)
@@ -34,12 +46,19 @@ function handleTagClick(skill: Skill) {
 </script>
 
 <template>
-  <div class="SkillsMarqueeWrapper" @mouseenter.passive="speed = MARQUEE_HOVER_SPEED"
-    @mouseleave.passive="speed = MARQUEE_SPEED">
-    <UiMarquee class="SkillsMarquee" :speed="speed" :strength="2">
+  <div
+    class="SkillsMarqueeWrapper"
+    @mouseenter.passive="speed = MARQUEE_HOVER_SPEED"
+    @mouseleave.passive="speed = MARQUEE_SPEED"
+  >
+    <UiMarquee ref="marquee" class="SkillsMarquee" :speed="speed" :strength="2" :bend="MARQUEE_BEND">
       <div class="skills-container">
-        <UiTag v-for="skill in shuffledSkills" :key="skill.name" :title="skill.name"
-          @click.passive="handleTagClick(skill)" />
+        <UiTag
+          v-for="skill in shuffledSkills"
+          :key="skill.name"
+          :title="skill.name"
+          @click.passive="handleTagClick(skill)"
+        />
       </div>
     </UiMarquee>
   </div>
