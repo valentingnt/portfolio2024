@@ -71,10 +71,4 @@ export default defineNuxtConfig({
       routes: ["/fr", "/en"],
     },
   },
-
-  vite: {
-    optimizeDeps: {
-      include: ["lenis"],
-    },
-  },
 })
