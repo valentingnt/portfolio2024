@@ -265,17 +265,38 @@ const SNOW_ALPHA = 0.18
 const TRAIL_MAX = 130
 const TRAIL_LIFE_MS = 6000
 const TRAIL_ALPHA = 0.1
-const LEAF_COUNT_MIN = 5
-const LEAF_COUNT_RANGE = 4
-const LEAF_ALPHA = 0.16
+const LEAF_ALPHA = 0.12
 const LEAF_STUMBLE_DIST = 12
 const LEAF_COOLDOWN_MS = 6000
 const LEAF_KICK_YAW = 1.6
 const LEAF_NUDGE_PX = 6
-// A small leaf blade (two curved sides meeting at a point) plus a stub stem,
-// hand-authored like FOOT_D; ~24 units tall, scaled down at paint time.
-const LEAF_D = 'M12,0 C18,6 18,16 12,24 C6,16 6,6 12,0 Z M12,10 L12,24'
-const LEAF_SCALE = 0.6
+// A maple leaf (pointed lobes plus a stub stem), hand-authored like FOOT_D and
+// centered on its origin so it spins around its middle; ~27 units tall.
+const LEAF_D =
+  'M0,-14 L2.2,-9.5 L4.3,-10.2 L4.6,-5.2 L9.2,-8.6 L8.4,-3.8 L13.6,-2.4 L10.6,1.2 L11.6,4 L6.2,3.4 L1.1,5.6 L1,12.5 L-1,12.5 L-1.1,5.6 L-6.2,3.4 L-11.6,4 L-10.6,1.2 L-13.6,-2.4 L-8.4,-3.8 L-9.2,-8.6 L-4.6,-5.2 L-4.3,-10.2 L-2.2,-9.5 Z'
+const LEAF_SCALE = 0.8
+// Leaves drift down one at a time instead of being scattered up front; the cap
+// plus the rest/fade-out keep the canvas from filling up if the tab stays open.
+const LEAF_MAX = 9
+const LEAF_SPAWN_MIN_S = 1.6
+const LEAF_SPAWN_RANGE_S = 2.6
+const LEAF_FALL_SPEED_MIN = 22
+const LEAF_FALL_SPEED_RANGE = 22
+const LEAF_SWAY_MIN_PX = 16
+const LEAF_SWAY_RANGE_PX = 26
+const LEAF_SWAY_HZ_MIN = 0.12
+const LEAF_SWAY_HZ_RANGE = 0.16
+const LEAF_SPIN_MAX = 0.9
+// Falling leaves are blurred (and a touch more opaque, since blur thins them)
+// to read as motion; the blur eases out once they land.
+const LEAF_FALL_BLUR_PX = 3.2
+const LEAF_BLUR_SETTLE_MS = 500
+const LEAF_BLUR_ALPHA_BOOST = 0.6
+// Some leaves land on the page (and can trip ducks), the rest fall through.
+const LEAF_LAND_CHANCE = 0.6
+const LEAF_REST_MIN_MS = 7000
+const LEAF_REST_RANGE_MS = 8000
+const LEAF_FADE_MS = 2500
 
 const FOOT_D = 'M90.679,71.643C79.394,82.192 56.347,85.525 38.506,86.549C17.906,87.731 16.237,84.277 17.186,79.497C19.251,69.096 37.891,3.879 51.134,15.897C53.904,18.41 53.019,30.949 70.511,30.584C75.567,30.478 80.629,27.48 83.756,31.358C87.618,36.146 69.931,51.999 88.261,62.942C94.481,66.655 92.82,69.641 90.679,71.643Z'
 const FOOT_ROT_A = 0.638524
@@ -733,8 +754,20 @@ interface Leaf {
   y: number
   rot: number
   cooldownUntil: number
+  state: 'fall' | 'rest'
+  baseX: number
+  vy: number
+  amp: number
+  hz: number
+  phase: number
+  spin: number
+  targetY: number
+  bornAt: number
+  landedAt: number
+  restUntil: number
 }
 const leaves: Leaf[] = []
+let nextLeafAt = 0
 let leafPath: Path2D | null = null
 let hatConePath: Path2D | null = null
 let hatStripesPath: Path2D | null = null
@@ -856,9 +889,9 @@ function resize() {
   // edge, leaving the band above it for body overhang.
   ctx.setTransform(dpr, 0, 0, dpr, 0, worldPadTop * dpr)
 
-  // Seasonal props were scattered for the old viewport; re-scatter so leaves
-  // don't sit off-canvas (unreachable by clamped ducks) or clustered in one
-  // corner, and snow covers the new area at the right density.
+  // Seasonal props were placed for the old viewport; reset them so leaves
+  // don't sit off-canvas (unreachable by clamped ducks) and fall across the
+  // new width, and snow covers the new area at the right density.
   if (flakes.length) {
     flakes.length = 0
     spawnFlakes()
@@ -1552,12 +1585,12 @@ function step(d: Duck, dt: number, now: number, W: number, H: number) {
     (isSleepyTheme && d.speed === 0 && !d.mate && !d.departing && !d.stampeding)
   d.tuck += ((wantsTuck ? 1 : 0) - d.tuck) * Math.min(1, TUCK_RATE * dt)
 
-  // Autumn: a duck at a decent clip that clips a fallen leaf trips — a forced
+  // Autumn: a duck at a decent clip that clips a landed leaf trips — a forced
   // stop, a ruffle, and a yaw kick the underdamped body spring turns into a
   // stumble. Per-leaf cooldown keeps it from looping on the same leaf.
   if (seasonAutumn && !d.departing && !d.stampeding && !panicResident && d.speed > SPEED_SLOW * 0.5) {
     for (const leaf of leaves) {
-      if (now < leaf.cooldownUntil) continue
+      if (leaf.state !== 'rest' || now < leaf.cooldownUntil) continue
       if (Math.hypot(d.x - leaf.x, d.y - leaf.y) > LEAF_STUMBLE_DIST) continue
       d.gait = 'stop'
       d.gaitTimer = 0.5 + Math.random() * 0.5
@@ -1864,22 +1897,14 @@ function paintFootPose(duck: Duck, foot: Foot, pose: FootPose, spawnFade: number
   }
 }
 
-// Ground/atmosphere layer painted before the ducks: fallen leaves and fading
+// Ground/atmosphere layer painted before the ducks: falling/landed leaves and fading
 // frost trails sit under the flock; snow falls behind everything.
 function drawSeasonBackground(now: number, dt: number) {
   const c = ctx!
 
   if (seasonAutumn && leafPath) {
-    for (const leaf of leaves) {
-      c.save()
-      c.globalAlpha = LEAF_ALPHA * maskDim(leaf.x, leaf.y)
-      c.fillStyle = drawColor
-      c.translate(leaf.x, leaf.y)
-      c.rotate(leaf.rot)
-      c.scale(LEAF_SCALE, LEAF_SCALE)
-      c.fill(leafPath)
-      c.restore()
-    }
+    updateLeaves(now, dt)
+    for (const leaf of leaves) paintLeaf(leaf, now)
   }
 
   if (seasonSnow && trail.length) {
@@ -2629,17 +2654,89 @@ function spawnFlakes() {
   }
 }
 
+// Leaves are released one by one by updateLeaves; this only (re)starts the clock.
 function spawnLeaves() {
+  nextLeafAt = performance.now() + 600
+}
+
+function dropLeaf(now: number) {
   const margin = edgeMargin.value
-  const count = LEAF_COUNT_MIN + Math.floor(Math.random() * (LEAF_COUNT_RANGE + 1))
-  for (let i = 0; i < count; i++) {
-    leaves.push({
-      x: margin + Math.random() * (cssW - margin * 2),
-      y: margin + Math.random() * (cssH - margin * 2),
-      rot: Math.random() * Math.PI * 2,
-      cooldownUntil: 0
-    })
+  const lands = Math.random() < LEAF_LAND_CHANCE
+  const baseX = margin + Math.random() * (cssW - margin * 2)
+  leaves.push({
+    x: baseX,
+    baseX,
+    y: -20,
+    rot: Math.random() * Math.PI * 2,
+    cooldownUntil: 0,
+    state: 'fall',
+    vy: LEAF_FALL_SPEED_MIN + Math.random() * LEAF_FALL_SPEED_RANGE,
+    amp: LEAF_SWAY_MIN_PX + Math.random() * LEAF_SWAY_RANGE_PX,
+    hz: LEAF_SWAY_HZ_MIN + Math.random() * LEAF_SWAY_HZ_RANGE,
+    phase: Math.random() * Math.PI * 2,
+    spin: (Math.random() < 0.5 ? -1 : 1) * (0.3 + Math.random() * (LEAF_SPIN_MAX - 0.3)),
+    targetY: lands ? margin + Math.random() * (cssH - margin * 2) : cssH + 40,
+    bornAt: now,
+    landedAt: 0,
+    restUntil: 0
+  })
+}
+
+function updateLeaves(now: number, dt: number) {
+  if (now >= nextLeafAt && leaves.length < LEAF_MAX) {
+    dropLeaf(now)
+    nextLeafAt = now + (LEAF_SPAWN_MIN_S + Math.random() * LEAF_SPAWN_RANGE_S) * 1000
   }
+  for (let i = leaves.length - 1; i >= 0; i--) {
+    const l = leaves[i]!
+    if (l.state === 'fall') {
+      l.y += l.vy * dt
+      const t = (now - l.bornAt) / 1000
+      l.x = l.baseX + Math.sin(t * Math.PI * 2 * l.hz + l.phase) * l.amp
+      l.rot += (l.spin + Math.sin(t * 1.7 + l.phase) * 0.5) * dt
+      if (l.y >= l.targetY) {
+        if (l.targetY > cssH) {
+          leaves.splice(i, 1)
+          continue
+        }
+        l.state = 'rest'
+        l.landedAt = now
+        l.restUntil = now + LEAF_REST_MIN_MS + Math.random() * LEAF_REST_RANGE_MS
+      }
+    } else if (now >= l.restUntil + LEAF_FADE_MS) {
+      leaves.splice(i, 1)
+    }
+  }
+}
+
+function paintLeaf(l: Leaf, now: number) {
+  const c = ctx!
+  let blur: number
+  let fade = 1
+  if (l.state === 'fall') {
+    blur = LEAF_FALL_BLUR_PX
+  } else {
+    blur = LEAF_FALL_BLUR_PX * Math.max(0, 1 - (now - l.landedAt) / LEAF_BLUR_SETTLE_MS)
+    if (now > l.restUntil) fade = Math.max(0, 1 - (now - l.restUntil) / LEAF_FADE_MS)
+  }
+  c.save()
+  c.globalAlpha =
+    LEAF_ALPHA * (1 + LEAF_BLUR_ALPHA_BOOST * (blur / LEAF_FALL_BLUR_PX)) * fade * maskDim(l.x, l.y)
+  c.fillStyle = drawColor
+  if (blur > 0.05) {
+    // Same shadow-blur trick as paintFoot: draw offscreen, cast the shadow back.
+    const shift = cssW + SHADOW_SHIFT_MARGIN_PX - Math.min(0, l.x)
+    c.shadowColor = drawColor
+    c.shadowBlur = blur * 2 * dpr
+    c.shadowOffsetX = -shift * dpr
+    c.translate(l.x + shift, l.y)
+  } else {
+    c.translate(l.x, l.y)
+  }
+  c.rotate(l.rot)
+  c.scale(LEAF_SCALE, LEAF_SCALE)
+  c.fill(leafPath!)
+  c.restore()
 }
 
 function startMotion() {
