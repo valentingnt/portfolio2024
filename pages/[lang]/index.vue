@@ -17,6 +17,9 @@ const route = useRoute()
 const { setLanguage, isEnglish, lang } = useLanguage(route.params.lang as string)
 const { mediaRef, onScroll } = useScrollEffect()
 const { isVisible } = usePageTransition()
+const pageRef = ref<HTMLElement | null>(null)
+
+useCharRipple(pageRef)
 const { meta } = useSEO(lang)
 
 const contentSource = aboutAll as AboutMultiLangContent
@@ -48,7 +51,7 @@ useHead(() => meta.value)
 </script>
 
 <template>
-  <div class="AboutPage" :class="{ 'is-visible': isVisible }">
+  <div ref="pageRef" class="AboutPage" :class="{ 'is-visible': isVisible }">
     <div class="container" data-duck-mask>
       <AboutHeader :content="content" :is-english="isEnglish" @language-change="setLanguage" />
 
@@ -85,9 +88,9 @@ useHead(() => meta.value)
               <path d="M1 15.5H13" stroke="currentColor" stroke-linecap="round" />
             </svg>
 
-            {{ content.downloadText }}
+            <UiSplitText :text="content.downloadText" />
 
-            <span class="pdfSize">{{ isEnglish ? '(1.8Mo)' : '(1.9Mo)' }}</span>
+            <span class="pdfSize"><UiSplitText :text="isEnglish ? '(1.8Mo)' : '(1.9Mo)'" /></span>
           </button>
         </div>
 
@@ -180,7 +183,7 @@ useHead(() => meta.value)
       .button {
         @extend %text-body;
         color: var(--color-primary);
-        font-weight: 500;
+        font-weight: var(--font-weight-medium);
         margin-top: 40px;
         display: flex;
         align-items: center;

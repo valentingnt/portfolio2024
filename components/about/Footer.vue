@@ -16,20 +16,20 @@ const emit = defineEmits<{
 <template>
   <footer class="footer">
     <p v-for="(contentItem, index) in content.footer.content" :key="index">
-      {{ contentItem }}
+      <UiSplitText :text="contentItem" />
     </p>
 
     <ul class="links">
       <li class="link">
         <button type="button" class="link-title" @click.passive="emit('mailClick')">
-          {{ mail }}
+          <UiSplitText :text="mail" />
         </button>
         <span class="link-separator" aria-hidden="true">~</span>
       </li>
 
       <li v-for="(link, index) in content.footer.links" :key="link.url" class="link">
         <NuxtLink :to="link.url" target="_blank" rel="noopener noreferrer" class="link-title">
-          {{ link.title }}
+          <UiSplitText :text="link.title" />
         </NuxtLink>
 
         <span v-if="index !== content.footer.links.length - 1" class="link-separator" aria-hidden="true">~</span>

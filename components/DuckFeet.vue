@@ -212,7 +212,7 @@ const ZZZ_LIFE_MS = 2200
 const ZZZ_RISE_PX = 26
 const ZZZ_SWAY_PX = 4
 const ZZZ_ALPHA = 0.28
-const ZZZ_FONT = '11px "DM Mono", monospace'
+const ZZZ_FONT = '11px "Paper Mono", monospace'
 
 // "quack" stampede: a hidden key sequence sends a transient herd thundering
 // across the viewport, the resident flock scattering in brief panic.
