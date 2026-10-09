@@ -1,11 +1,15 @@
 :root {
   --global-font-size: 16;
 
-  --font-weight-regular: 500;
+  // Paper Mono resting weights. useCharRipple() animates individual glyphs
+  // away from these (inline styles) while the cursor moves.
+  --font-weight-body: 400;
+  --font-weight-medium: 500;
+  --font-weight-regular: var(--font-weight-medium);
 
-  --font-family-dm-mono: "DM Mono", monospace;
+  --font-family-paper-mono: "Paper Mono", monospace;
   --font-family-dm-serif-text: "DM Serif Text", serif;
-  --font-family-primary: var(--font-family-dm-mono);
+  --font-family-primary: var(--font-family-paper-mono);
 }
 
 /*
@@ -28,36 +32,24 @@
 }
 
 /*
-* DM Mono
+* Paper Mono (https://paper.design/mono, OFL — see public/fonts/PaperMono/OFL.txt)
+* Variable font, full wght 100–800 axis (the cursor ripple sweeps all of it),
+* subset to the same Latin coverage DM Mono shipped. Every glyph keeps the same
+* advance at any weight, which is what lets the ripple change weights without
+* reflowing text.
+* Upstream has no italic, so `font-style: italic` falls back to a synthesized
+* oblique.
+* The metric overrides copy DM Mono's vertical metrics (992/310/0 per 1000):
+* nothing sets line-height, so `normal` would otherwise drop from 1.30em to
+* Paper Mono's native 1.20em and tighten every block on the page.
 */
 @font-face {
-  font-family: "DM Mono";
-  src: url("/fonts/DMMono/DMMono-Regular.woff2") format("woff2");
-  font-weight: 400;
+  font-family: "Paper Mono";
+  src: url("/fonts/PaperMono/PaperMono-Variable.woff2") format("woff2");
+  font-weight: 100 800;
   font-style: normal;
   font-display: swap;
-}
-
-@font-face {
-  font-family: "DM Mono";
-  src: url("/fonts/DMMono/DMMono-Italic.woff2") format("woff2");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "DM Mono";
-  src: url("/fonts/DMMono/DMMono-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "DM Mono";
-  src: url("/fonts/DMMono/DMMono-MediumItalic.woff2") format("woff2");
-  font-weight: 500;
-  font-style: italic;
-  font-display: swap;
+  ascent-override: 99.2%;
+  descent-override: 31%;
+  line-gap-override: 0%;
 }

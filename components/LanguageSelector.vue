@@ -56,7 +56,7 @@ const emit = defineEmits<{
     position: relative;
 
     &.active {
-      font-weight: 500;
+      font-weight: var(--font-weight-medium);
 
       &::after {
         content: '•';

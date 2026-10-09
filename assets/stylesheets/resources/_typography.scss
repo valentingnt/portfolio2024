@@ -7,23 +7,23 @@
 }
 
 %text-h2 {
-  font-family: var(--font-family-dm-mono);
-  font-weight: 500;
+  font-family: var(--font-family-paper-mono);
+  font-weight: var(--font-weight-medium);
   font-style: normal;
   text-transform: uppercase;
   font-size: 12px;
 }
 
 %text-body {
-  font-family: var(--font-family-dm-mono);
-  font-weight: 400;
+  font-family: var(--font-family-paper-mono);
+  font-weight: var(--font-weight-body);
   font-style: normal;
   font-size: 12px;
 }
 
 %link {
-  font-family: var(--font-family-dm-mono);
-  font-weight: 400;
+  font-family: var(--font-family-paper-mono);
+  font-weight: var(--font-weight-body);
   font-style: normal;
   font-size: 12px;
   text-decoration: underline;

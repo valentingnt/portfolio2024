@@ -51,6 +51,12 @@ body,
   font-size: calc(var(--global-font-size) * 1px);
   font-family: var(--font-family-primary);
   font-weight: var(--font-weight-regular);
+  // Text is split into one span per glyph (useCharRipple), and each span's
+  // width is rounded on its own, so a line that used to fit to ~0.05px (full
+  // 66-char lines in the 480px column) would lose its last word. Shaving 1/64px
+  // per glyph (one layout unit, invisible) keeps the original line breaks at
+  // the desktop width and the common phone widths.
+  letter-spacing: -0.015625px;
   scroll-behavior: smooth;
   -webkit-scroll-behavior: smooth;
 

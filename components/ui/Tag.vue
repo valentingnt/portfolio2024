@@ -33,7 +33,7 @@ const characters = computed(() => [...title].map((char) => (char === ' ' ? NON_B
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--color-primary);
   opacity: 0.8;
   position: relative;

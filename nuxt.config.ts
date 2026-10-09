@@ -27,7 +27,7 @@ export default defineNuxtConfig({
           rel: "preload",
           as: "font",
           type: "font/woff2",
-          href: "/fonts/DMMono/DMMono-Regular.woff2",
+          href: "/fonts/PaperMono/PaperMono-Variable.woff2",
           crossorigin: "anonymous",
         },
         {
@@ -35,13 +35,6 @@ export default defineNuxtConfig({
           as: "font",
           type: "font/woff2",
           href: "/fonts/DMSerifText/DMSerifText-Regular.woff2",
-          crossorigin: "anonymous",
-        },
-        {
-          rel: "preload",
-          as: "font",
-          type: "font/woff2",
-          href: "/fonts/DMMono/DMMono-Medium.woff2",
           crossorigin: "anonymous",
         },
       ],
