@@ -1,0 +1,27 @@
+@use '../variables/animations' as *;
+
+// Mobile-only frosted pill behind a fixed header control. It replaces the old
+// full-width scrim: the page scrolls under two small blurred pills instead.
+// The backdrop-filter must sit on the same element that carries page-transition's
+// `filter`/`transform` (a filtered ancestor becomes a backdrop root and would
+// blur nothing), so the transition list is restated here with the colour
+// fades appended, otherwise the pill would snap on theme change.
+@mixin header-pill($delay) {
+  @media (max-width: 640px) {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--color-secondary) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 10%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition:
+      opacity $transition-duration $transition-timing $delay,
+      transform $transition-duration $transition-timing $delay,
+      filter $transition-duration $transition-timing $delay,
+      background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}

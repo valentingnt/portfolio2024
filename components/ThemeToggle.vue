@@ -78,6 +78,7 @@ onMounted(() => {
 <style scoped lang="scss">
 @use '~/assets/stylesheets/resources/typography' as *;
 @use '~/assets/stylesheets/variables/animations' as *;
+@use '~/assets/stylesheets/resources/pill' as *;
 
 .theme-toggle {
   @include page-transition($page-transition-theme-toggle-delay);
@@ -87,6 +88,26 @@ onMounted(() => {
   left: 24px;
   z-index: 2;
   opacity: 0;
+
+  @include header-pill($page-transition-theme-toggle-delay);
+
+  @media (max-width: 640px) {
+    top: 12px;
+    left: 16px;
+
+    // Chevron drawn in CSS so the native select still reads as a button
+    &::after {
+      content: '';
+      width: 5px;
+      height: 5px;
+      margin: -3px 0 0 8px;
+      border-right: 1.5px solid var(--color-primary);
+      border-bottom: 1.5px solid var(--color-primary);
+      transform: rotate(45deg);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
 
   .current-theme,
   .theme-option {
@@ -179,7 +200,7 @@ onMounted(() => {
     -webkit-appearance: none;
     background-repeat: no-repeat;
     background-position: right 8px center;
-    text-decoration: underline;
+    height: 100%;
 
     &:focus {
       outline: none;

@@ -162,6 +162,7 @@ useHead(() => meta.value)
       width: 100%;
       margin-top: 64px;
       overflow: hidden;
+      border-radius: 2px;
       aspect-ratio: 1.6180339887 / 1;
       @include page-transition($page-transition-media-delay);
 

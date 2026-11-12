@@ -40,7 +40,6 @@ const emit = defineEmits<{
 
 <style scoped lang="scss">
 @use '~/assets/stylesheets/resources/typography' as *;
-@use '~/assets/stylesheets/resources/easeGradient' as *;
 @use '~/assets/stylesheets/variables/animations' as *;
 
 .Header {
@@ -86,15 +85,9 @@ const emit = defineEmits<{
   }
 
   @media (max-width: 640px) {
-    &::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 72px;
-      z-index: 1;
-      @include theme-ease-gradient(to bottom);
+    .top-bar {
+      top: 12px;
+      right: 16px;
     }
   }
 }
