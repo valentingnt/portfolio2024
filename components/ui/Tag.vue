@@ -55,7 +55,7 @@ const characters = computed(() => [...title].map((char) => (char === ' ' ? NON_B
     top: calc(50% - 2px);
     width: 4px;
     height: 4px;
-    background-color: var(--color-accent);
+    background-color: var(--color-primary);
     border-radius: 50%;
     opacity: 0.5;
     margin-left: -12px;

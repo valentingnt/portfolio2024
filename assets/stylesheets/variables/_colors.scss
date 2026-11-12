@@ -10,10 +10,9 @@
 [data-theme="dark"] {
   --color-primary: #FFFDF9;
   --color-secondary: #2B2B2B;
-  // Lie-de-vin, only slightly lifted from the light value: deeper than a
-  // contrast-safe tint on purpose (graphics only, never text)
-  --color-accent: #8F3A50;
+  // No colour accent in dark: a warm grey keeps graphic elements discreet
+  --color-accent: #737170;
   --color-primary-rgb: 255, 253, 249;
   --color-secondary-rgb: 43, 43, 43;
-  --color-accent-rgb: 143, 58, 80;
+  --color-accent-rgb: 115, 113, 112;
 }

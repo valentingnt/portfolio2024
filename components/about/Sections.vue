@@ -102,10 +102,6 @@ $badge-hide-below: $column-max-width + 2 * ($badge-min-size + $badge-gap + $badg
       list-style: '• ' inside;
       padding-left: 5px;
 
-      &::marker {
-        color: var(--color-accent);
-      }
-
       .link {
         @extend %link;
 
