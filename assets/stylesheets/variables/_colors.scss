@@ -10,9 +10,10 @@
 [data-theme="dark"] {
   --color-primary: #FFFDF9;
   --color-secondary: #2B2B2B;
-  // Lie-de-vin lightened so it keeps ~3:1 on the dark paper (graphics only)
-  --color-accent: #B8566F;
+  // Lie-de-vin, only slightly lifted from the light value: deeper than a
+  // contrast-safe tint on purpose (graphics only, never text)
+  --color-accent: #8F3A50;
   --color-primary-rgb: 255, 253, 249;
   --color-secondary-rgb: 43, 43, 43;
-  --color-accent-rgb: 184, 86, 111;
+  --color-accent-rgb: 143, 58, 80;
 }

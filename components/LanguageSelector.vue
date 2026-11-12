@@ -11,40 +11,20 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div
+  <!-- One switch: a click anywhere on it flips the language, not just on a label -->
+  <button
+    type="button"
+    role="switch"
     class="LanguageSelector"
     :class="{ 'is-english': isEnglish }"
-    role="tablist"
-    aria-label="Language"
-    @keydown.left.prevent="emit('change', 'fr')"
-    @keydown.right.prevent="emit('change', 'en')"
+    :aria-checked="isEnglish"
+    :aria-label="isEnglish ? 'Passer en français' : 'Switch to English'"
+    @click.passive="emit('change', isEnglish ? 'fr' : 'en')"
   >
     <span class="indicator" aria-hidden="true" />
-    <button
-      type="button"
-      role="tab"
-      class="language-selector-item"
-      :class="{ active: !isEnglish }"
-      :aria-selected="!isEnglish"
-      :tabindex="isEnglish ? -1 : 0"
-      aria-label="Passer en français"
-      @click.passive="emit('change', 'fr')"
-    >
-      FR
-    </button>
-    <button
-      type="button"
-      role="tab"
-      class="language-selector-item"
-      :class="{ active: isEnglish }"
-      :aria-selected="isEnglish"
-      :tabindex="isEnglish ? 0 : -1"
-      aria-label="Switch to English"
-      @click.passive="emit('change', 'en')"
-    >
-      EN
-    </button>
-  </div>
+    <span class="language-selector-item" :class="{ active: !isEnglish }" aria-hidden="true">FR</span>
+    <span class="language-selector-item" :class="{ active: isEnglish }" aria-hidden="true">EN</span>
+  </button>
 </template>
 
 <style scoped lang="scss">
@@ -62,6 +42,8 @@ const emit = defineEmits<{
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  color: inherit;
+  cursor: pointer;
   opacity: 0;
 
   @include header-pill($page-transition-language-selector-delay);
@@ -96,8 +78,6 @@ const emit = defineEmits<{
     justify-content: center;
     padding: 6px 10px;
     border-radius: 999px;
-    color: inherit;
-    cursor: pointer;
     opacity: 0.55;
     transition: opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -105,16 +85,17 @@ const emit = defineEmits<{
       font-weight: var(--font-weight-medium);
       opacity: 1;
     }
+  }
 
-    &:focus-visible {
-      outline: 1.5px solid var(--color-accent);
-      outline-offset: -1.5px;
-    }
+  &:focus-visible {
+    outline: 1.5px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 
-    @media (hover: hover) {
-      &:hover {
-        opacity: 1;
-      }
+  // The whole switch is the target, so hovering it lifts the inactive label
+  @media (hover: hover) {
+    &:hover .language-selector-item {
+      opacity: 1;
     }
   }
 
