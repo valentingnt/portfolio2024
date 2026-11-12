@@ -52,7 +52,7 @@ export function useConsoleEgg(): void {
       const accent = getComputedStyle(document.documentElement)
         .getPropertyValue("--color-accent-rgb")
         .trim()
-      const color = accent ? `rgb(${accent})` : "#a5909f"
+      const color = accent ? `rgb(${accent})` : "#7a2f42"
       const base = `font-family: monospace; color: ${color}`
 
       // Fired at idle, well after the `/` redirect settled, so the param is

@@ -61,13 +61,13 @@ function handleError() {
 
   .status {
     font-size: 64px;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     opacity: 0.5;
   }
 
   .heading {
     font-size: 20px;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
   }
 
   .link {

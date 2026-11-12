@@ -1,17 +1,18 @@
 :root {
   --color-primary: #2B2B2B;
   --color-secondary: #FFFDF9;
-  --color-accent: #A5909F;
+  --color-accent: #7A2F42;
   --color-primary-rgb: 43, 43, 43;
   --color-secondary-rgb: 255, 253, 249;
-  --color-accent-rgb: 165, 144, 159;
+  --color-accent-rgb: 122, 47, 66;
 }
 
 [data-theme="dark"] {
   --color-primary: #FFFDF9;
   --color-secondary: #2B2B2B;
-  --color-accent: #A5909F;
+  // Lie-de-vin lightened so it keeps ~3:1 on the dark paper (graphics only)
+  --color-accent: #B8566F;
   --color-primary-rgb: 255, 253, 249;
   --color-secondary-rgb: 43, 43, 43;
-  --color-accent-rgb: 165, 144, 159;
+  --color-accent-rgb: 184, 86, 111;
 }

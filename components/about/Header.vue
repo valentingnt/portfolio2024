@@ -22,7 +22,7 @@ const emit = defineEmits<{
 
     <div class="title-container">
       <div class="subtitle-container">
-        <p class="subtitle">{{ content.header.subtitle }}</p>
+        <p class="subtitle"><UiSplitText :text="content.header.subtitle" /></p>
         <svg
           class="separator"
           width="100%"
@@ -79,7 +79,7 @@ const emit = defineEmits<{
         flex: 1 0 0;
 
         line {
-          stroke: var(--color-primary);
+          stroke: var(--color-accent);
         }
       }
     }

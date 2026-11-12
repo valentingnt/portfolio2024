@@ -20,7 +20,7 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
     :style="{ '--index': sectionIndex }"
   >
     <h2 v-if="section.title" class="title">
-      {{ section.title }}
+      <UiSplitText :text="section.title" />
     </h2>
 
     <ul v-if="Array.isArray(section.content)" class="list">
@@ -32,12 +32,12 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
       >
         <template v-if="isItemObject(item)">
           <a v-if="item.href" :href="item.href" class="link" target="_blank" rel="noopener noreferrer">
-            {{ item.title }}
+            <UiSplitText :text="item.title" />
           </a>
-          <span v-else>{{ item.title }}</span>
+          <UiSplitText v-else :text="item.title" />
 
           <span v-if="item.subtitle" class="link-subtitle">
-            {{ item.subtitle }}
+            <UiSplitText :text="item.subtitle" />
           </span>
 
           <NuxtImg
@@ -52,25 +52,33 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
           />
         </template>
 
-        <span v-else>{{ item }}</span>
+        <UiSplitText v-else :text="item" />
       </li>
     </ul>
 
     <!-- Content comes from local JSON, not user input -->
-    <!-- eslint-disable vue/no-v-html -->
-    <p
-      v-else
-      class="paragraph"
-      :class="{ quote: !section.title }"
-      v-html="section.title ? parseMarkdown(section.content) : section.content"
-    />
-    <!-- eslint-enable vue/no-v-html -->
+    <p v-else class="paragraph" :class="{ quote: !section.title }">
+      <UiSplitText v-if="section.title" :text="parseMarkdown(section.content)" html />
+      <!-- Deliberately not split: the quote is proportional Familjen Grotesk, so the
+           ripple's weight swings would reflow it (the ripple relies on Paper Mono's fixed advance) -->
+      <template v-else>{{ section.content }}</template>
+    </p>
   </div>
 </template>
 
 <style scoped lang="scss">
 @use '~/assets/stylesheets/resources/typography' as *;
 @use '~/assets/stylesheets/variables/animations' as *;
+
+// Certification badge previews live in the left gutter, beside the column.
+// They shrink with the gutter and are dropped once it can't fit a legible one
+// (the link still leads to the badge on Credly) rather than covering text.
+$badge-max-size: 300px;
+$badge-min-size: 160px;
+$badge-gap: 12px; // between badge and column
+$badge-edge-margin: 12px; // between badge and window edge (also absorbs classic scrollbars in 100vw)
+$column-max-width: 480px; // .AboutPage .container
+$badge-hide-below: $column-max-width + 2 * ($badge-min-size + $badge-gap + $badge-edge-margin);
 
 .sections {
   @include page-transition(calc($page-transition-sections-base-delay + var(--index) * $page-transition-sections-increment));
@@ -86,12 +94,17 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
     @extend %link;
   }
 
+
   .list {
     text-align: left;
 
     .list-item {
       list-style: '• ' inside;
       padding-left: 5px;
+
+      &::marker {
+        color: var(--color-accent);
+      }
 
       .link {
         @extend %link;
@@ -114,11 +127,14 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
 
       .badge-preview {
         position: absolute;
-        right: calc(100% + 12px);
+        right: calc(100% + #{$badge-gap});
         top: 50%;
         transform: translateY(-50%);
-        width: 300px;
-        height: 300px;
+        // The containing block is the section column (its transform makes it
+        // one), so (100vw - 100%) / 2 is the gutter beside it
+        width: min(#{$badge-max-size}, calc((100vw - 100%) / 2 - #{$badge-gap + $badge-edge-margin}));
+        height: auto;
+        aspect-ratio: 1;
         object-fit: contain;
         border-radius: 8px;
         pointer-events: none;
@@ -139,11 +155,20 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
             filter cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
         }
       }
+
+      @media (max-width: #{$badge-hide-below - 1px}) {
+        .badge-preview {
+          display: none;
+        }
+      }
     }
   }
 
   .quote {
+    font-family: var(--font-family-familjen-grotesk);
+    font-weight: 400;
     font-style: italic;
+    font-size: 16px;
     position: relative;
     padding: 0 40px;
     text-align: center;
@@ -151,7 +176,9 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
     &::before {
       content: '“';
       position: absolute;
-      font-family: "DM Serif Text";
+      font-family: var(--font-family-familjen-grotesk);
+      font-weight: 600;
+      color: var(--color-accent);
       line-height: 0;
       font-size: 56px;
       top: 12px;
@@ -161,7 +188,9 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
     &::after {
       content: '”';
       position: absolute;
-      font-family: "DM Serif Text";
+      font-family: var(--font-family-familjen-grotesk);
+      font-weight: 600;
+      color: var(--color-accent);
       line-height: 0;
       font-size: 56px;
       bottom: -12px;

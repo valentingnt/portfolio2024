@@ -96,7 +96,7 @@ onMounted(() => {
     align-items: center;
     gap: 8px;
     color: var(--color-primary);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     padding: 6px 10px;
     border-radius: 60px;
     border: none;
@@ -171,7 +171,7 @@ onMounted(() => {
   .mobile-select {
     @extend %text-body;
     color: var(--color-primary);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
     border: none;
     background: transparent;
     cursor: pointer;
