@@ -13,6 +13,15 @@ export default defineNuxtConfig({
           innerHTML: `(function(){try{var m=document.cookie.match(/(?:^|; )theme-preference=([^;]*)/);var p=m?decodeURIComponent(m[1]).replace(/^"|"$/g,""):"system";var d=p==="dark"||(p==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light")}catch(e){}})()`,
           tagPosition: "head",
         },
+        {
+          // Self-heal a poisoned cache. Hashed /_nuxt/* files are served with
+          // `immutable`, 404s included, so a chunk requested during a deploy
+          // stays "404" in the browser (and CDN) for a year and the app never
+          // boots. On a failed module load, refetch those files bypassing the
+          // cache (this overwrites the cached 404), then reload once.
+          innerHTML: `(function(){function h(){try{var k="chunk-heal",t=+sessionStorage.getItem(k)||0;if(Date.now()-t<30000)return;sessionStorage.setItem(k,Date.now())}catch(e){return}var u=[].map.call(document.querySelectorAll('link[rel=modulepreload],script[type=module][src]'),function(e){return e.href||e.src});Promise.all(u.map(function(x){return fetch(x,{cache:"reload"}).catch(function(){})})).then(function(){location.reload()})}window.addEventListener("error",function(e){var t=e.target;if(t&&((t.tagName==="SCRIPT"&&t.type==="module")||(t.tagName==="LINK"&&t.rel==="modulepreload")))h()},true)})()`,
+          tagPosition: "head",
+        },
       ],
       link: [
         { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },

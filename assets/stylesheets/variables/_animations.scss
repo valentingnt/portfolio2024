@@ -18,12 +18,24 @@ $page-transition-footer-delay: 0.6s;
 // Transition duration
 $transition-duration: 1.2s;
 
+// Safety net: the entrance hides content until JS adds .is-visible, so a failed
+// script load (stale cache, blocked chunk) used to leave a blank page forever.
+// After a few seconds this forces the end state with no JS at all.
+@keyframes page-transition-failsafe {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: none;
+  }
+}
+
 // Mixin for page transition
 @mixin page-transition($delay) {
   opacity: 0.001;
   transform: translateY(15px);
   filter: blur(10px);
   will-change: transform, opacity, filter;
+  animation: page-transition-failsafe 0.01s 4s forwards;
   transition:
     opacity $transition-duration $transition-timing $delay,
     transform $transition-duration $transition-timing $delay,
@@ -32,7 +44,9 @@ $transition-duration: 1.2s;
   .AboutPage.is-visible & {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
+    // none, not blur(0): a permanent filter keeps every section (and the photo
+    // clip) on its own repainted layer, which hurts scrolling on phones
+    filter: none;
     will-change: auto;
   }
 }

@@ -11,7 +11,16 @@ const { enableAnimation = true, strength = 1.5, speed = 0.5, bend = 0 } = define
 
 const component = ref<HTMLElement | null>(null)
 const wrapper = ref<HTMLDivElement | null>(null)
-const transform = ref(0)
+const scroller = ref<HTMLElement | null>(null)
+// Deliberately not reactive: it changes every frame, and binding it in the
+// template re-rendered the whole marquee (every tag, every copy) 60 times a
+// second, which is what made it stutter on phones. The DOM is written directly.
+const transform = { value: 0 }
+
+function setTransform(value: number) {
+  transform.value = value
+  if (scroller.value) scroller.value.style.transform = `translate3d(${-value}px, 0, 0)`
+}
 const wrapperWidth = ref(1)
 const componentWidth = ref(1)
 const slotCount = computed(() => Math.ceil(componentWidth.value / wrapperWidth.value) + 1)
@@ -56,7 +65,7 @@ function updateTransform() {
   }
 
   if (dragState.isDragging) {
-    transform.value = normalizeTransform(dragState.startTransform + (dragState.startX - dragState.lastX))
+    setTransform(normalizeTransform(dragState.startTransform + (dragState.startX - dragState.lastX)))
     applyBend()
     return
   }
@@ -66,7 +75,7 @@ function updateTransform() {
     currentSpeed = speed
   }
 
-  transform.value = normalizeTransform(transform.value + currentSpeed * scrollState.direction + velocity.value * strength)
+  setTransform(normalizeTransform(transform.value + currentSpeed * scrollState.direction + velocity.value * strength))
   applyBend()
 }
 
@@ -211,7 +220,7 @@ function handleDragMove(event: MouseEvent | TouchEvent) {
   dragState.lastX = currentX
   dragState.lastTime = currentTime
 
-  transform.value = normalizeTransform(dragState.startTransform + (dragState.startX - currentX))
+  setTransform(normalizeTransform(dragState.startTransform + (dragState.startX - currentX)))
   applyBend()
 }
 
@@ -234,7 +243,7 @@ function handleWheel(event: WheelEvent) {
   // deltaMode is 1 (lines) for some mice instead of 0 (pixels)
   const scale = event.deltaMode === 1 ? 16 : 1
 
-  transform.value = normalizeTransform(transform.value + event.deltaX * scale)
+  setTransform(normalizeTransform(transform.value + event.deltaX * scale))
   applyBend()
 }
 
@@ -308,7 +317,7 @@ onUnmounted(() => {
     @touchmove.passive="handleDragMove"
     @touchend.passive="handleDragEnd"
   >
-    <div class="scroller" :style="{ transform: `translate3d(${-transform}px, 0, 0)` }">
+    <div ref="scroller" class="scroller">
       <div ref="wrapper" class="wrapper">
         <slot />
       </div>

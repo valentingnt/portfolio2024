@@ -172,7 +172,7 @@ useHead(() => meta.value)
         bottom: 0;
         left: 0;
         width: 100%;
-        transform: translateY(calc(var(--scrollY) * 1px));
+        transform: translate3d(0, 0, 0);
       }
     }
 
@@ -240,7 +240,7 @@ useHead(() => meta.value)
       .separator {
         opacity: 1;
         transform: translateY(0);
-        filter: blur(0);
+        filter: none;
       }
     }
   }

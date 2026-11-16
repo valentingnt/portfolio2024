@@ -7,7 +7,10 @@ export function useScrollEffect() {
     if (!isIntersecting.value) return
 
     const value = Math.max(scrollY * 0.1, 0)
-    mediaRef.value?.style.setProperty('--scrollY', `${value}`)
+    // Straight to the image's transform: a custom property on the container made
+    // the browser re-resolve calc(var()) through the subtree on every scroll frame
+    const img = mediaRef.value?.firstElementChild as HTMLElement | null
+    if (img) img.style.transform = `translate3d(0, ${value}px, 0)`
   }
 
   onMounted(() => {
