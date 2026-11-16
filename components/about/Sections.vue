@@ -59,7 +59,7 @@ function isItemObject(item: string | AboutSectionItem): item is AboutSectionItem
     <!-- Content comes from local JSON, not user input -->
     <p v-else class="paragraph" :class="{ quote: !section.title }">
       <UiSplitText v-if="section.title" :text="parseMarkdown(section.content)" html />
-      <!-- Deliberately not split: the quote is proportional Familjen Grotesk, so the
+      <!-- Deliberately not split: the quote is proportional handwriting, so the
            ripple's weight swings would reflow it (the ripple relies on Paper Mono's fixed advance) -->
       <template v-else>{{ section.content }}</template>
     </p>
@@ -87,7 +87,7 @@ $badge-hide-below: $column-max-width + 2 * ($badge-min-size + $badge-gap + $badg
 
   .title {
     @extend %text-h2;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
   }
 
   :deep(.link) {
@@ -100,6 +100,13 @@ $badge-hide-below: $column-max-width + 2 * ($badge-min-size + $badge-gap + $badg
 
     .list-item {
       list-style: '• ' inside;
+
+      // The bullet is drawn in the handwritten font (hence the larger size: it is a dot)
+      &::marker {
+        font-family: var(--font-family-handwritten);
+        font-size: 16px;
+        color: var(--color-accent);
+      }
       padding-left: 5px;
 
       .link {
@@ -115,10 +122,10 @@ $badge-hide-below: $column-max-width + 2 * ($badge-min-size + $badge-gap + $badg
       }
 
       .link-subtitle {
-        font-size: 10px;
+        @extend %text-hand;
+        font-size: 15px;
         opacity: 0.65;
         margin-left: 5px;
-        font-style: italic;
       }
 
       .badge-preview {
@@ -161,10 +168,10 @@ $badge-hide-below: $column-max-width + 2 * ($badge-min-size + $badge-gap + $badg
   }
 
   .quote {
-    font-family: var(--font-family-familjen-grotesk);
+    font-family: var(--font-family-handwritten);
     font-weight: 400;
-    font-style: italic;
-    font-size: 16px;
+    font-style: normal;
+    font-size: 22px;
     position: relative;
     padding: 0 40px;
     text-align: center;
@@ -172,8 +179,8 @@ $badge-hide-below: $column-max-width + 2 * ($badge-min-size + $badge-gap + $badg
     &::before {
       content: '“';
       position: absolute;
-      font-family: var(--font-family-familjen-grotesk);
-      font-weight: 600;
+      font-family: var(--font-family-handwritten);
+      font-weight: 400;
       color: var(--color-accent);
       line-height: 0;
       font-size: 56px;
@@ -184,8 +191,8 @@ $badge-hide-below: $column-max-width + 2 * ($badge-min-size + $badge-gap + $badg
     &::after {
       content: '”';
       position: absolute;
-      font-family: var(--font-family-familjen-grotesk);
-      font-weight: 600;
+      font-family: var(--font-family-handwritten);
+      font-weight: 400;
       color: var(--color-accent);
       line-height: 0;
       font-size: 56px;

@@ -69,7 +69,12 @@ const emit = defineEmits<{
       gap: 20px;
 
       .subtitle {
+        // The only label that stays in Paper Mono, uppercase
         @extend %text-h2;
+        font-family: var(--font-family-paper-mono);
+        font-weight: var(--font-weight-medium);
+        text-transform: uppercase;
+        font-size: 12px;
         flex: 0 0 auto;
       }
 

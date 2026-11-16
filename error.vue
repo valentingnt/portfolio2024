@@ -49,6 +49,7 @@ function handleError() {
   min-height: 100vh;
   padding: 24px;
   color: var(--color-primary);
+  font-family: var(--font-family-handwritten);
   text-align: center;
 
   .container {
@@ -66,7 +67,7 @@ function handleError() {
   }
 
   .heading {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: var(--font-weight-medium);
   }
 
