@@ -9,6 +9,7 @@
 
   --font-family-paper-mono: "Paper Mono", monospace;
   --font-family-familjen-grotesk: "Familjen Grotesk", sans-serif;
+  --font-family-handwritten: "Handwritten", "Familjen Grotesk", sans-serif;
   --font-family-primary: var(--font-family-paper-mono);
 }
 
@@ -35,6 +36,19 @@
   line-gap-override: 0%;
 }
 
+
+/*
+* Handwritten: Valentin's own hand, used for the quote only. Single weight, French
+* accents (and œ, « ») generated from the base letters, so no italic/bold: a
+* heavier weight would be synthesized.
+*/
+@font-face {
+  font-family: "Handwritten";
+  src: url("/fonts/Handwritten/Handwritten.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 /*
 * Familjen Grotesk (OFL — see public/fonts/FamiljenGrotesk/OFL.txt)

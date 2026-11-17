@@ -60,7 +60,7 @@ Section text supports one markdown feature: `[label](url)` links, converted by `
 
 ### Theming: `data-theme` attribute + CSS custom properties
 
-- Palette is defined once in `assets/stylesheets/variables/_colors.scss` as `--color-primary` / `--color-secondary` / `--color-accent` (plus `-rgb` variants), flipped by `[data-theme="dark"]`. The accent is lie-de-vin (`#7A2F42`, but plain warm grey `#737170` in dark: no colour accent there) and appears only on the header and footer separator lines, the quote marks and the FR/EN switch (never on text, bullets, tag dots or link underlines). **Always use these variables for colors — never hardcode hex values in components.**
+- Palette is defined once in `assets/stylesheets/variables/_colors.scss` as `--color-primary` / `--color-secondary` / `--color-accent` (plus `-rgb` variants), flipped by `[data-theme="dark"]`. The accent is lie-de-vin (`#7A2F42`, but plain warm grey `#737170` in dark: no colour accent there) and appears only on the header and footer separator lines, the quote marks, the list bullets and the FR/EN switch (never on text, tag dots or link underlines). **Always use these variables for colors — never hardcode hex values in components.**
 - `useTheme()` stores the preference (`light`/`dark`/`system`) in the `theme-preference` cookie and sets `data-theme` on `<html>`.
 - An inline script in `nuxt.config.ts` head reads that cookie and sets `data-theme` **before first paint** to avoid a flash. If you change the cookie name or theme logic, update that inline script too.
 - Theme color changes transition over 0.5s `cubic-bezier(0.22, 1, 0.36, 1)` (see `globals.scss`); `DuckFeet.vue` replicates this same duration/curve in canvas — keep them in sync.
@@ -95,7 +95,7 @@ A ~1000-line canvas simulation of duck footprints (wander/flee/idle behaviors, s
 
 - SCSS everywhere, `<style scoped lang="scss">` in components.
 - Import shared partials with `@use '~/assets/stylesheets/...' as *`.
-- Typography via placeholder selectors: `@extend %text-body`, `%text-h1`, `%text-h2`, `%link` (from `resources/_typography.scss`). Fonts are Paper Mono (body and h2 labels, single variable woff2, full wght 100–800 axis) and Familjen Grotesk 600 (h1 and the quote, same as the quote/invoice titles), self-hosted in `public/fonts/`.
+- Typography via placeholder selectors: `@extend %text-body`, `%text-h1`, `%text-h2`, `%link` (from `resources/_typography.scss`). Fonts are Paper Mono (body and h2 labels, single variable woff2, full wght 100–800 axis), Familjen Grotesk 600 (h1, same as the quote/invoice titles) and a handwritten face for the quote only (`--font-family-handwritten`, single weight, accents generated), self-hosted in `public/fonts/`.
 - Entrance animations use the `@include page-transition($delay)` mixin with per-element `$page-transition-*-delay` variables from `variables/_animations.scss`; they activate when `.AboutPage.is-visible` is set by `usePageTransition()`. New page elements should join this system, not invent their own entrance.
 - Hover styles go inside `@media (hover: hover)` so touch devices don't get sticky hovers.
 - Mobile breakpoint is `640px` (used consistently in SCSS media queries and JS `MOBILE_BREAKPOINT` constants).
