@@ -182,9 +182,6 @@ export function useCharRipple(rootRef: Ref<HTMLElement | null>): void {
     const scrollY = window.scrollY
     // Resting weight comes from the parent (a glyph only ever carries our inline style)
     const baseByParent = new Map<Element, number>()
-    // The handwriting face has a single weight and proportional advances: a
-    // weight swing would only synthesize bold and reflow the line, so skip it
-    const skipParents = new Set<Element>()
     const next: Glyph[] = []
 
     for (const el of root.querySelectorAll<HTMLElement>(GLYPH_SELECTOR)) {
@@ -194,14 +191,9 @@ export function useCharRipple(rootRef: Ref<HTMLElement | null>): void {
       const parent = el.parentElement
       let base = parent ? baseByParent.get(parent) : undefined
       if (base === undefined) {
-        const style = parent ? getComputedStyle(parent) : undefined
-        base = style ? Number.parseFloat(style.fontWeight) || 400 : 400
-        if (parent && style) {
-          baseByParent.set(parent, base)
-          if (style.fontFamily.includes('Handwritten')) skipParents.add(parent)
-        }
+        base = parent ? Number.parseFloat(getComputedStyle(parent).fontWeight) || 400 : 400
+        if (parent) baseByParent.set(parent, base)
       }
-      if (parent && skipParents.has(parent)) continue
 
       const x = rect.left + rect.width / 2 + scrollX
       const y = rect.top + rect.height / 2 + scrollY

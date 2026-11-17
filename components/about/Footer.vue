@@ -43,7 +43,6 @@ const emit = defineEmits<{
 @use '~/assets/stylesheets/variables/animations' as *;
 
 .footer {
-  @extend %text-hand;
   @include page-transition($page-transition-footer-delay);
 
   display: flex;
@@ -67,9 +66,7 @@ const emit = defineEmits<{
     }
 
     .link-title {
-      @extend %text-hand;
-      text-decoration: underline;
-      text-underline-offset: 2px;
+      @extend %link;
 
       color: inherit;
       transition: transform cubic-bezier(0.22, 1, 0.36, 1) 0.2s;

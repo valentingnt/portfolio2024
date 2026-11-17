@@ -43,7 +43,7 @@ export default defineNuxtConfig({
           rel: "preload",
           as: "font",
           type: "font/woff2",
-          href: "/fonts/Handwritten/Handwritten.woff2",
+          href: "/fonts/FamiljenGrotesk/FamiljenGrotesk-600.woff2",
           crossorigin: "anonymous",
         },
       ],

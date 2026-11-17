@@ -204,9 +204,8 @@ useHead(() => meta.value)
         }
 
         .pdfSize {
-          font-family: var(--font-family-handwritten);
-          font-size: 12px;
-          font-style: normal;
+          font-size: 8px;
+          font-style: italic;
           align-content: center;
           margin-top: 2px;
         }

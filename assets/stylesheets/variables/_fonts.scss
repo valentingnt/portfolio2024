@@ -9,7 +9,6 @@
 
   --font-family-paper-mono: "Paper Mono", monospace;
   --font-family-familjen-grotesk: "Familjen Grotesk", sans-serif;
-  --font-family-handwritten: "Handwritten", "Familjen Grotesk", sans-serif;
   --font-family-primary: var(--font-family-paper-mono);
 }
 
@@ -36,18 +35,6 @@
   line-gap-override: 0%;
 }
 
-
-/*
-* Handwritten: Valentin's own hand. ASCII + typographic punctuation only (no accents),
-* so accented glyphs fall back to Familjen Grotesk via the stack above.
-*/
-@font-face {
-  font-family: "Handwritten";
-  src: url("/fonts/Handwritten/Handwritten.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
 
 /*
 * Familjen Grotesk (OFL — see public/fonts/FamiljenGrotesk/OFL.txt)
