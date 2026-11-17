@@ -25,15 +25,23 @@ export default defineNuxtConfig({
       ],
       link: [
         // One duck paw: dark on light tabs, cream on dark ones (follows the OS
-        // scheme: a tab icon cannot see the site's own theme toggle)
-        { rel: "icon", type: "image/x-icon", href: "/favicon.ico", sizes: "any" },
+        // scheme: a tab icon cannot see the site's own theme toggle). The .ico is
+        // the fallback for browsers that ignore the PNGs.
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/favicon.png",
+          sizes: "96x96",
+          media: "(prefers-color-scheme: light)",
+        },
         {
           rel: "icon",
           type: "image/png",
           href: "/favicon-dark.png",
-          sizes: "64x64",
+          sizes: "96x96",
           media: "(prefers-color-scheme: dark)",
         },
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico", sizes: "any" },
         { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
         {
           rel: "preload",
