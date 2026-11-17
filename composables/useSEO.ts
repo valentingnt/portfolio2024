@@ -54,10 +54,15 @@ export function useSEO(lang: Ref<string>): UseSeoReturn {
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
+        // One image per language (tagline differs); the lang suffix also busts
+        // the caches social networks keep per image URL
         {
           property: "og:image",
-          content: "https://valentingenest.fr/img/ogImage.jpg",
+          content: `https://valentingenest.fr/img/ogImage-${lang.value}.jpg`,
         },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: "Valentin Genest" },
         { property: "og:url", content: url },
         { property: "og:locale", content: isEnglish ? "en_US" : "fr_FR" },
         { property: "og:site_name", content: "Valentin Genest" },
